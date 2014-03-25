@@ -1,0 +1,49 @@
+
+\documentclass[a4paper,12pt,twoside]{report}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=3cm]{geometry}
+\usepackage[pdfauthor={Thomas C.P. Chau},
+			pdftitle={Optimising reconfigurable systems for real-time applications},
+			pdfsubject={Thesis},
+			pdfkeywords={reconfigurable systems, FPGAs}]{hyperref}
+
+\include{thesis.preamble}
+
+
+\begin{document}
+
+\title{\LARGE {\bf Optimising reconfigurable systems for real-time applications}\\
+ \vspace*{6mm}
+}
+
+\author{Thomas Chun Pong Chau}
+\submitdate{April 2014}
+
+\normallinespacing
+\maketitle
+
+\preface
+\input{abstract/abstract}
+\input{acknowledgements/acknowledgements}
+\input{dedication/dedication}
+\input{quotes/quotes}
+
+\body
+\input{introduction/introduction}
+\input{background/background}
+
+% body of thesis comes here
+\input{mixed_precision/mixed_precision}
+\input{runtime_reconfiguration/runtime_reconfiguration}
+\input{design_flow/design_flow}
+
+\input{conclusion/conclusion}
+
+\appendix
+% appendices come here
+
+
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{alpha}
+\bibliography{bibliography/bibliography}
+
+\end{document}

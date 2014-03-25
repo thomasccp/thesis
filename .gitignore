@@ -1,9 +1,11 @@
+*~
 *.acn
 *.acr
 *.alg
 *.aux
 *.bbl
 *.blg
+*.bak
 *.dvi
 *.fdb_latexmk
 *.glg
