@@ -4,10 +4,11 @@
 The Sequential Monte Carlo (SMC) method is a simulation-based approach to compute posterior distributions.
 SMC methods often work well on applications considered intractable by other methods due to high dimensionality, but they are computationally demanding. 
 While SMC has been implemented efficiently on FPGAs, design productivity remains a challenge.
-This paper introduces a design flow for generating efficient implementation of reconfigurable SMC designs. Using it, users can develop efficient multiple-FPGA SMC applications without any knowledge of reconfigurable computing.
+This chapter introduces a design flow for generating efficient implementation of reconfigurable SMC designs. 
+Through templating the SMC structure, the design flow enables efficient mapping of SMC applications to multiple FPGAs.
 The proposed design flow consists of a parametrisable SMC computation engine, and an open-source software template which enables efficient mapping of a variety of SMC designs to reconfigurable hardware.
 Design parameters that are critical to the performance and to the solution quality are tuned using a machine learning algorithm based on surrogate modelling.
-Experimental results on 3 case studies show that design performance is substantially improved after parameter optimisation. 
+Experimental results for three case studies show that design performance is substantially improved after parameter optimisation. 
 The proposed design flow demonstrates its capability of producing reconfigurable implementations for a range of SMC applications that have significant improvement in speed and in energy efficiency over optimised CPU and GPU implementations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,19 +21,19 @@ A common application is in the guidance, navigation and control of vehicles, par
 For these applications, it is critical that high sampling rates can be handled in real-time.
 SMC methods also have applications in economics and finance~\cite{creal12} where minimising latency is crucial.
  
-SMC methods are often preferable over Kalman filters and hidden Markov models, as they do not require exact analytical expressions to compute the evolving sequence of posterior distributions.
+SMC methods are often preferable to Kalman filters and hidden Markov models, as they do not require exact analytical expressions to compute the evolving sequence of posterior distributions.
 Moreover, they can model high-dimensional data using non-linear dynamics and constraints, are parallelisable, and can greatly benefit from hardware acceleration.
 Acceleration of SMC methods has been studied in applications such as air traffic management~\cite{chau13b,eele13}, robot localisation~\cite{chau13a}, object tracking~\cite{happe13} and signal processing~\cite{hendeby07}.
 
-Although earlier publications in~\cite{chau13a,chau13b,happe13,hendeby07} attempted to implement SMC efficiently on FPGAs, design productivity remains a challenge.
+While SMC has been implemented efficiently on FPGAs~\cite{chau13a,chau13b,happe13,hendeby07}, design productivity remains a challenge.
 Firstly, while different sets of SMC parameters produce the same accuracy, they have very different computational complexity.
-For example, the performance of SMC relies on the a set of random samples, which are called particles in the following.
+For example, the performance of SMC relies on a set of random samples, which are called particles in the following.
 The more complex the problem, the larger the number of particles needed.
 Using excessive numbers of particles unfortunately causes prohibitive run-time without increasing solution accuracy.
 The parameter space spans multiple dimensions and the objective function can be non-convex, making exhaustive optimisation impractical.
 Secondly, customising designs for different SMC applications requires tremendous effort.
 
-In this paper, we propose a SMC design flow for reconfigurable hardware.
+In this paper, we propose an SMC design flow for reconfigurable hardware.
 A computation engine captures the generic control structure shared among all SMC applications.
 A framework for mapping software to hardware is derived, so users can specify application-specific features which are automatically converted to efficient hardware. 
 Timing model relates design parameters to performance constraints.
@@ -40,11 +41,11 @@ To enable rapid learning of a large design space, a machine learning algorithm i
 
 The contributions of this paper are as follows:
 \begin{itemize}
-\item A design flow to reduce the development effort of SMC applications on reconfigurable systems (Section~\ref{sec:design}). Users can design efficient, multiple-FPGA SMC applications for arbitrary problems without any knowledge of reconfigurable computing, and the software template is open-source\footnote{Available online: \url{http://thomasccp.github.io/smcgen}}.
+\item A design flow to reduce the development effort of SMC applications on reconfigurable systems (Section~\ref{sec:design}). Through templating the SMC structure, users can design efficient, multiple-FPGA SMC applications for arbitrary problems without any knowledge of reconfigurable computing, and the software template is open-source.\footnote{Available online: \url{http://cc.doc.ic.ac.uk/projects/smcgen}}
 \item A machine learning approach that explores the SMC design space automatically and tunes design parameters to improve performance and accuracy (Section~\ref{sec:optimisation}). The resulting parameters can be applied to the hardware design at run-time without the need for resynthesis.
 It is demonstrated that parameter optimisation enables the design space to be explored an order of magnitude faster without sacrificing quality.
 Compared with previous work~\cite{chau13a,chau13b}, we have achieved better quality of solutions and faster designs.
-\item The utility of this approach in terms of design productivity and performance is quantified over a diverse set of SMC problems.
+\item The benefitbenefit  of this approach in terms of design productivity and performance is quantified over a diverse set of SMC problems.
 Three applications are implemented on Altera and Xilinx-based reconfigurable platforms, with varying numbers of FPGAs. For these problems, the number of lines of code for the FPGA implementation is reduced by approximately 76\%, and 
 significant speedup and energy improvement over CPU and GPU implementations (Section~\ref{sec:evaluation}) are demonstrated.
 \end{itemize}
@@ -57,11 +58,11 @@ significant speedup and energy improvement over CPU and GPU implementations (Sec
 \subsection{SMC Methods}
 \label{sec:smc}
 
-SMC methods estimate the unobserved states of interest based on the given observations~\cite{doucet01}.
+SMC methods estimate the unobserved states of interest based on observations in controlling various agents~\cite{doucet01}.
 The target posterior density $p(s_t|m_t)$ is represented by a set of particles, where $s_t$ is the state and $m_t$ is the observation at time step $t$.
 A sequential importance resampling (SIR) algorithm~\cite{gordon93} is used to obtain a weighted set of $N_P$ particles $\{s_t^{(i)},w_t^{(i)}\}^{N_P}_{i=1}$.
 The importance weights $\{w_t^{(i)}\}^{N_P}_{i=1}$ are approximations to the relative posterior probabilities of the particles such that $\sum^{N_P}_{i=1}w^{(i)}_t = 1$.
-This process is described in Algorithm~\ref{algo:smc} and involves 5 stages of computation:
+This process is described in Algorithm~\ref{algo:smc} and involves five stages of computation:
 
 \begin{algorithm}
 \caption{SMC methods}
@@ -224,7 +225,7 @@ Importance weighting is used to calculate the likelihood of a location based on 
 \subsubsection{Air Traffic Management}
 \label{sec:atm}
 
-SMC methods are applied to model predictive control (MPC) optimisation where control actions at discrete time intervals are determined to minimise an error criteria~\cite{kantas09}.
+SMC methods are applied to model predictive control (MPC) optimisation where control actions at discrete time intervals are determined to minimise error criteria~\cite{kantas09}.
 An example is air traffic management which avoids dangerous encounters by maintaining safe separation distances between aircraft.
 %The management system also seeks to improve the time of arrival of aircraft through minimising delays and unnecessary holding.
 
@@ -237,7 +238,7 @@ Then the selected control is committed to form reference $r_t$.
 
 Equation~\ref{eq:atm_c} illustrates a control tuple that consists of roll angle $\phi$; pitch angle $\tau$; and thrust $T$.
 Equation~\ref{eq:atm_s} shows a reference that consists of the current position in 3 dimensional space $(x,y,a)$, heading angle $\chi$, air speed $V$ and mass $M$. 
-For more details of the model, refer to ~\cite{eele13}.
+For more details of the model, see~\cite{eele13}.
 
 \begin{equation}
 \footnotesize
@@ -311,7 +312,7 @@ For more details of the model, refer to ~\cite{eele13}.
 \label{sec:design}
 
 This section introduces a design flow for generating reconfigurable SMC 
-designs. The design flow has 2 novel features to minimise hardware redesign efforts:
+designs. The design flow has two novel features to minimise hardware redesign efforts:
 (1) A generic high-level mapping where application-specific features are specified in a software template and automatically converted to hardware.
 The template supports the parameter optimisation described in Section~\ref{sec:optimisation}.
 (2) A parametrisable SMC computation engine which is made up of customisable building blocks and generic control structure that maximises design reuse.
@@ -329,8 +330,9 @@ The template supports the parameter optimisation described in Section~\ref{sec:o
 Figure~\ref{fig:flow} shows the proposed design flow.
 Starting with a functional specification such as software codes or mathematical descriptions, 
 the users identify and code application-specific descriptions (Section~\ref{sec:kernel}). The design flow automatically weaves these descriptions with the computation engine (Section~\ref{sec:system}) to form a complete multiple-FPGA system.
-In this work the synthesis tool employed was Maxeler's MaxCompiler, which uses Java as the underlying language. 
-MaxCompiler also supports a list of FPGAs such that low level configurations, such as I/O binding, are performed automatically.
+In this work the synthesis tool employed is Maxeler's MaxCompiler, which uses Java as the underlying language. 
+MaxCompiler also supports FPGAs from multiple vendors, such that low level configurations, such as I/O binding, are performed automatically.
+Our approach can be extended to support other tools and devices, for example by having the appropriate templates in VHDL or Verilog.
 
 \subsection{Specifying Application Features}
 \label{sec:kernel}
@@ -342,7 +344,7 @@ These descriptions correspond to \textit{Def} (Code~\ref{lst:def}), \textit{FPGA
 %\textit{state} is location ($x,y$) and heading $h$, and
 %\textit{control} is the displacement $d$ and rotation $r$.
 %Furthermore, \textit{design parameters} (Table~\ref{tab:parameters}) and application parameters need to be supplied.
-Code~\ref{lst:def} illustrates the class \textit{Def} where number representation (floating-point, fixed-point with different bit-width), structs (state, reference), static parameters (Table~\ref{tab:parameters}) and system parameters are defined.
+\textbf{Def}: Code~\ref{lst:def} illustrates the class where number representation (floating-point, fixed-point with different bit-width), structs (state, reference), static parameters (Table~\ref{tab:parameters}) and system parameters are defined.
 Users are allowed to customise number representation to benefit from the flexibility of FPGA and make trade-off between accuracy and design complexity.
 State and reference structs determine the I/O interface.
 Static parameters are defined in this class, while dynamic parameters are provided at run-time.
@@ -353,7 +355,7 @@ System parameters define device-specific properties such as clock speed and para
 
 \textbf{FPGA Func}: \textit{Sampling and importance weighting} (line~\ref{algo:s} and~\ref{algo:i} of Algorithm~\ref{algo:smc}) are the most computation intensive functions, and accelerated by FPGAs.
 Code~\ref{lst:func} illustrates how these two FPGA functions are defined.
-Given current state \textit{s\_in}, reference \textit{r\_in} and observation \textit{m\_in} (sensor value in this example), an estimation state \textit{s\_out} is computed.
+Given current state \textit{s\_in}, reference \textit{r\_in} and observation \textit{m\_in} (sensor values in this example), an estimation state \textit{s\_out} is computed.
 Weight \textit{w} accounts for the probability of an observation from the estimated state.
 The weight is calculated from the product of scores over the horizon.
 In this example, the weight is equal to the score as the horizon length is only 1. 
@@ -487,7 +489,7 @@ The length of the \textit{state stream} is $N_P \cdot N_A \cdot H$ because each 
 The \textit{reference} and \textit{weight streams} have information of $N_A$ agents in $N_P$ particles.
 
 Changing the values of $itl\_outer$, $itl\_inner$ and $N_P$ at run-time is allowed since they only affect the length of the particle streams, and not the hardware data path.
-The computation engine is fully pipelined and outputs 1 result per clock cycle.
+The computation engine is fully pipelined and outputs one result per clock cycle.
 
 \begin{figure}[t!]
 \begin{center}
@@ -540,7 +542,7 @@ T_{step} = & itl\_outer \cdot \left (T_{s\&i} + T_{resample} + T_{cpu} + T_{tran
 $T_{s\&i}$ is the time spent on sampling and importance weighting in the FPGA kernels.
 Since the data is organised as a stream as described in Section~\ref{sec:system}, the time spent on sampling and importance weighting is linear with $N_P$, $N_A$ and $H$.
 It is iterated $itl\_inner$ times in the inner loop.
-The sampling and importance weighting process can be accelerated using multiple cores, in which each of them is responsible for a sub-part of the inner loop iterations or particles.
+The sampling and importance weighting process can be accelerated using multiple cores, such that each of them is responsible for part of the inner loop iterations or particles.
 $N_C$ represents the number of processing cores being used on one FPGA, and $N_{Board}$ is the number of FPGA boards being used.
 $min(1,\frac{bandwidth}{sizeof(state) \cdot freq})$ accounts for the limitation of bandwidth between FPGAs and CPUs.
 
@@ -685,7 +687,7 @@ Thirdly, the surrogate model output is used to calculate the expected improvemen
 Finally, the exploration converges to the parameter set that is expected to offer the highest improvement.
 Parameter sets in the invalid region are disqualified (Figure~\ref{fig:surrogate_move}).
 
-Our SMC computation engine is made customisable so the design productivity of FPGA is increased from the optimisation approach which is already applicable to CPUs and GPUs. 
+Our SMC computation engine is made customisable to improve productivity of application builders who target FPGAs, based on an optimisation approach which is already applicable to CPUs and GPUs. 
 
 \setcounter{subfigure}{0}
 \begin{figure}[t!]
@@ -728,7 +730,7 @@ In Table~\ref{tab:loc}, user-customisable code is classified into three parts:
 (c) \textit{CPU Func} is the initiation, resampling and update part running on CPU.
 On average, users only need to customise 24\% of the source code. 
 Moreover, automatic design space optimisation greatly saves overall design time.
-As we will see in the applications below, we are able to choose the optimal set of parameters without doing exhaustive search.
+As we will see in the applications below, we are able to choose the optimal set of parameters without conducting an exhaustive search.
 %While this is more difficult to quantify, we conservatively estimate the savings to be more than 50\% of the total design effort.
 
 \begin{table}[h]
@@ -757,13 +759,13 @@ As we will see in the applications below, we are able to choose the optimal set 
 
 \subsection{Application 1: Stochastic Volatility}
 
-The design flow is first evaluated using a small-sized application on a microATX computer. The stochastic volatility model was described using the flow 
-and targeted to a Xilinx Virtex-6 XC6VSX475T FPGA at 150 MHz.
+The stochastic volatility model was described using the flow 
+Our design flow is used in targeting a stochastic volatility model to a XIlinx Virtex-6 XC6VSX475T FPGA at 150 MHz.
 Parallel single precision floating-point data paths are used to maximise resource utilisation and hence performance.
 Limited by I/O constraints, 16 processing cores are chosen. The resulting design uses 70,674 LUTs (24\%), 448 DSPs (22\%) and 394 block RAMs (19\%).
 The CPU is an Intel Core i7 870 quad-core processor clocked at 2.93GHz.
 
-The design space has 2 dimensions, $N_P$ and $S$.
+The design space has 2 dimensions, $N_P$ and $S$ (Table~\ref{tab:parameters}).
 Out of 420 sets of design parameters, the machine learning approach evaluates 20 of the candidates, and obtains an
 optimal set of parameters $N_P=768, S=1.5$ which minimises the estimation error.
 
@@ -942,15 +944,16 @@ Our design exploration approach is able to select the set of parameters that pro
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper demonstrated the feasibility of generating highly-optimised reconfigurable designs for SMC applications, while hiding all aspects of reconfigurable computing from the user.  
+This paper demonstrates the feasibility of generating highly-optimised reconfigurable designs for SMC applications, while hiding detailed implementation aspects from the user.  
 A software template makes the computation engine portable and facilitates code reuse, the number of lines of user-written code being decreased by approximately 76\% for an application.
-We further established that a surrogate software model combined with machine learning can be used to rapidly optimise designs, reducing optimisation time from days to hours; 
+We further establish that a surrogate software model combined with machine learning can be used to rapidly optimise designs, reducing optimisation time from days to hours; 
 and that the resulting parameters can be utilised without resynthesis. 
 %For the stochastic volatility, robot localisation and air traffic management examples explored, the resulting designs improved on the previously best reported implementations.
 
 Ongoing and future work is focused on incorporating device-specific parameters, such as the level of parallelism and clock speed, into the machine learning approach~\cite{kurek13b}.
-We are currently investigating run-time optimisation of parameters based on our initial work in~\cite{chau13a}.
-We will also automate the design flow to allow translation of popular software programming languages (e.g. R, MATLAB) directly to reconfigurable designs. 
+We are currently investigating run-time optimisation of parameters based on our initial work ~\cite{chau13a}.
+We will also automate the design flow to allow translation of designs captured in software programming languages (e.g. R, MATLAB) to reconfigurable implementations,
+and extend the software template in VHDL/Verilog to support a wider range of systems.
 %We are currently applying this work to cover more SMC applications, 
 %including aerial vehicle (UAV)~\cite{conde09} navigation 
 %where real-time performance and lower energy consumption are major design considerations.
