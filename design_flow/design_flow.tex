@@ -1,16 +1,6 @@
 
 \chapter[Design Flow for SMC Applications]{Design Flow for Sequential Monte Carlo Applications}
 
-The Sequential Monte Carlo (SMC) method is a simulation-based approach to compute posterior distributions.
-SMC methods often work well on applications considered intractable by other methods due to high dimensionality, but they are computationally demanding. 
-While SMC has been implemented efficiently on FPGAs, design productivity remains a challenge.
-This chapter introduces a design flow for generating efficient implementation of reconfigurable SMC designs. 
-Through templating the SMC structure, the design flow enables efficient mapping of SMC applications to multiple FPGAs.
-The proposed design flow consists of a parametrisable SMC computation engine, and an open-source software template which enables efficient mapping of a variety of SMC designs to reconfigurable hardware.
-Design parameters that are critical to the performance and to the solution quality are tuned using a machine learning algorithm based on surrogate modelling.
-Experimental results for three case studies show that design performance is substantially improved after parameter optimisation. 
-The proposed design flow demonstrates its capability of producing reconfigurable implementations for a range of SMC applications that have significant improvement in speed and in energy efficiency over optimised CPU and GPU implementations.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 \label{sec:intro}
@@ -33,13 +23,13 @@ Using excessive numbers of particles unfortunately causes prohibitive run-time w
 The parameter space spans multiple dimensions and the objective function can be non-convex, making exhaustive optimisation impractical.
 Secondly, customising designs for different SMC applications requires tremendous effort.
 
-In this paper, we propose an SMC design flow for reconfigurable hardware.
+In this chapter, we propose an SMC design flow for reconfigurable hardware.
 A computation engine captures the generic control structure shared among all SMC applications.
 A framework for mapping software to hardware is derived, so users can specify application-specific features which are automatically converted to efficient hardware. 
 Timing model relates design parameters to performance constraints.
 To enable rapid learning of a large design space, a machine learning algorithm is used to automatically deduce characteristics of the design space.
 
-The contributions of this paper are as follows:
+The contributions are as follows:
 \begin{itemize}
 \item A design flow to reduce the development effort of SMC applications on reconfigurable systems (Section~\ref{sec:design}). Through templating the SMC structure, users can design efficient, multiple-FPGA SMC applications for arbitrary problems without any knowledge of reconfigurable computing, and the software template is open-source.\footnote{Available online: \url{http://cc.doc.ic.ac.uk/projects/smcgen}}
 \item A machine learning approach that explores the SMC design space automatically and tunes design parameters to improve performance and accuracy (Section~\ref{sec:optimisation}). The resulting parameters can be applied to the hardware design at run-time without the need for resynthesis.
@@ -52,8 +42,8 @@ significant speedup and energy improvement over CPU and GPU implementations (Sec
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background and Related Work}
-\label{sec:bg}
+\section{Overview}
+\label{sec:overview}
 
 \subsection{SMC Methods}
 \label{sec:smc}
@@ -668,7 +658,7 @@ Furthermore the design space is constrained by multiple accuracy and real-time r
 We cannot use a design unless the results are within certain error bound.
 The problem is further aggravated by the curse of dimensionality.
 %We cannot assume that the general SMC methods parameters have the same impact on all applications which are based on SMC methods, the impact can be drastically different.
-We use an automated design exploration approach which is facilitated by a machine learning algorithm developed in~\cite{kurek13b}.
+We use an automated design exploration approach which is facilitated by a machine learning algorithm developed in~\cite{kurek14}.
 The approach allows the performance impact of different parameters to be determined for any design based on our SMC computation engine. 
 %The approach has 4 steps:
 %(1) Identify metrics to be optimised, such as RMSE and run-time.
@@ -941,8 +931,8 @@ Our design exploration approach is able to select the set of parameters that pro
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Summary}
+\label{sec:summary}
 
 This paper demonstrates the feasibility of generating highly-optimised reconfigurable designs for SMC applications, while hiding detailed implementation aspects from the user.  
 A software template makes the computation engine portable and facilitates code reuse, the number of lines of user-written code being decreased by approximately 76\% for an application.
@@ -950,7 +940,7 @@ We further establish that a surrogate software model combined with machine learn
 and that the resulting parameters can be utilised without resynthesis. 
 %For the stochastic volatility, robot localisation and air traffic management examples explored, the resulting designs improved on the previously best reported implementations.
 
-Ongoing and future work is focused on incorporating device-specific parameters, such as the level of parallelism and clock speed, into the machine learning approach~\cite{kurek13b}.
+Ongoing and future work is focused on incorporating device-specific parameters, such as the level of parallelism and clock speed, into the machine learning approach~\cite{kurek14}.
 We are currently investigating run-time optimisation of parameters based on our initial work ~\cite{chau13a}.
 We will also automate the design flow to allow translation of designs captured in software programming languages (e.g. R, MATLAB) to reconfigurable implementations,
 and extend the software template in VHDL/Verilog to support a wider range of systems.

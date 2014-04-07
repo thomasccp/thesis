@@ -1,17 +1,6 @@
 
 \chapter[Self-adaption \& Run-time Reconfiguration for SMC Applications]{Self-adaption and Run-time Reconfiguration for Sequential Monte Carlo Applications}
 
-This paper presents an approach for mapping real-time applications based on particle filters to heterogeneous reconfigurable systems, 
-which typically consist of multiple FPGAs and CPUs. 
-A method is proposed to adapt the number of particles dynamically and to utilise run-time reconfigurability of FPGAs for reduced power and energy consumption. 
-A data compression scheme is employed to reduce communication overhead between FPGAs and CPUs.
-A mobile robot localisation and tracking application is developed targeting the proposed system. 
-Experimental results show that the proposed adaptive particle filter can reduce up to 99\% of computation time. 
-Using run-time reconfiguration, we achieve 25-34\% reduction in idle power.
-A 1U system with four FPGAs is up to 169 times faster than a single-core CPU and 41 times faster than a 1U CPU server with 12 cores.
-It is also estimated to be 3 times faster than a system with 4 GPUs.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
 Particle filter (PF), also known as sequential Monte Carlo (SMC) method, is a statistical method for dynamic systems involving non-linear and non-Gaussian properties. 
@@ -43,7 +32,7 @@ Our system with four FPGAs is up to 169 times faster than a single core CPU, 41 
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background and Related Work}
+\section{Overview}
 
 This section briefly outlines the PF algorithm.
 A more detailed description can be found in~\cite{doucet01}. 
@@ -778,7 +767,7 @@ HRS(3), the HRS with four FPGAs, is the fastest among all the systems in compari
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Conclusion}
+\section{Summary}
 
 This paper presents an adaptive particle filter for real-time applications.
 The proposed heterogeneous reconfigurable system demonstrates a significant reduction in power and energy consumption compared with CPU and GPU.

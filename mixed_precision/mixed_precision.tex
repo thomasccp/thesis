@@ -1,8 +1,6 @@
 
 \chapter[Functional Transformation \& Precision Optimisation for PQ Process]{Functional Transformation and Precision Optimisation for Proximity Query Process}
 
-Proximity Query (PQ) is a process to calculate the relative placement of objects. It is a critical task for many applications such as robot motion planning, but it is often too computationally demanding for real-time applications, particularly those involving human-robot collaborative control. This paper derives a PQ formulation which can support non-convex objects represented by meshes or cloud points. We optimise the proposed PQ for reconfigurable hardware by function transformation and reduced precision, resulting in a novel data structure and memory architecture for data streaming while maintaining the accuracy of results. Run-time reconfiguration is adopted for dynamic precision optimisation. Experimental results show that our optimised PQ implementation on a reconfigurable platform with four FPGAs is 58 times faster than an optimised CPU implementation with 12 cores, 9 times faster than a GPU, and 3 times faster than a double precision implementation with four FPGAs.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 \label{sec:intro}
@@ -55,16 +53,16 @@ supporting multiple precisions in a novel memory architecture, and automating pr
 \end{itemize}
 
 The rest of the paper is organised as follows.
-Section~\ref{sec:bg} briefly describes the background of PQ formulation and review bit-width optimisation techniques.
+Section~\ref{sec:overview} briefly describes the background of PQ formulation and review bit-width optimisation techniques.
 Section~\ref{sec:formulation} presents our proposed PQ formulation.
 Section~\ref{sec:optimisation} discusses the optimisation of PQ for reconfigurable accelerator.
 Section~\ref{sec:implementation} describes the system design that maps PQ to a reconfigurable accelerator.
 Section~\ref{sec:evaluation} provides experimental results and
-Section~\ref{sec:conclusion} concludes our work.
+Section~\ref{sec:summary} concludes our work.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Background}
-\label{sec:bg}
+\section{Overview}
+\label{sec:overview}
 
 In this section, we first provide a brief introduction to PQ.
 Then we review the bit-width optimisation techniques that inspired our research.
@@ -840,8 +838,8 @@ Our proposed 4-FPGAs system can process 10,094 points within the 1~ms interval.
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Summary}
+\label{sec:summary}
 
 This paper presents a reconfigurable computing solution to proximity query computation.
 To the best of our knowledge, our approach is the first to apply FPGAs to this problem.
