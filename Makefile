@@ -13,7 +13,7 @@ $(latexfile).pdf : $(latexfile).ps
 $(latexfile).ps : $(latexfile).dvi
 	dvips -Ppdf -G0 $(latexfile)
 
-$(latexfile).dvi : $(latexfile).tex $(latexfile).bbl
+$(latexfile).dvi : $(latexfile).tex $(latexfile).bbl $(latexfile).gls
 	$(TEX) $(latexfile)
 	$(TEX) $(latexfile)
 
@@ -28,6 +28,12 @@ myrefs.bbl : myrefs.aux
 
 myrefs.aux : myrefs.tex
 	$(TEX) myrefs.tex
+
+$(latexfile).glo : $(latexfile).tex
+	$(TEX) $(latexfile).tex
+
+$(latexfile).gls : $(latexfile).glo
+	makeindex $(latexfile).glo -s $(latexfile).ist -t $(latexfile).glg -o $(latexfile).gls
 
 read:
 	evince $(latexfile).pdf &

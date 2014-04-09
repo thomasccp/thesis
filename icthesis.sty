@@ -87,6 +87,19 @@
 	\par
 }
 
+\newenvironment{publications}{
+	\cleardoublepage
+		\begin{center}{
+			\large \bf Publications}
+	\end{center}
+	\small
+		\linespread{1.5}
+	\normalsize
+}{\cleardoublepage}
+\def\endpublications{
+	\par
+}
+
 \def\preface{
 	\pagenumbering{roman}
 	\pagestyle{plain}
@@ -100,10 +113,12 @@
 		\pagestyle{plain}
 	\cleardoublepage
 		\pagestyle{uheadings}
+	\addcontentsline{toc}{chapter}{List of Tables}
 	\listoftables
 		\pagestyle{plain}
 	\cleardoublepage
 		\pagestyle{uheadings}
+	\addcontentsline{toc}{chapter}{List of Figures}
 	\listoffigures
 		\pagestyle{plain}
 	\cleardoublepage

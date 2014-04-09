@@ -1,13 +1,15 @@
 
 \chapter[Self-adaption \& Run-time Reconfiguration for SMC Applications]{Self-adaption and Run-time Reconfiguration for Sequential Monte Carlo Applications}
 
+\label{ch:run-time}
+
 \section{Introduction}
 
-Particle filter (PF), also known as sequential Monte Carlo (SMC) method, is a statistical method for dynamic systems involving non-linear and non-Gaussian properties. 
+Particle filter (PF), also known as sequential Monte Carlo (SMC) method, is a statistical technique for dynamic systems involving non-linear and non-Gaussian properties. 
 PF has been studied in various application areas including object tracking~\cite{happe11}, robot localisation~\cite{montemerlo02}, speech recognition~\cite{vermaak02} and air traffic management~\cite{eele11}.
 
-PF keeps track of a large number of particles where each contains information about how a system would evolve.
-The underlying concept is to approximate a sequence of states as a collection of particles.
+PF keeps track of a large number of particles, each contains information about how a system would evolve.
+The underlying concept is to approximate a sequence of states by a collection of particles.
 Each particle is weighted to reflect the quality of an approximation.
 The more complex the problem, the larger the number of particles that are needed.
 One drawback of PF is its long execution times that limit its practical use.
@@ -16,13 +18,13 @@ This paper presents an efficient solution to PF.
 We derive an adaptive algorithm that adjusts its computation complexity at run time based on the quality of results.
 To map our algorithm to a heterogeneous reconfigurable system (HRS) consisting of multiple FPGAs and CPUs,
 we design a pipeline-friendly data structure to make effective use of the stream computing model.
-Moreover, we effectively accelerate the algorithm with a data compression scheme and data control separation.
+Moreover, we accelerate the algorithm with a data compression scheme and data control separation.
 
 The key contributions of this paper include:
 
 \begin{enumerate}
 \item An adaptive PF algorithm which adapts the size of particle set at run-time. 
-The algorithm is able to reduce computation workload while maintaining quality of results.
+The algorithm is able to reduce computation workload while maintaining the quality of results.
 \item Mapping the proposed algorithm to a scalable and reconfigurable system by following the stream computing model.
 A novel data structure is designed to take advantage of the architecture and to alleviate the data transfer bottleneck.
 The system uses the run-time reconfigurability of FPGA to switch between computation mode and low-power mode.
@@ -75,11 +77,11 @@ The above methods introduce data dependencies in the sampling and importance wei
 An adaptive PF is proposed in~\cite{bolic02} that changes the number of particles dynamically based on estimation quality. 
 In~\cite{chau12}, adaptive PF is extended to a multi-processor system on FPGA.
 The number of particles and active processors change dynamically but the performance is limited by soft-core processors.
-In~\cite{liu07}, a mechanism and theoretical lower bound for adapting the sample size of particles is presented.
+In~\cite{liu07}, a mechanism and a theoretical lower bound for adapting the sample size of particles are presented.
 Our previous work~\cite{chau13a} presents a hardware-friendly adaptive PF. 
 The algorithm is mapped to an accelerator system which consists of an FPGA and a CPU.
 However, the system suffers from a large communication overhead when the particles are transferred between the FPGA and CPU.
-Moreover, the scalability of the adaptive PF algorithm to multi-FPGA is not well-studied.
+Moreover, the scalability of the adaptive PF algorithm to multiple FPGAs is not covered.
 In this paper, we extend our previous work to address the problems mentioned above.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -193,7 +195,7 @@ Then $w^{(i)}$ is obtained by dividing $\widetilde{w}^{(i)}$ by $w_{sum}$ in the
 However, this method is inefficient for FPGA implementation.
 Since $2P_t$ cycles are needed to process $P_t$ pieces of data, the throughput is reduced to 50\%.
 
-To fully utilise the deep pipeline on FPGA, we perform function transformation.
+To fully utilise deep pipelines targeting an FPGA, we perform function transformation.
 Given ${w}^{(i)} = \frac{\widetilde{w}^{(i)}}{w_{sum}}$, we extract $w_{sum}$ out of Equation~\ref{eqt:bound3} to \ref{eqt:bound5}.
 By doing so, we obtain a transformed form as shown in Equations~\ref{eqt:bound6} to~\ref{eqt:bound8}.
 $w_{sum}$ and $\widetilde{w}^{(i)}$ are computed simultaneously in two separate data paths.
@@ -412,7 +414,7 @@ T_{idle} = T_{rt} - T_{comp}
 \label{eqt:idle}
 \end{equation}
 
-Figure~\ref{fig:timing1} illustrates the power consumption of HRS without run-time reconfiguration.
+Figure~\ref{fig:timing1} illustrates the power consumption of an HRS without run-time reconfiguration.
 It shows that the FPGAs are still drawing power after the computation finishes.
 By exploiting run-time reconfiguration as shown in Figure~\ref{fig:timing2}, the FPGAs are loaded with a low-power configuration during the idle period.
 Such configuration minimises the amount of active resources and clock frequency.
@@ -489,7 +491,7 @@ As a result, the data transfer time and memory space are reduced.
 \label{fig:particles_resampling}
 \end{figure}
 
-A HRS often contains DRAM which transfers data in burst in order to maximise the memory bandwidth.
+An HRS often contains DRAM which transfers data in burst in order to maximise the memory bandwidth.
 This works fine with the original data structure where the data are organised as a sequence from the lower address space to the upper.
 However, using the new data structure, the data access pattern is not sequential anymore, the address can go back and forth.
 The DRAM controller needs to be modified so that the transfer throughput would not be affected by the change of data access pattern.
@@ -735,7 +737,7 @@ Notice that the CPUs violate the real-time constraint of 5 seconds.
 
 \textbf{Power and energy consumption}: In real-time applications, we are interested in the energy consumption per time-step.
 Figure~\ref{fig:power} shows the power consumption of HRS, CPUs and GPU over a period of 10 seconds (2 time-steps).
-The system power is measured using a power meter which is connected directly in-line between the power source and the system.
+The system power is measured using a power meter which is connected directly between the power source and the system.
 All the curves of HRS show peaks when HRS is at the computation mode and troughs when it is at the low power mode.
 The power during the configuration period lies between the two modes.
 On the HRS with one FPGA, run-time reconfiguration reduces the idle power consumption by 34\% from 145W to 95W.
@@ -769,13 +771,13 @@ HRS(3), the HRS with four FPGAs, is the fastest among all the systems in compari
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Summary}
 
-This paper presents an adaptive particle filter for real-time applications.
+This paper presents an approach for accelerating adaptive particle filter for real-time applications.
 The proposed heterogeneous reconfigurable system demonstrates a significant reduction in power and energy consumption compared with CPU and GPU.
-The adaptive algorithm reduces computation time while maintaining quality of results. 
+The adaptive algorithm reduces computation time while maintaining the quality of results. 
 The approach is scalable to systems with multiple FPGAs.
 A data compression technique is used to mitigate the data transfer overhead between the FPGAs and CPUs.
 
-In the future, heterogeneous reconfigurable systems will be developed for other particle filters that are more compute-intensive and have more stringent real-time requirements.
+In the future, heterogeneous reconfigurable systems will be developed for various particle filters that are more compute-intensive and have more stringent real-time requirements than the ones described above.
 Air traffic management~\cite{chau13b} and traffic estimation~\cite{mihaylova07} are example applications that can substantially benefit from the proposed approach in meeting current and future requirements.
 Further work will also be required to automate the optimisation of designs targeting heterogeneous reconfigurable systems.
 
