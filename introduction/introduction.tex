@@ -3,16 +3,55 @@
 
 \section{Motivation}
 
-Real-time systems enforce stringent timing constraints. Such systems have a continuous interaction with the environment and the timing of outputs in response to events in the environment is important. A timing bound is normally referred to as a deadline. Real-time systems are abundant in daily applications, including air traffic management~\cite{crisostomi07,eele11}, unmanned aerial vehicles~\cite{ortiz06}, robotics~\cite{dellaert99}, medical surgery~\cite{kwok10}, etc.
+\todo[inline]{Importance of real-time system. Elaborate...}
+Real-time systems enforce stringent timing constraints. 
+Such systems have a continuous interaction with the environment and the timing of outputs in response to events in the environment is important. 
+A timing bound is normally referred to as a deadline. 
+A real-time system is one whose correctness is based on both the correctness of the outputs and their timeliness.
+A real-time system does not have to be fast: the deadline may be days or weeks.
 
+\begin{myDef}
+A real-time system is one that must process information and produce a response within a specified time, else risk severe consequences, including failure.
+\end{myDef}
+
+\begin{myDef}
+Any system in which the time at which output is produced is significant.
+This is usually because the input corresponds to some event in the physical world, and the output has to relate to that same event.
+The lag from input time to output time must be sufficiently small for acceptable timeliness.(Oxford Dictionary of Computing)
+\end{myDef}
+
+\begin{myDef}
+Soft real-time systems: In a lose approach all practical systems can be said to be real-time systems because they must produce an output or response to the user's commands within a reasonable amount of time.
+These systems where uncomfortably long response times are a nuisance but the system still functions even if deadlines are sometimes not met are called soft real-time systems.
+\end{myDef}
+
+\begin{myDef}
+Hard real-time systems: Systems where failure to meet response time constraints leads to catastrophic system failure (aircraft crashing, car skidding, patient dying) are called hard real-time systems.
+\end{myDef}
+
+\begin{myDef}
+Failure: inability to perform according to specification.
+In the case of real-time systems the "failed" specification may be lack of correctness or the failure to produce the response by the required time.
+\end{myDef}
+
+For instance, ......
+
+
+
+\todo[inline]{Examples of real-time system. Elaborate...}
+Real-time systems are abundant in daily applications, including air traffic management~\cite{crisostomi07,eele11}, unmanned aerial vehicles~\cite{ortiz06}, ABS, robotics~\cite{dellaert99}, medical surgery~\cite{kwok10}, over-temperature monitor in nuclear power station, etc.
+
+\todo[inline]{Properties of real-time system. Elaborate...}
 Real-time systems can be classified into two types. Hard real-time systems should response to events within fixed time. Missing an operation deadline can cause a total system failure. In soft real-time systems, exact response time is not critical but missing an operation deadline can cause degraded quality of service. In general, real-time systems desire the following properties:
 
 \begin{itemize}
 \item Timeliness: output values are produced before the deadlines.
 \item Robustness: the system should work when subject to a peak load.
 \item Predictability: the system behavior is known before it is put into operation.
-\item Testability: the system can be tested whether it can meet all deadlines.
+%\item Testability: the system can be tested whether it can meet all deadlines.
 \end{itemize}
+
+\todo[inline]{Explain current problems and challenges.}
 
 Over the previous decades, a proliferation of work focuses on design and analysis of real-time systems. There are challenges in a number of disciplines, such as hardware architectures, operating systems, scheduling theories, analysis and design tools, and programming languages. Nowadays, the arise of reconfigurable system and massive parallel processing units, such as \gls{fpga}, provide new opportunities to address the challenges of real-time systems. Exploiting the reconfigurability and parallelism of \gls{fpga} could improve design and analysis of applications in the real-time domain.
 
@@ -29,13 +68,24 @@ The major objectives of this research are:
 
 \section{Research Challenges and Contributions}
 
+\todo[inline]{Propose solutions using reconfigurable systems. Justify why moving demanding applications to FPGA.}
+
 To summarise, XXXXXXXXX has been developed, with the following contributions.
 
 \begin{itemize}
-\item Precision optimisation: \todo[inline]{More description.}
-\item Run-time reconfiguration: \todo[inline]{More description.}
-\item Design productivity: \todo[inline]{More description.} 
+\item Precision optimisation: Maximise processing power, i.e. more computation, better accuracy within the real-time window. \todo[inline]{More description.}
+\item Run-time reconfiguration: Use time slack in the real-time window, reconfigure to low-power mode to reduce power consumption. \todo[inline]{More description.}
+\item Design productivity: Maximise accuracy without violating real-time constraint, minimise design effort. \todo[inline]{More description.} 
 \end{itemize}
+
+\todo[inline]{Describe target applications:
+Image guidance for medical surgery robot (proximity query).
+Mobile robot localisation (SMC methods).
+Air traffic management (SMC methods).
+Stochastic volatility (SMC methods, small).
+}
+
+\todo[inline]{Relate chapters to real-time properties: timeliness, robustness, predictability.}
 
 Figure~\ref{fig:contributions} provides a relationship diagram of each chapter in the thesis.
 Each block corresponds to a chapter in the thesis.

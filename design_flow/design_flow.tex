@@ -320,8 +320,11 @@ The template supports the parameter optimisation described in Section~\ref{sec:o
 \end{figure}
 
 Figure~\ref{fig:flow} shows the proposed design flow.
-Starting with a functional specification such as software codes or mathematical descriptions, 
-the users identify and code application-specific descriptions (Section~\ref{sec:kernel}). The design flow automatically weaves these descriptions with the computation engine (Section~\ref{sec:system}) to form a complete multiple-FPGA system.
+Starting with a functional description such as a software code or a mathematical formulation, the users identify and code application-specific features (Section~\ref{sec:kernel}). 
+Generally only the application-specific features are of interest, so the functional description does not necessarily have to be a complete software code. 
+The synthesis step automatically weaves these features with the computation engine (Section~\ref{sec:system}) to form a simulation model and a complete configuration which target the multiple-FPGA system.
+The design flow also consists of a parameter optimisation step (Section~\ref{sec:optimisation}) which takes the simulation model and performance model (Section~\ref{sec:model}) as inputs to produce a set of performance/accuracy optimised parameters.
+If a complete software code is provided, it can optionally be used to accelerate the optimisation process.
 In this work the synthesis tool employed is Maxeler's MaxCompiler, which uses Java as the underlying language. 
 MaxCompiler also supports FPGAs from multiple vendors, such that low level configurations, such as I/O binding, are performed automatically.
 Our approach can be extended to support other tools and devices, for example by having the appropriate templates in VHDL or Verilog.
