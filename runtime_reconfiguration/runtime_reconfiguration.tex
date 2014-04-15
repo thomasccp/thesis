@@ -5,40 +5,40 @@
 
 \section{Introduction}
 
-Particle filter (PF), also known as sequential Monte Carlo (SMC) method, is a statistical technique for dynamic systems involving non-linear and non-Gaussian properties. 
-PF has been studied in various application areas including object tracking~\cite{happe11}, robot localisation~\cite{montemerlo02}, speech recognition~\cite{vermaak02} and air traffic management~\cite{eele11}.
+\gls{pf}, also known as \gls{smc} method, is a statistical technique for dynamic systems involving non-linear and non-Gaussian properties. 
+\gls{pf} has been studied in various application areas including object tracking~\cite{happe11}, robot localisation~\cite{montemerlo02}, speech recognition~\cite{vermaak02} and air traffic management~\cite{eele11}.
 
-PF keeps track of a large number of particles, each contains information about how a system would evolve.
+\gls{pf} keeps track of a large number of particles, each contains information about how a system would evolve.
 The underlying concept is to approximate a sequence of states by a collection of particles.
 Each particle is weighted to reflect the quality of an approximation.
 The more complex the problem, the larger the number of particles that are needed.
-One drawback of PF is its long execution times that limit its practical use.
+One drawback of \gls{pf} is its long execution times that limit its practical use.
 
-This paper presents an efficient solution to PF.
+This paper presents an efficient solution to \gls{pf}.
 We derive an adaptive algorithm that adjusts its computation complexity at run time based on the quality of results.
-To map our algorithm to a heterogeneous reconfigurable system (HRS) consisting of multiple FPGAs and CPUs,
+To map our algorithm to a heterogeneous reconfigurable system (\gls{hrs}) consisting of multiple \gls{fpga}s and \gls{cpu}s,
 we design a pipeline-friendly data structure to make effective use of the stream computing model.
 Moreover, we accelerate the algorithm with a data compression scheme and data control separation.
 
 The key contributions of this paper include:
 
 \begin{enumerate}
-\item An adaptive PF algorithm which adapts the size of particle set at run-time. 
+\item An adaptive \gls{pf} algorithm which adapts the size of particle set at run-time. 
 The algorithm is able to reduce computation workload while maintaining the quality of results.
 \item Mapping the proposed algorithm to a scalable and reconfigurable system by following the stream computing model.
 A novel data structure is designed to take advantage of the architecture and to alleviate the data transfer bottleneck.
-The system uses the run-time reconfigurability of FPGA to switch between computation mode and low-power mode.
+The system uses the run-time reconfigurability of \gls{fpga} to switch between computation mode and low-power mode.
 \item An implementation of a robot localisation application targeting the proposed system. 
 Compared to a non-adaptive and non-reconfigurable implementation, the idle power of our proposed system is reduced by 25-34\% and the overall energy consumption decreases by 17-33\%.
-Our system with four FPGAs is up to 169 times faster than a single core CPU, 41 times faster than a 1U CPU server with 12 cores, and 3 times faster than a modelled four-GPU system.
+Our system with four \gls{fpga}s is up to 169 times faster than a single core \gls{cpu}, 41 times faster than a 1U \gls{cpu} server with 12 cores, and 3 times faster than a modelled four-\gls{gpu} system.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
 
-This section briefly outlines the PF algorithm.
+This section briefly outlines the \gls{pf} algorithm.
 A more detailed description can be found in~\cite{doucet01}. 
-PF estimates the state of a system by a sampling-based approximation of the state probability density function. 
+\gls{pf} estimates the state of a system by a sampling-based approximation of the state probability density function. 
 The state of a system in time-step $t$ is denoted by $X_t$. 
 The control and observation are denoted by $U_t$ and $Y_t$ respectively. 
 Three pieces of information about the system are known a-priori: 
@@ -48,7 +48,7 @@ Three pieces of information about the system are known a-priori:
 \item $p(Y_t|X_t)$ is the observation model describing the likelihood of observing the measurement at the current state.
 \end{itemize}
 
-PF approximates the desired posterior probability $p(X_{t}|Y_{1:t})$ using a set of $P$ particles $\{\chi^{(i)}_t\}^P_{i=1}$ with their associated weights $\{w^{(i)}\}^P_{i=1}$. 
+\gls{pf} approximates the desired posterior probability $p(X_{t}|Y_{1:t})$ using a set of $P$ particles $\{\chi^{(i)}_t\}^P_{i=1}$ with their associated weights $\{w^{(i)}\}^P_{i=1}$. 
 $X_0$ and $U_0$ are initialised.
 This computation consists of three iterative steps.
 
@@ -63,37 +63,37 @@ The particle set is used in the next time-step to predict the posterior probabil
 The distribution of the resulting particles $\{\chi^{(i)}_t\}^P_{i=1}$ approximates $p(X_t|Y_{1:t})$.
 \end{enumerate}
 
-The particles in PF are independent of each other.
+The particles in \gls{pf} are independent of each other.
 It means the algorithm can be accelerated using specialised hardware with massive parallelism and pipelining.
-In~\cite{happe11}, an approach for PF on a hybrid CPU/FPGA platform is developed.
+In~\cite{happe11}, an approach for \gls{pf} on a hybrid \gls{cpu}/\gls{fpga} platform is developed.
 Using a multi-threaded programming model, computation is switched between hardware and software during run-time to react to performance requirements. 
-Resampling algorithms and architectures for distributed PFs are proposed in~\cite{bolic05}.
+Resampling algorithms and architectures for distributed \gls{pf}s are proposed in~\cite{bolic05}.
 
-Adaptive PFs have been proposed to improve performance or quality of state estimation by controlling the number of particles dynamically. 
+Adaptive \gls{pf}s have been proposed to improve performance or quality of state estimation by controlling the number of particles dynamically. 
 Likelihood-based adaptation controls the number of particles such that the sum of weights exceeds a pre-specified threshold~\cite{koller98}.
 Kullback Leibler distance (KLD) sampling is proposed in~\cite{fox03}, which offers better quality results than likelihood-based approach. 
 KLD sampling is improved in~\cite{park10} by adjusting the variance and gradient of data to generate particles near high likelihood regions. 
 The above methods introduce data dependencies in the sampling and importance weighting steps, so they are difficult to be parallelised. 
-An adaptive PF is proposed in~\cite{bolic02} that changes the number of particles dynamically based on estimation quality. 
-In~\cite{chau12}, adaptive PF is extended to a multi-processor system on FPGA.
+An adaptive \gls{pf} is proposed in~\cite{bolic02} that changes the number of particles dynamically based on estimation quality. 
+In~\cite{chau12}, adaptive \gls{pf} is extended to a multi-processor system on \gls{fpga}.
 The number of particles and active processors change dynamically but the performance is limited by soft-core processors.
 In~\cite{liu07}, a mechanism and a theoretical lower bound for adapting the sample size of particles are presented.
-Our previous work~\cite{chau13a} presents a hardware-friendly adaptive PF. 
-The algorithm is mapped to an accelerator system which consists of an FPGA and a CPU.
-However, the system suffers from a large communication overhead when the particles are transferred between the FPGA and CPU.
-Moreover, the scalability of the adaptive PF algorithm to multiple FPGAs is not covered.
+Our previous work~\cite{chau13a} presents a hardware-friendly adaptive \gls{pf}. 
+The algorithm is mapped to an accelerator system which consists of an \gls{fpga} and a \gls{cpu}.
+However, the system suffers from a large communication overhead when the particles are transferred between the \gls{fpga} and \gls{cpu}.
+Moreover, the scalability of the adaptive \gls{pf} algorithm to multiple \gls{fpga}s is not covered.
 In this paper, we extend our previous work to address the problems mentioned above.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Adaptive Particle Filter}
 \label{sec:apf}
 
-This section introduces an adaptive PF algorithm which changes the number of particles at each time-step.
+This section introduces an adaptive \gls{pf} algorithm which changes the number of particles at each time-step.
 The algorithm is inspired by~\cite{liu07} and we transform it to a pipeline-friendly version for mapping to the stream computing architecture.
 This algorithm is shown in Algorithm~\ref{algo:pf} which consists of four stages.
 
 \begin{algorithm}
-\caption{Adaptive PF algorithm}
+\caption{Adaptive \gls{pf} algorithm}
 {\fontsize{8}{8}\selectfont
 \begin{algorithmic}[1]
 \STATE{$P_0 \gets P_{max}$}
@@ -102,11 +102,11 @@ This algorithm is shown in Algorithm~\ref{algo:pf} which consists of four stages
 \FOR{each step $t$}
 	\STATE{$r=0$}
 	\WHILE{$r \leq itl\_repeat$}
-	{\color{gray} \STATE{---On FPGAs---}}
+	{\color{gray} \STATE{---On \gls{fpga}s---}}
 	\STATE{Sample a new state $\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1}$ from $\{\chi_{t}^{(i)}\}^{P_t}_{i=1}$} \label{algo:pf_si1}
 	\STATE{Calculate unnormalised importance weights $\{\widetilde{w}^{(i)}\}^{P_t}_{i=1}$ and accumulate the weights as $w_{sum}$} \label{algo:pf_si2}
 	\STATE{Calculate the lower bound of sample size $\widetilde{P}_{t+1}$ by Equation~\ref{eqt:bound2}} \label{algo:pf_lb}
-	{\color{gray} \STATE{---On CPUs---}}
+	{\color{gray} \STATE{---On \gls{cpu}s---}}
 	\STATE{Sort $\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1}$ in descending $\{\widetilde{w}^{(i)}\}^{P_t}_{i=1}$} \label{algo:pf_sort}
 	\IF{$\widetilde{P}_{t+1} < P_{t}$} \label{algo:pf_rd1}
 		\STATE{$P_{t+1} = max\left(\lceil\widetilde{P}_{t+1}\rceil, P_{t}/2\right)$}
@@ -147,7 +147,7 @@ Then a weight from $\{w^i\}^{P_t}_{i=1}$ is assigned to each particle.
 As a result, $\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1}$ and $\{w^{(i)}\}^{P_t}_{i=1}$ give an estimation of the next state.
 
 During sampling and importance weighting, the computation of every particle is independent of each other. 
-The mapping of computation to FPGAs will be described in Section~\ref{sec:hrs}.
+The mapping of computation to \gls{fpga}s will be described in Section~\ref{sec:hrs}.
 
 \subsection{Stage 2: Lower Bound Calculation (line~\ref{algo:pf_lb})} 
 This stage derives the smallest number of particles that are needed in the next time-step in order to bound the approximation error.
@@ -192,15 +192,15 @@ As shown in Equation~\ref{eqt:bound3} to \ref{eqt:bound5}, ${w}^{(i)}$ is a norm
 To calculate $w^{(i)}$, a traditional software-based approach is to iterate through the set of particles twice.
 The sum of weights $w_{sum}$ and unnormalised weight $\widetilde{w}^{(i)}$ are calculated in the first iteration.
 Then $w^{(i)}$ is obtained by dividing $\widetilde{w}^{(i)}$ by $w_{sum}$ in the second iteration.
-However, this method is inefficient for FPGA implementation.
+However, this method is inefficient for \gls{fpga} implementation.
 Since $2P_t$ cycles are needed to process $P_t$ pieces of data, the throughput is reduced to 50\%.
 
-To fully utilise deep pipelines targeting an FPGA, we perform function transformation.
+To fully utilise deep pipelines targeting an \gls{fpga}, we perform function transformation.
 Given ${w}^{(i)} = \frac{\widetilde{w}^{(i)}}{w_{sum}}$, we extract $w_{sum}$ out of Equation~\ref{eqt:bound3} to \ref{eqt:bound5}.
 By doing so, we obtain a transformed form as shown in Equations~\ref{eqt:bound6} to~\ref{eqt:bound8}.
 $w_{sum}$ and $\widetilde{w}^{(i)}$ are computed simultaneously in two separate data paths.
 At the last clock cycle of the particle stream, $\sigma^2$, $Var(\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1})$ and $E(\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1})$ are obtained.
-The details of the FPGA kernel design will be explained in Section~\ref{sec:hrs}.
+The details of the \gls{fpga} kernel design will be explained in Section~\ref{sec:hrs}.
 
 \begin{eqnarray}
 \small
@@ -229,7 +229,7 @@ E(\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1}) = \frac{1}{w_{sum}} \cdot \sum_{
 
 \subsection{Stage 3: Particle set size tuning (line~\ref{algo:pf_sort} to~\ref{algo:pf_rd4})} 
 The adaptive approach tunes the particle set size to fit the lower bound $P_{t+1}$.
-This stage is done on the CPUs because the operations involve non-sequential data access that cannot be mapped efficiently to FPGAs.
+This stage is done on the \gls{cpu}s because the operations involve non-sequential data access that cannot be mapped efficiently to \gls{fpga}s.
 
 The particles are sorted in descending order according to their weights.
 As the new sample size can increase or decrease, there are two cases:
@@ -279,20 +279,20 @@ The process has a complexity of $\bigO{P_{t+1}}$.
 \section{Heterogeneous Reconfigurable System}
 \label{sec:hrs}
 
-This section describes the proposed heterogeneous reconfigurable system (HRS).
-It is scalable to cope with different FPGA devices and applications.
-HRS also takes advantage of the run-time reconfiguration feature for power and energy reduction.
+This section describes the proposed heterogeneous reconfigurable system (\gls{hrs}).
+It is scalable to cope with different \gls{fpga} devices and applications.
+\gls{hrs} also takes advantage of the run-time reconfiguration feature for power and energy reduction.
 
-\subsection{Mapping adaptive PF to HRS}
+\subsection{Mapping adaptive \gls{pf} to \gls{hrs}}
 \label{sec:arch}
 
-The system design of HRS is shown in Figure~\ref{fig:arch}.
-A heterogeneous structure is employed to make use of multiple FPGAs and CPUs.
-FPGAs and CPUs communicate through high bandwidth buses.
-FPGAs are responsible for (1) sampling, (2) importance weighting, and (3) lower bound calculation.
-The data paths on the FPGAs are fully-pipelined.
-Each FPGA has its own on-board dynamic random-access memory (DRAM) to store the large amount of particle data.
-On the other hand, the CPUs gather all the particles from FPGAs to perform particle set size tuning and resampling.
+The system design of \gls{hrs} is shown in Figure~\ref{fig:arch}.
+A heterogeneous structure is employed to make use of multiple \gls{fpga}s and \gls{cpu}s.
+\gls{fpga}s and \gls{cpu}s communicate through high bandwidth buses.
+\gls{fpga}s are responsible for (1) sampling, (2) importance weighting, and (3) lower bound calculation.
+The data paths on the \gls{fpga}s are fully-pipelined.
+Each \gls{fpga} has its own on-board \gls{dram} to store the large amount of particle data.
+On the other hand, the \gls{cpu}s gather all the particles from \gls{fpga}s to perform particle set size tuning and resampling.
 
 \begin{figure}[t!]
 \centering
@@ -308,24 +308,24 @@ On the other hand, the CPUs gather all the particles from FPGAs to perform parti
 \label{fig:particles_stream}
 \end{figure}
 
-\subsection{FPGA Kernel Design}
+\subsection{\gls{fpga} Kernel Design}
 Sampling, importance weighting and lower bound calculation are the most computation intensive stages.
 In each time-step, these three stages are iterated for $itl\_repeat$ times.
-An FPGA kernel is designed to enable acceleration of them.
+An \gls{fpga} kernel is designed to enable acceleration of them.
 
-Figure~\ref{fig:kernel} shows the components of the FPGA kernel.
+Figure~\ref{fig:kernel} shows the components of the \gls{fpga} kernel.
 The kernel is fully pipelined to achieve one output per clock cycle.
-It can also be replicated as many times as FPGA resource allow and the replications can be split across multiple FPGA boards.
-The kernel takes three inputs from the CPUs or on-board DRAM: (1) states, (2) controls, and (3) seeds.
+It can also be replicated as many times as \gls{fpga} resource allow and the replications can be split across multiple \gls{fpga} boards.
+The kernel takes three inputs from the \gls{cpu}s or on-board \gls{dram}: (1) states, (2) controls, and (3) seeds.
 Application specific parameters are stored in ROMs.
 Three building blocks correspond to the sampling, importance weighting and lower bound calculation stages as described in Section~\ref{sec:apf}.
 
 For sampling and importance weighting, the computation of each particle is independent of each other.
-Particles are fed to the FPGAs as a stream shown in Figure~\ref{fig:particles_stream}.
+Particles are fed to the \gls{fpga}s as a stream shown in Figure~\ref{fig:particles_stream}.
 Each block of the particle stream consists of a number of data fields which store information of a particle.
 The number of data fields is application dependent.
-In every clock cycle, one piece of data is transferred from the onboard memory to an FPGA data path.
-Each FPGA data path has a long pipeline where each stage is filled with a piece of data, and therefore many particles are processed simultaneously.
+In every clock cycle, one piece of data is transferred from the onboard memory to an \gls{fpga} data path.
+Each \gls{fpga} data path has a long pipeline where each stage is filled with a piece of data, and therefore many particles are processed simultaneously.
 Fixed-point data representation is customised at each pipeline stage to reduce the resource usage.
 
 Meanwhile, the accumulation of $w_{sum}$ introduces a feedback loop.
@@ -335,69 +335,69 @@ In order to achieve one result per clock cycle, fixed-point data-path is impleme
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.5\textwidth,height=130mm]{runtime_reconfiguration/figures/fig_kernel}
-\caption{FPGA kernel design}
+\caption{\gls{fpga} kernel design}
 \label{fig:kernel}
 \end{figure}
 
 \subsection{Timing model for run time reconfiguration}
 \label{sec:reconfig}
 
-We derive a model to analyse the computation time of HRS.
+We derive a model to analyse the computation time of \gls{hrs}.
 The model helps us to design a configuration schedule that satisfies the real-time requirement and, if necessary, amend the application's specification.
 The model will be validated by experiments in Section~\ref{sec:results}.
 
-The computation time ($T_{comp}$) of HRS consists of three components: (1) Data path time $T_{datapath}$, (2) CPU time $T_{CPU}$, and (3) Data transfer time $T_{tran}$.
+The computation time ($T_{comp}$) of \gls{hrs} consists of three components: (1) Data path time $T_{datapath}$, (2) \gls{cpu} time $T_{\gls{cpu}}$, and (3) Data transfer time $T_{tran}$.
 The sampling, importance weighting and resampling processes are repeated for $itl\_repeat$ times in every time-step.
 
 \begin{equation}
 \small
 \begin{aligned}
-T_{comp} = itl\_repeat \cdot \left ( T_{datapath} + T_{CPU} + T_{tran} \right )
+T_{comp} = itl\_repeat \cdot \left ( T_{datapath} + T_{\gls{cpu}} + T_{tran} \right )
 \end{aligned}
 \label{eqt:total}
 \end{equation}
 
-\textbf{Data path time}, $T_{datapath}$, denotes the time spent on the FPGAs.
-$P_t$ denotes the number of particles at the current time-step and $f_{FPGA}$ denotes the clock frequency of the FPGAs.
+\textbf{Data path time}, $T_{datapath}$, denotes the time spent on the \gls{fpga}s.
+$P_t$ denotes the number of particles at the current time-step and $f_{\gls{fpga}}$ denotes the clock frequency of the \gls{fpga}s.
 $L$ is the length of the pipeline.
-$N_{datapath}$ denotes the number of data paths on one FPGA board.
-$N_{FPGA}$ is the number of FPGA boards in the system.
+$N_{datapath}$ denotes the number of data paths on one \gls{fpga} board.
+$N_{\gls{fpga}}$ is the number of \gls{fpga} boards in the system.
 
 \begin{equation}
 \small
 \begin{aligned}
-T_{datapath} = \left(\frac{P_t}{f_{FPGA} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{FPGA}}
+T_{datapath} = \left(\frac{P_t}{f_{\gls{fpga}} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{\gls{fpga}}}
 \end{aligned}
 \label{eqt:kernel}
 \end{equation}
 
-\textbf{CPU time}, $T_{CPU}$, denotes the time spent on the CPUs.
-The clock frequency and number of threads of the CPUs are represented by $f_{CPU}$ and $N_{thread}$ respectively.
-$par$ is an application-specific parameter in the range of $[0,1]$ which represents the ratio of CPU instructions that are parallelisable, and $\alpha$ is a scaling constant derived empirically.
+\textbf{\gls{cpu} time}, $T_{\gls{cpu}}$, denotes the time spent on the \gls{cpu}s.
+The clock frequency and number of threads of the \gls{cpu}s are represented by $f_{\gls{cpu}}$ and $N_{thread}$ respectively.
+$par$ is an application-specific parameter in the range of $[0,1]$ which represents the ratio of \gls{cpu} instructions that are parallelisable, and $\alpha$ is a scaling constant derived empirically.
 
 \begin{equation}
 \small
 \begin{aligned}
-T_{CPU} = \alpha \cdot \frac{P_t}{f_{CPU}} \cdot \left(1-par+\frac{par}{N_{thread}}\right)
+T_{\gls{cpu}} = \alpha \cdot \frac{P_t}{f_{\gls{cpu}}} \cdot \left(1-par+\frac{par}{N_{thread}}\right)
 \end{aligned}
 \label{eqt:host}
 \end{equation}
 
-\textbf{Data transfer time}, $T_{tran}$, denotes the time of moving a particle stream between the FPGAs and the CPUs.
+\textbf{Data transfer time}, $T_{tran}$, denotes the time of moving a particle stream between the \gls{fpga}s and the \gls{cpu}s.
 $df$ is the number of data fields of a particle.
 For example, if a particle contains the information of coordinates ($x$, $y$) and heading $h$, $df=3$.
-Given that the constant 1 represents the weight and the constant 2 accounts for the movement of data in and out of the FPGAs,
+Given that the constant 1 represents the weight and the constant 2 accounts for the movement of data in and out of the \gls{fpga}s,
 and $bw_{data}$ is the bit-width of one data field, the expression $(2 \cdot df + 1) \cdot bw_{data}$ is regarded as the size of a particle.
 
-$f_{bus}$ is the clock frequency of the bus connecting the CPUs to FPGAs and $lane$ is the number of bus lanes connected to one FPGA.
+$f_{bus}$ is the clock frequency of the bus connecting the \gls{cpu}s to \gls{fpga}s and $lane$ is the number of bus lanes connected to one \gls{fpga}.
 Since many buses, such as the PCI Express Bus, encode data during transfer, the effective data are denoted by $eff$ (in PCI Express Gen2 the value is 8/10).
-In our previous work~\cite{chau13a}, the data transfer time has a significant performance impact on HRS.
+In our previous work~\cite{chau13a}, the data transfer time has a significant performance impact on \gls{hrs}.
 To reduced the data transfer overhead, we introduce a data compression technique that will be described in Section~\ref{sec:stream}.
 
 \begin{equation}
 \small
 \begin{aligned}
-T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{FPGA}}
+T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{\gls{fpga}}}
 \end{aligned}
 \label{eqt:data}
 \end{equation}
@@ -414,11 +414,11 @@ T_{idle} = T_{rt} - T_{comp}
 \label{eqt:idle}
 \end{equation}
 
-Figure~\ref{fig:timing1} illustrates the power consumption of an HRS without run-time reconfiguration.
-It shows that the FPGAs are still drawing power after the computation finishes.
-By exploiting run-time reconfiguration as shown in Figure~\ref{fig:timing2}, the FPGAs are loaded with a low-power configuration during the idle period.
+Figure~\ref{fig:timing1} illustrates the power consumption of an \gls{hrs} without run-time reconfiguration.
+It shows that the \gls{fpga}s are still drawing power after the computation finishes.
+By exploiting run-time reconfiguration as shown in Figure~\ref{fig:timing2}, the \gls{fpga}s are loaded with a low-power configuration during the idle period.
 Such configuration minimises the amount of active resources and clock frequency.
-Equation~\ref{eqt:sleep} describes the sleep time when the FPGAs are idle and being loaded with the low-power configuration.
+Equation~\ref{eqt:sleep} describes the sleep time when the \gls{fpga}s are idle and being loaded with the low-power configuration.
 If the sleep time is positive, reconfiguration would be helpful in these situations.
 
 \begin{equation}
@@ -429,7 +429,7 @@ T_{sleep} = T_{idle} - T_{config}
 \label{eqt:sleep}
 \end{equation}
 
-\textbf{Configuration time}, $T_{config}$, denotes the time needed to download a configuration bit-stream to the FPGAs.
+\textbf{Configuration time}, $T_{config}$, denotes the time needed to download a configuration bit-stream to the \gls{fpga}s.
 $size_{bs}$ represents the size of bitstream in bits.
 $f_{config}$ is the configuration clock frequency in Hz and $bw_{config}$ is the width of the configuration port.
 
@@ -452,7 +452,7 @@ T_{config} = \frac{size_{bs}}{f_{config} \cdot bw_{config}}
 \includegraphics[width=0.6\textwidth]{runtime_reconfiguration/figures/fig_timing2}
 \label{fig:timing2}
 }
-\caption{Power consumption of the HRS over time}
+\caption{Power consumption of the \gls{hrs} over time}
 \label{fig:timing}
 \end{figure}
 
@@ -460,11 +460,11 @@ T_{config} = \frac{size_{bs}}{f_{config} \cdot bw_{config}}
 \section{Optimising Transfer of Particle Stream}
 \label{sec:stream}
 
-In Section~\ref{sec:hrs}, the data transfer time depends on the number of particles and the bus bandwidth between the CPUs and FPGAs.
+In Section~\ref{sec:hrs}, the data transfer time depends on the number of particles and the bus bandwidth between the \gls{cpu}s and \gls{fpga}s.
 It can be a major performance bottleneck as depicted in~\cite{chau13a}.
 Refer to Figure~\ref{fig:particles_resampling_unopt}, each block stores the data of a particle.
-When the CPUs finish processing, all data are transferred from the CPUs to the FPGAs.
-The data transfer time cannot be reduced by implementing more FPGA data paths or increasing the FPGAs' clock frequency because the bottleneck is at the bus connecting the CPUs and FPGAs.
+When the \gls{cpu}s finish processing, all data are transferred from the \gls{cpu}s to the \gls{fpga}s.
+The data transfer time cannot be reduced by implementing more \gls{fpga} data paths or increasing the \gls{fpga}s' clock frequency because the bottleneck is at the bus connecting the \gls{cpu}s and \gls{fpga}s.
 
 To improve the data transfer performance, we design a data structure which facilitates compression of particles.
 The idea comes from an observation of the resampling process - some particles are eliminated and the vacancies are filled by replicating non-eliminated particles.
@@ -491,10 +491,10 @@ As a result, the data transfer time and memory space are reduced.
 \label{fig:particles_resampling}
 \end{figure}
 
-An HRS often contains DRAM which transfers data in burst in order to maximise the memory bandwidth.
+An \gls{hrs} often contains \gls{dram} which transfers data in burst in order to maximise the memory bandwidth.
 This works fine with the original data structure where the data are organised as a sequence from the lower address space to the upper.
 However, using the new data structure, the data access pattern is not sequential anymore, the address can go back and forth.
-The DRAM controller needs to be modified so that the transfer throughput would not be affected by the change of data access pattern.
+The \gls{dram} controller needs to be modified so that the transfer throughput would not be affected by the change of data access pattern.
 As illustrated in Figure~\ref{fig:particles_resampling_opt}, a tag sequence is used to indicate the address of the next block.
 For example, after reading the data of particle~1, the burst address is at $N$.
 If the tag is one, the next burst address will point to the address of the next block at $N+1$.
@@ -510,7 +510,7 @@ The effect of $Rep$ on data transfer time will be evaluated in the next section.
 \begin{equation}
 \small
 \begin{aligned}
-T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{FPGA}}
+T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{\gls{fpga}}}
 \end{aligned}
 \label{eqt:data_opt}
 \end{equation}
@@ -519,8 +519,8 @@ T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \c
 \section{Experimental Results}
 \label{sec:results}
 
-To evaluate the performance of the HRS and make comparison with the other systems, 
-we implement an application which uses PF for localisation and tracking of mobile robot.
+To evaluate the performance of the \gls{hrs} and make comparison with the other systems, 
+we implement an application which uses \gls{pf} for localisation and tracking of mobile robot.
 The application is proposed in~\cite{montemerlo02} to track location of moving objects conditioned upon robot poses over time.
 Given a priori learned map, a robot receives sensor values and moves at regular time intervals. 
 Meanwhile, $M$ moving objects are tracked by the robot.
@@ -554,47 +554,47 @@ The robot makes a movement of 0.5m every five seconds, i.e. $T_{rt} = 5$.
 The robot can track eight moving objects at the same time.
 A maximum of 8192 particles are used for robot-tracking and each robot-particle is associated with 1024 object-particles.
 Therefore, the maximum number of data path cycles is 8*8192*1024=67,108,864.
-Each particle being streamed into the FPGAs contains coordinates ($x$,$y$) and heading $h$ which are represented by three single precision floating-point numbers.
-For the particle being streamed out of the FPGAs, it also contains a weight in addition to the coordinates.
+Each particle being streamed into the \gls{fpga}s contains coordinates ($x$,$y$) and heading $h$ which are represented by three single precision floating-point numbers.
+For the particle being streamed out of the \gls{fpga}s, it also contains a weight in addition to the coordinates.
 From Equation~\ref{eqt:data}, the size of a particle is $(2 \cdot 3 + 1) \cdot 32 \mbox{ bits} = 224 \mbox{ bits}$.
 
 \subsection{System Settings}
 
-\textbf{HRS}: Two reconfigurable accelerator systems from Maxeler Technologies are used.
+\textbf{\gls{hrs}}: Two reconfigurable accelerator systems from Maxeler Technologies are used.
 The system is developed using MaxCompiler, which adopts a stream computing model.
 \begin{itemize}
-\item \textit{MaxWorkstation} is a microATX form factor system which is equipped with one Xilinx Virtex-6 XC6VSX475T FPGA.
-The FPGA has 297,600 lookup tables (LUTs), 595,200 flip-flops (FFs), 2,016 digital signal processors (DSPs) and 1,064 block RAMs. 
-The FPGA board is connected to an Intel i7-870 CPU (4 physical cores, 8 threads in total, clocked at 2.93 GHz) via a PCI Express Gen2 x8 bus.
+\item \textit{MaxWorkstation} is a microATX form factor system which is equipped with one Xilinx Virtex-6 XC6VSX475T \gls{fpga}.
+The \gls{fpga} has 297,600 \glspl{lut}, 595,200 \glspl{ff}, 2,016 \glspl{dsp} and 1,064 block \glspl{ram}. 
+The \gls{fpga} board is connected to an Intel i7-870 \gls{cpu} (4 physical cores, 8 threads in total, clocked at 2.93 GHz) via a PCI Express Gen2 x8 bus.
 The maximum bandwidth of the PCI Express bus is 2 GB/s according to the specification provided by Maxeler Technologies.
-\item \textit{MPC-C500} is a 1U server accommodating four FPGA boards, each of which has a Xilinx Virtex-6 XC6VSX475T FPGA.
-Each FPGA board is connected to two Intel Xeon X5650 CPUs (12 physical cores, 24 threads in total, clocked at 2.66 GHz) via a PCI Express Gen2 x8 bus.
+\item \textit{MPC-C500} is a 1U server accommodating four \gls{fpga} boards, each of which has a Xilinx Virtex-6 XC6VSX475T \gls{fpga}.
+Each \gls{fpga} board is connected to two Intel Xeon X5650 \gls{cpu}s (12 physical cores, 24 threads in total, clocked at 2.66 GHz) via a PCI Express Gen2 x8 bus.
 \end{itemize}
 
-To support run-time reconfigurability, there are two FPGA configurations:
+To support run-time reconfigurability, there are two \gls{fpga} configurations:
 \begin{itemize}
 \item {\it Sampling and importance weighting configuration} is clocked at 100 MHz.
-Two data paths are implemented on one FPGA to process particles in parallel.
-The total resource usage is 231,922 LUTs (78\%), 338,376 FFs (56\%), 1,934 DSPs (96\%) and 514 block RAMs (48\%).
-\item {\it Low-power configuration} is clocked at 10 MHz, with 5,962 LUTs (2\%), 6,943 FFs (1\%) and 12 block RAMs (1\%).
-It uses minimal resources just to maintain communication between the FPGAs and CPUs.
+Two data paths are implemented on one \gls{fpga} to process particles in parallel.
+The total resource usage is 231,922 \glspl{lut} (78\%), 338,376 \glspl{ff} (56\%), 1,934 \glspl{dsp} (96\%) and 514 block \glspl{ram} (48\%).
+\item {\it Low-power configuration} is clocked at 10 MHz, with 5,962 \glspl{lut} (2\%), 6,943 \glspl{ff} (1\%) and 12 block \glspl{ram} (1\%).
+It uses minimal resources just to maintain communication between the \gls{fpga}s and \gls{cpu}s.
 \end{itemize}
 
-\textbf{CPU}: The CPU performance results are obtained from a 1U server that hosts two Intel Xeon X5650 CPUs. 
-Each CPU is clocked at 2.66 GHz.
+\textbf{\gls{cpu}}: The \gls{cpu} performance results are obtained from a 1U server that hosts two Intel Xeon X5650 \gls{cpu}s. 
+Each \gls{cpu} is clocked at 2.66 GHz.
 The program is written in C language and optimised by Intel Compiler with SSE4.2 and flag {\it -fast} enabled.
 OpenMP is used to utilise all the processor cores.
 
-\textbf{GPU}: An NVIDIA Tesla C2070 GPU is hosted inside a 4U server.
+\textbf{\gls{gpu}}: An NVIDIA Tesla C2070 \gls{gpu} is hosted inside a 4U server.
 It has 448 cores running at 1.15 GHz and has a peak performance by 1288 GFlops.
 The program is written in C for CUDA and optimised to use all the cores available.
-To get more comprehensive results for comparison, we also estimate the performance of multiple GPUs.
-The estimation is based on the fact that the first three stages (sampling, importance weighting, lower bound calculation) can be evenly distributed to every GPU and be computed independently, 
-so the data path and data transfer speedup scales linearly with the number of GPUs.
-On the other hand, the last two stages (particle set resizing, resampling) are computed on the CPU no matter how many GPUs are used, therefore, the CPU time does not scale with the number of GPUs.
+To get more comprehensive results for comparison, we also estimate the performance of multiple \gls{gpu}s.
+The estimation is based on the fact that the first three stages (sampling, importance weighting, lower bound calculation) can be evenly distributed to every \gls{gpu} and be computed independently, 
+so the data path and data transfer speedup scales linearly with the number of \gls{gpu}s.
+On the other hand, the last two stages (particle set resizing, resampling) are computed on the \gls{cpu} no matter how many \gls{gpu}s are used, therefore, the \gls{cpu} time does not scale with the number of \gls{gpu}s.
 
-\subsection{Adaptive PF versus Non-adaptive PF}
-The comparison of adaptive and non-adaptive PF is shown in Table~\ref{tab:pf}.
+\subsection{Adaptive \gls{pf} versus Non-adaptive \gls{pf}}
+The comparison of adaptive and non-adaptive \gls{pf} is shown in Table~\ref{tab:pf}.
 Both model estimation and experimental results are listed.
 Initially, the maximum number of particles are instantiated for global localisation.
 For the non-adaptive scheme, the particle set size does not change.
@@ -602,14 +602,14 @@ The total computation time estimated and measured are 1.328 seconds and 1.885 se
 The difference is due to the difference between the effective and maximum bandwidth of the PCI Express bus.
 
 \begin{table}[h]
+	\centering
 	\setlength{\tabcolsep}{5pt}
 	\begin{spacing}{1.0}
-	\caption{Comparison of adaptive and non-adaptive PF on HRS (MaxWorkstation with one FPGA, no data compression is applied)\label{tab:pf}}{
-	\centering
+	\caption{Comparison of adaptive and non-adaptive \gls{pf} on \gls{hrs} (MaxWorkstation with one \gls{fpga}, no data compression is applied)\label{tab:pf}}{
 	\smallskip
-		\begin{tabular}{| l || c c | c c |}
+		\begin{tabular}{l || c c | c c}
 			\hline
-			 \multirow{2}{*}{}  & \multicolumn{2}{|c|}{Non-adaptive PF} & \multicolumn{2}{|c|}{Adaptive PF} \\
+			 \multirow{2}{*}{}  & \multicolumn{2}{|c|}{Non-adaptive \gls{pf}} & \multicolumn{2}{|c|}{Adaptive \gls{pf}} \\
 			\hline
 			  & Model & Exp. & Model & Exp. \\
 			\hline
@@ -617,7 +617,7 @@ The difference is due to the difference between the effective and maximum bandwi
 			 No. of particles & \multicolumn{2}{|c|}{67M} & \multicolumn{2}{|c|}{573k} \\
 			\hline
 			 Data path time $T_{datapath}$ (s) 		& 0.336 & 0.336 & 0.003 & 0.003 \\
-			 CPU time $T_{CPU}$ (s) 				& 0.117 & 0.117 & 0.001 & 0.001 \\
+			 \gls{cpu} time $T_{\gls{cpu}}$ (s) 				& 0.117 & 0.117 & 0.001 & 0.001 \\
 			 Data time $T_{tran}$ (s) 				& 0.875 & 1.432 & 0.007 & 0.012 \\
 			 Total comp. time $T_{comp}$ (s)			& 1.328 & 1.885 & 0.011	& 0.016 \\
 			\hline
@@ -652,8 +652,8 @@ The error is the highest during initial global localisation and it is reduced wh
 \subsection{Data Compression}
 Figure~\ref{fig:compression} shows the reduction in data transfer time after applying data compression.
 A higher number of replications means a lower data transfer time.
-The data transfer time has a lower bound of 0.212 seconds because the data from the FPGAs to the CPUs are not compressible.
-Only the particle stream after the resampling process is compressed when it is transferred from the CPUs to the FPGAs.
+The data transfer time has a lower bound of 0.212 seconds because the data from the \gls{fpga}s to the \gls{cpu}s are not compressible.
+Only the particle stream after the resampling process is compressed when it is transferred from the \gls{cpu}s to the \gls{fpga}s.
 
 \begin{figure}[t!]
 \centering
@@ -662,25 +662,25 @@ Only the particle stream after the resampling process is compressed when it is t
 \label{fig:compression}
 \end{figure}
 
-\subsection{Performance comparison of HRS, CPUs and GPUs}
-Table~\ref{tab:perf} shows the performance comparison of the CPUs, GPUs and HRS.
+\subsection{Performance comparison of \gls{hrs}, \gls{cpu}s and \gls{gpu}s}
+Table~\ref{tab:perf} shows the performance comparison of the \gls{cpu}s, \gls{gpu}s and \gls{hrs}.
 
-\textbf{Data path time}: Considering the time spent on the data paths only, HRS is up to 328 times faster than a single-core CPU and 76 times faster than a 12-core CPU system with 24 threads.
-In addition, it is 12 times and 3 times faster than one GPU and four GPUs, respectively.
+\textbf{Data path time}: Considering the time spent on the data paths only, \gls{hrs} is up to 328 times faster than a single-core \gls{cpu} and 76 times faster than a 12-core \gls{cpu} system with 24 threads.
+In addition, it is 12 times and 3 times faster than one \gls{gpu} and four \gls{gpu}s, respectively.
 
-\textbf{Data transfer time}: The data transfer time of HRS is shown in three rows.
+\textbf{Data transfer time}: The data transfer time of \gls{hrs} is shown in three rows.
 The first row shows the situation when the PCI Express bandwidth is 2 GB/s.
-The second row shows the performance when PCI Express gen3 x8 (7.88 GB/s) is used such that the bandwidth is comparable with that of the GPU system.
-When multiple FPGA boards are used, the data transfer time decreases because multiple PCI Express buses are utilised simultaneously.
+The second row shows the performance when PCI Express gen3 x8 (7.88 GB/s) is used such that the bandwidth is comparable with that of the \gls{gpu} system.
+When multiple \gls{fpga} boards are used, the data transfer time decreases because multiple PCI Express buses are utilised simultaneously.
 The third row shows the performance when data compression is applied and it is assumed that each particle is replicated for 20 times in average.
 
-\textbf{CPU time}: The CPU time of HRS is shorter than that of the CPU and GPU systems because part of the resampling process of object-particles is performed on the FPGA using Independent Metropolis-Hastings (IMH) resampling algorithm~\cite{miao11}.
+\textbf{\gls{cpu} time}: The \gls{cpu} time of \gls{hrs} is shorter than that of the \gls{cpu} and \gls{gpu} systems because part of the resampling process of object-particles is performed on the \gls{fpga} using Independent Metropolis-Hastings (IMH) resampling algorithm~\cite{miao11}.
 IMH resampling algorithm is optimised for the deep pipeline architecture where each particle occupies a single stage of the pipeline.
-On the CPUs and GPU, the computation of the particles are shared by threads and therefore IMH resampling algorithm is not applicable.
+On the \gls{cpu}s and \gls{gpu}, the computation of the particles are shared by threads and therefore IMH resampling algorithm is not applicable.
 
-\textbf{Total computation time}: Considering the overall system performance, HRS is up to 169 times faster than a single-core CPU, 41 times faster than a 12-core CPU system.
-In addition, it is 9 times faster than one GPU, and 3 times faster than four GPUs.
-Notice that the CPUs violate the real-time constraint of 5 seconds.
+\textbf{Total computation time}: Considering the overall system performance, \gls{hrs} is up to 169 times faster than a single-core \gls{cpu}, 41 times faster than a 12-core \gls{cpu} system.
+In addition, it is 9 times faster than one \gls{gpu}, and 3 times faster than four \gls{gpu}s.
+Notice that the \gls{cpu}s violate the real-time constraint of 5 seconds.
 
 \newcolumntype{g}{>{\columncolor{Gray}}c}
 \begin{table}[h]
@@ -688,13 +688,13 @@ Notice that the CPUs violate the real-time constraint of 5 seconds.
 \footnotesize
 \setlength{\tabcolsep}{1pt}
 \begin{spacing}{1.0}
-\caption{Performance comparison of HRS, CPUs and GPU \label{tab:perf}}
+\caption{Performance comparison of \gls{hrs}, \gls{cpu}s and \gls{gpu} \label{tab:perf}}
 	\centering
 		\smallskip
 		\begin{threeparttable}
-		\begin{tabular}{| l || c c c c c g g g |}
+		\begin{tabular}{l || c c c c c g g g}
 		\hline
-												& CPU(1) $^a$ 					& CPU(2) $^a$ 				& GPU(1) $^b$ 				& GPU(2) $^b$ 				& GPU(3) $^b$ 				& HRS(1) $^c$& HRS(2) $^d$& HRS(3) $^d$ \\
+												& \gls{cpu}(1) $^a$ 					& \gls{cpu}(2) $^a$ 				& \gls{gpu}(1) $^b$ 				& \gls{gpu}(2) $^b$ 				& \gls{gpu}(3) $^b$ 				& \gls{hrs}(1) $^c$& \gls{hrs}(2) $^d$& \gls{hrs}(3) $^d$ \\
 		\hline
 		\hline
 		Clock freq. (MHz) 						& 2660							& 2660 						& 1150  					& 1150						& 1150						& 100  		&  100 		& 100 		\\
@@ -707,7 +707,7 @@ Notice that the CPUs violate the real-time constraint of 5 seconds.
 		\multirow{3}{*}{Data tran. time (s)} 	& \multirow{3}{*}{0}			& \multirow{3}{*}{0}		& \multirow{3}{*}{0.360} 	& \multirow{3}{*}{0.180} 	& \multirow{3}{*}{0.090} 	& 1.432 $^f$& 0.716 $^f$& 0.358 $^f$\\
 												&								& 							& 							& 							&							& 0.363 $^g$& 0.182 $^g$& 0.091 $^g$\\
 												&								& 							& 							& 							&							& 0.223 $^h$& 0.111 $^h$& 0.056 $^h$\\
-		CPU time (s)							& 0.420							& 0.334						& 0.117						& 0.117						& 0.117						& 0.030		& 0.025		& 0.025		\\
+		\gls{cpu} time (s)							& 0.420							& 0.334						& 0.117						& 0.117						& 0.117						& 0.030		& 0.025		& 0.025		\\
 		Total comp. time (s)  					& 27.95							& 6.697 					& 1.477						& 0.797						& 0.457						& 0.589 	& 0.304		& 0.165 	\\
 		Overall speedup  						& 1x							& 4.2x	 					& 18.9x						& 35.1x						& 61.2x						& 47.5x 	& 91.9x		& 169.4x	\\
 		\hline
@@ -721,14 +721,14 @@ Notice that the CPUs violate the real-time constraint of 5 seconds.
 		\hline
 		\end{tabular}
 			\begin{tablenotes}
-			\item[a] 2 Intel Xeon X5650 CPUs @2.66 GHz (12 cores supporting 24 threads).
-			\item[b] 1/2/4 NVIDIA Tesla C2070 GPUs and 1 Intel Core i7-950 CPU @3.07 GHz (4 cores supporting 8 threads).
-			\item[c] 1 Xilinx XC6VSX475T FPGA and 1 Intel Core i7-870 CPU @2.93 GHz (4 cores supporting 8 threads).
-			\item[d] 4 Xilinx XC6VSX475T FPGAs and 2 Intel Xeon X5650 CPUs @2.66 GHz (12 cores supporting 24 threads).
-			\item[e] Number of FPGA data paths and number of CPU threads.
-			\item[f] Each FPGA communicates with CPUs via a PCI Express bus with 2 GB/s bandwidth.
-			\item[g] Each FPGA communicates with CPUs via a PCI Express Gen3 x8 bus with 7.88 GB/s bandwidth.
-			\item[h] Each FPGA communicates with CPUs via a PCI Express Gen3 x8 bus with data compression.
+			\item[a] 2 Intel Xeon X5650 \gls{cpu}s @2.66 GHz (12 cores supporting 24 threads).
+			\item[b] 1/2/4 NVIDIA Tesla C2070 \gls{gpu}s and 1 Intel Core i7-950 \gls{cpu} @3.07 GHz (4 cores supporting 8 threads).
+			\item[c] 1 Xilinx XC6VSX475T \gls{fpga} and 1 Intel Core i7-870 \gls{cpu} @2.93 GHz (4 cores supporting 8 threads).
+			\item[d] 4 Xilinx XC6VSX475T \gls{fpga}s and 2 Intel Xeon X5650 \gls{cpu}s @2.66 GHz (12 cores supporting 24 threads).
+			\item[e] Number of \gls{fpga} data paths and number of \gls{cpu} threads.
+			\item[f] Each \gls{fpga} communicates with \gls{cpu}s via a PCI Express bus with 2 GB/s bandwidth.
+			\item[g] Each \gls{fpga} communicates with \gls{cpu}s via a PCI Express Gen3 x8 bus with 7.88 GB/s bandwidth.
+			\item[h] Each \gls{fpga} communicates with \gls{cpu}s via a PCI Express Gen3 x8 bus with data compression.
 			\item[i] Cases for 573k and 67M particles in a 5-second interval.
 			\end{tablenotes}
 		\end{threeparttable}
@@ -736,34 +736,34 @@ Notice that the CPUs violate the real-time constraint of 5 seconds.
 \end{table}
 
 \textbf{Power and energy consumption}: In real-time applications, we are interested in the energy consumption per time-step.
-Figure~\ref{fig:power} shows the power consumption of HRS, CPUs and GPU over a period of 10 seconds (2 time-steps).
+Figure~\ref{fig:power} shows the power consumption of \gls{hrs}, \gls{cpu}s and \gls{gpu} over a period of 10 seconds (2 time-steps).
 The system power is measured using a power meter which is connected directly between the power source and the system.
-All the curves of HRS show peaks when HRS is at the computation mode and troughs when it is at the low power mode.
+All the curves of \gls{hrs} show peaks when \gls{hrs} is at the computation mode and troughs when it is at the low power mode.
 The power during the configuration period lies between the two modes.
-On the HRS with one FPGA, run-time reconfiguration reduces the idle power consumption by 34\% from 145W to 95W.
+On the \gls{hrs} with one \gls{fpga}, run-time reconfiguration reduces the idle power consumption by 34\% from 145W to 95W.
 In other words, over a 5-second time-step, the energy consumption is reduced by up to 33\%.
-On the HRS with four FPGAs, the idle power consumption is reduced by 25\% from 480W to 360W, and hence the energy consumption decreased by up to 17\%.
+On the \gls{hrs} with four \gls{fpga}s, the idle power consumption is reduced by 25\% from 480W to 360W, and hence the energy consumption decreased by up to 17\%.
 
-The run-time reconfiguration methodology is not limited to the Maxeler systems, it can be applied to other FPGA platforms.
+The run-time reconfiguration methodology is not limited to the Maxeler systems, it can be applied to other \gls{fpga} platforms.
 The resource management software of our system (MaxelerOS) simplifies the effort of performing run-time reconfiguration, and hence we can focus on studying the impact of run-time reconfiguration on energy saving.
 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.7\textwidth]{runtime_reconfiguration/figures/fig_power2}
-\caption{Power consumption of HRS, CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement (The lines of HRS(2) and HRS(3) overlap)}
+\caption{Power consumption of \gls{hrs}, \gls{cpu} and \gls{gpu} in one time-step, notice that the computation time of the \gls{cpu} system exceeds the 5-second real-time requirement (The lines of \gls{hrs}(2) and \gls{hrs}(3) overlap)}
 \label{fig:power}
 \end{figure}
 
 To identify the speed and energy trade-off, we produce a graph as shown in Figure~\ref{fig:scale}. 
 Each data point represents the computation time versus energy consumption of a system setting.
-Among all the systems, the HRS with one FPGA has the computation speed that satisfies the real-time requirement, while at the same time consumes the smallest amount of energy.
-All the configurations of CPU system cannot meet the real-time requirement.
-HRS(3), the HRS with four FPGAs, is the fastest among all the systems in comparison, therefore it is able to handle larger problems and more complex applications.
+Among all the systems, the \gls{hrs} with one \gls{fpga} has the computation speed that satisfies the real-time requirement, while at the same time consumes the smallest amount of energy.
+All the configurations of \gls{cpu} system cannot meet the real-time requirement.
+\gls{hrs}(3), the \gls{hrs} with four \gls{fpga}s, is the fastest among all the systems in comparison, therefore it is able to handle larger problems and more complex applications.
 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.7\textwidth]{runtime_reconfiguration/figures/fig_scale}
-\caption{Run-time vs. energy consumption of HRS, CPUs and GPUs (5-second time-step, 67M particles; Refer to Table~II for system settings)}
+\caption{Run-time vs. energy consumption of \gls{hrs}, \gls{cpu}s and \gls{gpu}s (5-second time-step, 67M particles; Refer to Table~II for system settings)}
 \label{fig:scale}
 \end{figure}
 
@@ -772,10 +772,10 @@ HRS(3), the HRS with four FPGAs, is the fastest among all the systems in compari
 \section{Summary}
 
 This paper presents an approach for accelerating adaptive particle filter for real-time applications.
-The proposed heterogeneous reconfigurable system demonstrates a significant reduction in power and energy consumption compared with CPU and GPU.
+The proposed heterogeneous reconfigurable system demonstrates a significant reduction in power and energy consumption compared with \gls{cpu} and \gls{gpu}.
 The adaptive algorithm reduces computation time while maintaining the quality of results. 
-The approach is scalable to systems with multiple FPGAs.
-A data compression technique is used to mitigate the data transfer overhead between the FPGAs and CPUs.
+The approach is scalable to systems with multiple \gls{fpga}s.
+A data compression technique is used to mitigate the data transfer overhead between the \gls{fpga}s and \gls{cpu}s.
 
 In the future, heterogeneous reconfigurable systems will be developed for various particle filters that are more compute-intensive and have more stringent real-time requirements than the ones described above.
 Air traffic management~\cite{chau13b} and traffic estimation~\cite{mihaylova07} are example applications that can substantially benefit from the proposed approach in meeting current and future requirements.

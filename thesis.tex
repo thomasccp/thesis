@@ -28,7 +28,6 @@
 %\input{quotes/quotes}
 
 \body
-\printglossary[type=\acronymtype,title=Abbreviations]
 \input{introduction/introduction}
 \input{background/background}
 
@@ -42,6 +41,8 @@
 \appendix
 % appendices come here
 
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{chapter}{Bibliography}
 \renewcommand{\bibname}{Bibliography}
 \bibliographystyle{IEEEtran}
