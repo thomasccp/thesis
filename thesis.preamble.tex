@@ -1,8 +1,10 @@
 
 % *** Some useful LaTeX packages ***
 \usepackage[colorinlistoftodos]{todonotes}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=3cm]{geometry}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage{enumerate}
 \newtheorem{myDef}{Definition}
 \usepackage{makeidx}  % allows for indexgeneration
 \newcommand{\bigO}[1]{\ensuremath{\mathop{}\mathopen{}\mathcal{O}\mathopen{}\left(#1\right)}}
@@ -156,8 +158,17 @@
 % *** CITATION PACKAGES ***
 %
 \usepackage{cite}
-\usepackage{breakurl}
 %\usepackage[bookmarks=false,colorlinks=false]{hyperref}
+%\usepackage{hyperref}
+%\hypersetup{
+	%pdfborder={0 0 0},
+	%pdfauthor={Thomas C.P. Chau},
+	%pdftitle={Optimising reconfigurable systems for real-time applications},
+	%pdfsubject={Thesis},
+	%breaklinks,
+	%bookmarks=false,
+	%colorlinks=false,
+%}
 \usepackage{hyperref}
 \hypersetup{
 	pdfborder={0 0 0},
@@ -165,9 +176,10 @@
 	pdftitle={Optimising reconfigurable systems for real-time applications},
 	pdfsubject={Thesis},
 	breaklinks,
-	bookmarks=false,
+	%bookmarks=false,
 	colorlinks=false,
 }
+\usepackage{breakurl}
 
 % *** GRAPHICS RELATED PACKAGES ***
 %
@@ -226,17 +238,34 @@
 % *** For abbreviations / glossaries ***
 \usepackage[toc]{glossaries}
 \makeglossaries
+\newacronym{amba}{AMBA}{Advanced Microcontroller Bus Architecture}
+\newacronym{asic}{ASIC}{Application-Specific Integrated Circuit}
+\newacronym{clb}{CLB}{Configurable Logic Block}
 \newacronym{cpu}{CPU}{Central Processing Unit}
+\newacronym{dcl}{DCL}{Domain customisable Language}
+\newacronym{dfs}{DFS}{Dynamic Frequency Scaling}
 \newacronym{dram}{DRAM}{Dynamic Random-Access Memory}
+\newacronym{dsl}{DSL}{Digital Specific Language}
 \newacronym{dsp}{DSP}{Digital Signal Processor}
 \newacronym{ff}{FF}{Flip-Flop}
 \newacronym{fpga}{FPGA}{Field-Programmable Gate Array}
 \newacronym{gpu}{GPU}{Graphics Processing Unit}
+\newacronym{hdl}{HDL}{Hardware-description Language}
+\newacronym{hls}{HLS}{High-level synthesis}
 \newacronym{hrs}{HRS}{Heterogeneous Reconfigurable System}
+\newacronym{hpc}{HPC}{High-Performance Computing}
+%\newacronym{isr}{ISR}{Improved Systematic Resampling}
 \newacronym{lut}{LUT}{Look-Up Table}
 \newacronym{pf}{PF}{Particle Filter}
 \newacronym{pq}{PQ}{Proximity Query}
 \newacronym{ram}{RAM}{Random-Access Memory}
 \newacronym{rmse}{RMSE}{Root-Mean-Square Error}
+\newacronym{rtos}{RTOS}{Real-time Operating System}
+%\newacronym{rsr}{RSR}{Residual Systematic Resampling}
+\newacronym{rtl}{RTL}{Register-transfer-level}
 \newacronym{smc}{SMC}{Sequential Monte Carlo}
+\newacronym{soc}{SOC}{System on a chip}
+\newacronym{vhsic}{VHSIC}{Very High Speed Integrated Circuit}
+\newacronym{vhdl}{VHDL}{VHSIC Hardware Description Language}
+\newacronym{wcet}{WCET}{Worst Case Execution Time}
 

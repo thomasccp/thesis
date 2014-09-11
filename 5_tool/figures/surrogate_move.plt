@@ -1,0 +1,21 @@
+reset
+set term postscript eps enhanced color
+set output "fig_surrogate_move.eps"
+set size 0.5, 0.5
+set xlabel "Parameter X" font "Times-Roman, 20"
+set xrange [0:11]
+set ylabel "Objective function" font "Times-Roman, 20"
+set yrange [0:10]
+set label "invalid region" at 0.5,9 font "Times-Roman, 18"
+set label "expected improvement" at 1.6,2 font "Times-Roman, 18"
+set label "new parameter set" at 5.4,6.5 font "Times-Roman, 18"
+set object 1 rectangle from 0,0 to 2.5,10 fs solid 0.5 noborder fc rgb "grey" behind
+set style line 1 lw 3 lt 12 pt 3 linecolor rgb 'blue' 
+set style line 2 lw 3 lt 12 pt 3 linecolor rgb 'black' 
+set style line 3 lw 5 lt 12 pt 2 ps 1 linecolor rgb 'red' 
+set style arrow 1 head filled size screen 0.025,30,45 ls 2
+set arrow from 8.7,6 to 8.6,3.2 as 1
+plot 'surrogate.dat' using 1:2 ls 1 smooth csplines notitle, \
+'' using 1:2 ls 1 notitle with points, \
+'ei.dat' using 1:2 ls 2 smooth csplines notitle, \
+"<echo 8.6 2.9" with points ls 3 notitle

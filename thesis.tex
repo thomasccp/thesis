@@ -1,10 +1,6 @@
 
 \documentclass[a4paper,12pt,twoside]{report}
-\usepackage[left=2cm,right=2cm,top=2cm,bottom=3cm]{geometry}
-\usepackage[pdfauthor={Thomas C.P. Chau},
-			pdftitle={Optimising reconfigurable systems for real-time applications},
-			pdfsubject={Thesis},
-			pdfkeywords={reconfigurable systems, FPGAs}]{hyperref}
+
 
 \include{thesis.preamble}
 
@@ -15,7 +11,7 @@
 }
 
 \author{Thomas Chun Pong Chau}
-\submitdate{April 2014}
+\submitdate{June 2014}
 
 \normallinespacing
 \maketitle
@@ -28,15 +24,15 @@
 %\input{quotes/quotes}
 
 \body
-\input{introduction/introduction}
-\input{background/background}
+\input{1_introduction/introduction}
+\input{2_background/background}
 
 % body of thesis comes here
-\input{mixed_precision/mixed_precision}
-\input{runtime_reconfiguration/runtime_reconfiguration}
-\input{design_flow/design_flow}
+\input{3_precision/precision}
+\input{4_adaptation/adaptation}
+\input{5_tool/tool}
 
-\input{conclusion/conclusion}
+\input{6_conclusion/conclusion}
 
 \appendix
 % appendices come here
