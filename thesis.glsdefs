@@ -1,0 +1,840 @@
+\ifglsentryexists{amba}{}%
+{%
+\gls@defglossaryentry{amba}%
+{%
+name={AMBA},%
+sort={AMBA},%
+type={main},%
+first={Advanced Microcontroller Bus Architecture (AMBA)},%
+firstplural={Advanced Microcontroller Bus Architectures(AMBAs)},%
+text={AMBA},%
+plural={AMBAs},%
+description={Advanced Microcontroller Bus Architecture},%
+descriptionplural={Advanced Microcontroller Bus Architecture\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Advanced Microcontroller Bus Architecture},%
+longplural={Advanced Microcontroller Bus Architectures},%
+short={AMBA},%
+shortplural={AMBAs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{asic}{}%
+{%
+\gls@defglossaryentry{asic}%
+{%
+name={ASIC},%
+sort={ASIC},%
+type={main},%
+first={Application-Specific Integrated Circuit (ASIC)},%
+firstplural={Application-Specific Integrated Circuits(ASICs)},%
+text={ASIC},%
+plural={ASICs},%
+description={Application-Specific Integrated Circuit},%
+descriptionplural={Application-Specific Integrated Circuit\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Application-Specific Integrated Circuit},%
+longplural={Application-Specific Integrated Circuits},%
+short={ASIC},%
+shortplural={ASICs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{clb}{}%
+{%
+\gls@defglossaryentry{clb}%
+{%
+name={CLB},%
+sort={CLB},%
+type={main},%
+first={Configurable Logic Block (CLB)},%
+firstplural={Configurable Logic Blocks(CLBs)},%
+text={CLB},%
+plural={CLBs},%
+description={Configurable Logic Block},%
+descriptionplural={Configurable Logic Block\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Configurable Logic Block},%
+longplural={Configurable Logic Blocks},%
+short={CLB},%
+shortplural={CLBs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{cpu}{}%
+{%
+\gls@defglossaryentry{cpu}%
+{%
+name={CPU},%
+sort={CPU},%
+type={main},%
+first={Central Processing Unit (CPU)},%
+firstplural={Central Processing Units(CPUs)},%
+text={CPU},%
+plural={CPUs},%
+description={Central Processing Unit},%
+descriptionplural={Central Processing Unit\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Central Processing Unit},%
+longplural={Central Processing Units},%
+short={CPU},%
+shortplural={CPUs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{dcl}{}%
+{%
+\gls@defglossaryentry{dcl}%
+{%
+name={DCL},%
+sort={DCL},%
+type={main},%
+first={Domain customisable Language (DCL)},%
+firstplural={Domain customisable Languages(DCLs)},%
+text={DCL},%
+plural={DCLs},%
+description={Domain customisable Language},%
+descriptionplural={Domain customisable Language\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Domain customisable Language},%
+longplural={Domain customisable Languages},%
+short={DCL},%
+shortplural={DCLs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{dfs}{}%
+{%
+\gls@defglossaryentry{dfs}%
+{%
+name={DFS},%
+sort={DFS},%
+type={main},%
+first={Dynamic Frequency Scaling (DFS)},%
+firstplural={Dynamic Frequency Scalings(DFSs)},%
+text={DFS},%
+plural={DFSs},%
+description={Dynamic Frequency Scaling},%
+descriptionplural={Dynamic Frequency Scaling\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Dynamic Frequency Scaling},%
+longplural={Dynamic Frequency Scalings},%
+short={DFS},%
+shortplural={DFSs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{dram}{}%
+{%
+\gls@defglossaryentry{dram}%
+{%
+name={DRAM},%
+sort={DRAM},%
+type={main},%
+first={Dynamic Random-Access Memory (DRAM)},%
+firstplural={Dynamic Random-Access Memorys(DRAMs)},%
+text={DRAM},%
+plural={DRAMs},%
+description={Dynamic Random-Access Memory},%
+descriptionplural={Dynamic Random-Access Memory\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Dynamic Random-Access Memory},%
+longplural={Dynamic Random-Access Memorys},%
+short={DRAM},%
+shortplural={DRAMs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{dsl}{}%
+{%
+\gls@defglossaryentry{dsl}%
+{%
+name={DSL},%
+sort={DSL},%
+type={main},%
+first={Digital Specific Language (DSL)},%
+firstplural={Digital Specific Languages(DSLs)},%
+text={DSL},%
+plural={DSLs},%
+description={Digital Specific Language},%
+descriptionplural={Digital Specific Language\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Digital Specific Language},%
+longplural={Digital Specific Languages},%
+short={DSL},%
+shortplural={DSLs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{dsp}{}%
+{%
+\gls@defglossaryentry{dsp}%
+{%
+name={DSP},%
+sort={DSP},%
+type={main},%
+first={Digital Signal Processor (DSP)},%
+firstplural={Digital Signal Processors(DSPs)},%
+text={DSP},%
+plural={DSPs},%
+description={Digital Signal Processor},%
+descriptionplural={Digital Signal Processor\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Digital Signal Processor},%
+longplural={Digital Signal Processors},%
+short={DSP},%
+shortplural={DSPs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{ff}{}%
+{%
+\gls@defglossaryentry{ff}%
+{%
+name={FF},%
+sort={FF},%
+type={main},%
+first={Flip-Flop (FF)},%
+firstplural={Flip-Flops(FFs)},%
+text={FF},%
+plural={FFs},%
+description={Flip-Flop},%
+descriptionplural={Flip-Flop\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Flip-Flop},%
+longplural={Flip-Flops},%
+short={FF},%
+shortplural={FFs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{fpga}{}%
+{%
+\gls@defglossaryentry{fpga}%
+{%
+name={FPGA},%
+sort={FPGA},%
+type={main},%
+first={Field-Programmable Gate Array (FPGA)},%
+firstplural={Field-Programmable Gate Arrays(FPGAs)},%
+text={FPGA},%
+plural={FPGAs},%
+description={Field-Programmable Gate Array},%
+descriptionplural={Field-Programmable Gate Array\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Field-Programmable Gate Array},%
+longplural={Field-Programmable Gate Arrays},%
+short={FPGA},%
+shortplural={FPGAs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{gpu}{}%
+{%
+\gls@defglossaryentry{gpu}%
+{%
+name={GPU},%
+sort={GPU},%
+type={main},%
+first={Graphics Processing Unit (GPU)},%
+firstplural={Graphics Processing Units(GPUs)},%
+text={GPU},%
+plural={GPUs},%
+description={Graphics Processing Unit},%
+descriptionplural={Graphics Processing Unit\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Graphics Processing Unit},%
+longplural={Graphics Processing Units},%
+short={GPU},%
+shortplural={GPUs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{hdl}{}%
+{%
+\gls@defglossaryentry{hdl}%
+{%
+name={HDL},%
+sort={HDL},%
+type={main},%
+first={Hardware-description Language (HDL)},%
+firstplural={Hardware-description Languages(HDLs)},%
+text={HDL},%
+plural={HDLs},%
+description={Hardware-description Language},%
+descriptionplural={Hardware-description Language\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Hardware-description Language},%
+longplural={Hardware-description Languages},%
+short={HDL},%
+shortplural={HDLs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{hls}{}%
+{%
+\gls@defglossaryentry{hls}%
+{%
+name={HLS},%
+sort={HLS},%
+type={main},%
+first={High-level Synthesis (HLS)},%
+firstplural={High-level Synthesiss(HLSs)},%
+text={HLS},%
+plural={HLSs},%
+description={High-level Synthesis},%
+descriptionplural={High-level Synthesis\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={High-level Synthesis},%
+longplural={High-level Synthesiss},%
+short={HLS},%
+shortplural={HLSs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{hpc}{}%
+{%
+\gls@defglossaryentry{hpc}%
+{%
+name={HPC},%
+sort={HPC},%
+type={main},%
+first={High-Performance Computing (HPC)},%
+firstplural={High-Performance Computings(HPCs)},%
+text={HPC},%
+plural={HPCs},%
+description={High-Performance Computing},%
+descriptionplural={High-Performance Computing\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={High-Performance Computing},%
+longplural={High-Performance Computings},%
+short={HPC},%
+shortplural={HPCs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{ip}{}%
+{%
+\gls@defglossaryentry{ip}%
+{%
+name={IP},%
+sort={IP},%
+type={main},%
+first={Intellectual Property (IP)},%
+firstplural={Intellectual Propertys(IPs)},%
+text={IP},%
+plural={IPs},%
+description={Intellectual Property},%
+descriptionplural={Intellectual Property\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Intellectual Property},%
+longplural={Intellectual Propertys},%
+short={IP},%
+shortplural={IPs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{lut}{}%
+{%
+\gls@defglossaryentry{lut}%
+{%
+name={LUT},%
+sort={LUT},%
+type={main},%
+first={Look-Up Table (LUT)},%
+firstplural={Look-Up Tables(LUTs)},%
+text={LUT},%
+plural={LUTs},%
+description={Look-Up Table},%
+descriptionplural={Look-Up Table\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Look-Up Table},%
+longplural={Look-Up Tables},%
+short={LUT},%
+shortplural={LUTs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{pf}{}%
+{%
+\gls@defglossaryentry{pf}%
+{%
+name={PF},%
+sort={PF},%
+type={main},%
+first={Particle Filter (PF)},%
+firstplural={Particle Filters(PFs)},%
+text={PF},%
+plural={PFs},%
+description={Particle Filter},%
+descriptionplural={Particle Filter\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Particle Filter},%
+longplural={Particle Filters},%
+short={PF},%
+shortplural={PFs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{pq}{}%
+{%
+\gls@defglossaryentry{pq}%
+{%
+name={PQ},%
+sort={PQ},%
+type={main},%
+first={Proximity Query (PQ)},%
+firstplural={Proximity Querys(PQs)},%
+text={PQ},%
+plural={PQs},%
+description={Proximity Query},%
+descriptionplural={Proximity Query\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Proximity Query},%
+longplural={Proximity Querys},%
+short={PQ},%
+shortplural={PQs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{ram}{}%
+{%
+\gls@defglossaryentry{ram}%
+{%
+name={RAM},%
+sort={RAM},%
+type={main},%
+first={Random-Access Memory (RAM)},%
+firstplural={Random-Access Memorys(RAMs)},%
+text={RAM},%
+plural={RAMs},%
+description={Random-Access Memory},%
+descriptionplural={Random-Access Memory\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Random-Access Memory},%
+longplural={Random-Access Memorys},%
+short={RAM},%
+shortplural={RAMs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{rmse}{}%
+{%
+\gls@defglossaryentry{rmse}%
+{%
+name={RMSE},%
+sort={RMSE},%
+type={main},%
+first={Root-Mean-Square Error (RMSE)},%
+firstplural={Root-Mean-Square Errors(RMSEs)},%
+text={RMSE},%
+plural={RMSEs},%
+description={Root-Mean-Square Error},%
+descriptionplural={Root-Mean-Square Error\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Root-Mean-Square Error},%
+longplural={Root-Mean-Square Errors},%
+short={RMSE},%
+shortplural={RMSEs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{rtos}{}%
+{%
+\gls@defglossaryentry{rtos}%
+{%
+name={RTOS},%
+sort={RTOS},%
+type={main},%
+first={Real-time Operating System (RTOS)},%
+firstplural={Real-time Operating Systems(RTOSs)},%
+text={RTOS},%
+plural={RTOSs},%
+description={Real-time Operating System},%
+descriptionplural={Real-time Operating System\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Real-time Operating System},%
+longplural={Real-time Operating Systems},%
+short={RTOS},%
+shortplural={RTOSs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{rtl}{}%
+{%
+\gls@defglossaryentry{rtl}%
+{%
+name={RTL},%
+sort={RTL},%
+type={main},%
+first={Register-transfer-level (RTL)},%
+firstplural={Register-transfer-levels(RTLs)},%
+text={RTL},%
+plural={RTLs},%
+description={Register-transfer-level},%
+descriptionplural={Register-transfer-level\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Register-transfer-level},%
+longplural={Register-transfer-levels},%
+short={RTL},%
+shortplural={RTLs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{smc}{}%
+{%
+\gls@defglossaryentry{smc}%
+{%
+name={SMC},%
+sort={SMC},%
+type={main},%
+first={Sequential Monte Carlo (SMC)},%
+firstplural={Sequential Monte Carlos(SMCs)},%
+text={SMC},%
+plural={SMCs},%
+description={Sequential Monte Carlo},%
+descriptionplural={Sequential Monte Carlo\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Sequential Monte Carlo},%
+longplural={Sequential Monte Carlos},%
+short={SMC},%
+shortplural={SMCs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{soc}{}%
+{%
+\gls@defglossaryentry{soc}%
+{%
+name={SOC},%
+sort={SOC},%
+type={main},%
+first={System on a chip (SOC)},%
+firstplural={System on a chips(SOCs)},%
+text={SOC},%
+plural={SOCs},%
+description={System on a chip},%
+descriptionplural={System on a chip\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={System on a chip},%
+longplural={System on a chips},%
+short={SOC},%
+shortplural={SOCs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{vhsic}{}%
+{%
+\gls@defglossaryentry{vhsic}%
+{%
+name={VHSIC},%
+sort={VHSIC},%
+type={main},%
+first={Very High Speed Integrated Circuit (VHSIC)},%
+firstplural={Very High Speed Integrated Circuits(VHSICs)},%
+text={VHSIC},%
+plural={VHSICs},%
+description={Very High Speed Integrated Circuit},%
+descriptionplural={Very High Speed Integrated Circuit\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Very High Speed Integrated Circuit},%
+longplural={Very High Speed Integrated Circuits},%
+short={VHSIC},%
+shortplural={VHSICs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{vhdl}{}%
+{%
+\gls@defglossaryentry{vhdl}%
+{%
+name={VHDL},%
+sort={VHDL},%
+type={main},%
+first={VHSIC Hardware Description Language (VHDL)},%
+firstplural={VHSIC Hardware Description Languages(VHDLs)},%
+text={VHDL},%
+plural={VHDLs},%
+description={VHSIC Hardware Description Language},%
+descriptionplural={VHSIC Hardware Description Language\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={VHSIC Hardware Description Language},%
+longplural={VHSIC Hardware Description Languages},%
+short={VHDL},%
+shortplural={VHDLs},%
+counter={page},%
+parent={},%
+%
+}%
+}%
+\ifglsentryexists{wcet}{}%
+{%
+\gls@defglossaryentry{wcet}%
+{%
+name={WCET},%
+sort={WCET},%
+type={main},%
+first={Worst Case Execution Time (WCET)},%
+firstplural={Worst Case Execution Times(WCETs)},%
+text={WCET},%
+plural={WCETs},%
+description={Worst Case Execution Time},%
+descriptionplural={Worst Case Execution Time\acrpluralsuffix },%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Worst Case Execution Time},%
+longplural={Worst Case Execution Times},%
+short={WCET},%
+shortplural={WCETs},%
+counter={page},%
+parent={},%
+%
+}%
+}%

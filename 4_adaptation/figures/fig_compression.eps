@@ -1,9 +1,9 @@
 %!PS-Adobe-2.0 EPSF-2.0
 %%Title: fig_compression.eps
-%%Creator: gnuplot 4.6 patchlevel 3
-%%CreationDate: Fri Oct  4 15:56:27 2013
+%%Creator: gnuplot 5.1 patchlevel 0
+%%CreationDate: Sat Sep 27 00:01:07 2014
 %%DocumentFonts: (atend)
-%%BoundingBox: 50 50 230 176
+%%BoundingBox: 50 50 301 226
 %%EndComments
 %%BeginProlog
 /gnudict 256 dict def
@@ -18,6 +18,7 @@ gnudict begin
 /Dashlength 1 def
 /Landscape false def
 /Level1 false def
+/Level3 false def
 /Rounded false def
 /ClipToBoundingBox false def
 /SuppressPDFMark false def
@@ -29,11 +30,11 @@ gnudict begin
 %
 /vshift -46 def
 /dl1 {
-  10.0 Dashlength mul mul
+  10.0 Dashlength userlinewidth gnulinewidth div mul mul mul
   Rounded { currentlinewidth 0.75 mul sub dup 0 le { pop 0.01 } if } if
 } def
 /dl2 {
-  10.0 Dashlength mul mul
+  10.0 Dashlength userlinewidth gnulinewidth div mul mul mul
   Rounded { currentlinewidth 0.75 mul add } if
 } def
 /hpt_ 31.5 def
@@ -42,12 +43,12 @@ gnudict begin
 /vpt vpt_ def
 /doclip {
   ClipToBoundingBox {
-    newpath 50 50 moveto 230 50 lineto 230 176 lineto 50 176 lineto closepath
+    newpath 50 50 moveto 301 50 lineto 301 226 lineto 50 226 lineto closepath
     clip
   } if
 } def
 %
-% Gnuplot Prolog Version 4.6 (September 2012)
+% Gnuplot Prolog Version 5.0 (Apr 2014)
 %
 %/SuppressPDFMark true def
 %
@@ -64,11 +65,11 @@ gnudict begin
 /vpt2 vpt 2 mul def
 /hpt2 hpt 2 mul def
 /Lshow {currentpoint stroke M 0 vshift R 
-	Blacktext {gsave 0 setgray show grestore} {show} ifelse} def
+	Blacktext {gsave 0 setgray textshow grestore} {textshow} ifelse} def
 /Rshow {currentpoint stroke M dup stringwidth pop neg vshift R
-	Blacktext {gsave 0 setgray show grestore} {show} ifelse} def
+	Blacktext {gsave 0 setgray textshow grestore} {textshow} ifelse} def
 /Cshow {currentpoint stroke M dup stringwidth pop -2 div vshift R 
-	Blacktext {gsave 0 setgray show grestore} {show} ifelse} def
+	Blacktext {gsave 0 setgray textshow grestore} {textshow} ifelse} def
 /UP {dup vpt_ mul /vpt exch def hpt_ mul /hpt exch def
   /hpt2 hpt 2 mul def /vpt2 vpt 2 mul def} def
 /DL {Color {setrgbcolor Solid {pop []} if 0 setdash}
@@ -108,6 +109,7 @@ gnudict begin
 /LT6 {PL [2 dl1 2 dl2 2 dl1 6 dl2] LC6 DL} def
 /LT7 {PL [1 dl1 2 dl2 6 dl1 2 dl2 1 dl1 2 dl2] LC7 DL} def
 /LT8 {PL [2 dl1 2 dl2 2 dl1 2 dl2 2 dl1 2 dl2 2 dl1 4 dl2] LC8 DL} def
+/SL {[] 0 setdash} def
 /Pnt {stroke [] 0 setdash gsave 1 setlinecap M 0 0 V stroke grestore} def
 /Dia {stroke [] 0 setdash 2 copy vpt add M
   hpt neg vpt neg V hpt vpt neg V
@@ -329,9 +331,14 @@ gnudict begin
 %
 /languagelevel where
  {pop languagelevel} {1} ifelse
- 2 lt
-	{/InterpretLevel1 true def}
-	{/InterpretLevel1 Level1 def}
+dup 2 lt
+	{/InterpretLevel1 true def
+	 /InterpretLevel3 false def}
+	{/InterpretLevel1 Level1 def
+	 2 gt
+	    {/InterpretLevel3 Level3 def}
+	    {/InterpretLevel3 false def}
+	 ifelse }
  ifelse
 %
 % PostScript level 2 pattern fill definitions
@@ -420,16 +427,17 @@ Level1 {Level1PatternFill} {Level2PatternFill} ifelse
 /Symbol-Oblique /Symbol findfont [1 0 .167 1 0 0] makefont
 dup length dict begin {1 index /FID eq {pop pop} {def} ifelse} forall
 currentdict end definefont pop
+%
 /MFshow {
    { dup 5 get 3 ge
      { 5 get 3 eq {gsave} {grestore} ifelse }
      {dup dup 0 get findfont exch 1 get scalefont setfont
      [ currentpoint ] exch dup 2 get 0 exch R dup 5 get 2 ne {dup dup 6
-     get exch 4 get {Gshow} {stringwidth pop 0 R} ifelse }if dup 5 get 0 eq
+     get exch 4 get {textshow} {stringwidth pop 0 R} ifelse }if dup 5 get 0 eq
      {dup 3 get {2 get neg 0 exch R pop} {pop aload pop M} ifelse} {dup 5
      get 1 eq {dup 2 get exch dup 3 get exch 6 get stringwidth pop -2 div
      dup 0 R} {dup 6 get stringwidth pop -2 div 0 R 6 get
-     show 2 index {aload pop M neg 3 -1 roll neg R pop pop} {pop pop pop
+     textshow 2 index {aload pop M neg 3 -1 roll neg R pop pop} {pop pop pop
      pop aload pop M} ifelse }ifelse }ifelse }
      ifelse }
    forall} def
@@ -455,17 +463,42 @@ systemdict /pdfmark known not {
   userdict /pdfmark systemdict /cleartomark get put
 } if
 SDict begin [
-%  /Title (fig_compression.eps)
-%  /Subject (gnuplot plot)
-%  /Creator (gnuplot 4.6 patchlevel 3)
-%  /Author (cpc10)
+  /Title (fig_compression.eps)
+  /Subject (gnuplot plot)
+  /Creator (gnuplot 5.1 patchlevel 0)
+  /Author (Thomas)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Fri Oct  4 15:56:27 2013)
+  /CreationDate (Sat Sep 27 00:01:07 2014)
   /DOCINFO pdfmark
 end
 } ifelse
 end
+%
+% Support for boxed text - Ethan A Merritt May 2005
+%
+/InitTextBox { userdict /TBy2 3 -1 roll put userdict /TBx2 3 -1 roll put
+           userdict /TBy1 3 -1 roll put userdict /TBx1 3 -1 roll put
+	   /Boxing true def } def
+/ExtendTextBox { Boxing
+    { gsave dup false charpath pathbbox
+      dup TBy2 gt {userdict /TBy2 3 -1 roll put} {pop} ifelse
+      dup TBx2 gt {userdict /TBx2 3 -1 roll put} {pop} ifelse
+      dup TBy1 lt {userdict /TBy1 3 -1 roll put} {pop} ifelse
+      dup TBx1 lt {userdict /TBx1 3 -1 roll put} {pop} ifelse
+      grestore } if } def
+/PopTextBox { newpath TBx1 TBxmargin sub TBy1 TBymargin sub M
+               TBx1 TBxmargin sub TBy2 TBymargin add L
+	       TBx2 TBxmargin add TBy2 TBymargin add L
+	       TBx2 TBxmargin add TBy1 TBymargin sub L closepath } def
+/DrawTextBox { PopTextBox stroke /Boxing false def} def
+/FillTextBox { gsave PopTextBox 1 1 1 setrgbcolor fill grestore /Boxing false def} def
+0 0 0 0 InitTextBox
+/TBxmargin 20 def
+/TBymargin 20 def
+/Boxing false def
+/textshow { ExtendTextBox Gshow } def
+%
 %%EndProlog
 %%Page: 1 1
 gnudict begin
@@ -476,13 +509,13 @@ doclip
 0 setgray
 newpath
 (Helvetica) findfont 140 scalefont setfont
-BackgroundColor 0 lt 3 1 roll 0 lt exch 0 lt or or not {BackgroundColor C 1.000 0 0 3600.00 2520.00 BoxColFill} if
+BackgroundColor 0 lt 3 1 roll 0 lt exch 0 lt or or not {BackgroundColor C 1.000 0 0 5040.00 3528.00 BoxColFill} if
 1.000 UL
 LTb
 LCb setrgbcolor
 770 448 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
 686 448 M
@@ -491,89 +524,89 @@ stroke
 1.000 UL
 LTb
 LCb setrgbcolor
-770 686 M
+770 812 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 686 M
+686 812 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.05)]
 ] -46.7 MRshow
 1.000 UL
 LTb
 LCb setrgbcolor
-770 924 M
+770 1176 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 924 M
+686 1176 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.1)]
 ] -46.7 MRshow
 1.000 UL
 LTb
 LCb setrgbcolor
-770 1162 M
+770 1540 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 1162 M
+686 1540 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.15)]
 ] -46.7 MRshow
 1.000 UL
 LTb
 LCb setrgbcolor
-770 1400 M
+770 1904 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 1400 M
+686 1904 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.2)]
 ] -46.7 MRshow
 1.000 UL
 LTb
 LCb setrgbcolor
-770 1638 M
+770 2267 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 1638 M
+686 2267 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.25)]
 ] -46.7 MRshow
 1.000 UL
 LTb
 LCb setrgbcolor
-770 1876 M
+770 2631 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 1876 M
+686 2631 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.3)]
 ] -46.7 MRshow
 1.000 UL
 LTb
 LCb setrgbcolor
-770 2114 M
+770 2995 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 2114 M
+686 2995 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.35)]
 ] -46.7 MRshow
 1.000 UL
 LTb
 LCb setrgbcolor
-770 2352 M
+770 3359 M
 63 0 V
-2514 0 R
+3954 0 R
 -63 0 V
 stroke
-686 2352 M
+686 3359 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 0.4)]
 ] -46.7 MRshow
 1.000 UL
@@ -581,7 +614,7 @@ LTb
 LCb setrgbcolor
 770 448 M
 0 63 V
-0 1841 R
+0 2848 R
 0 -63 V
 stroke
 770 308 M
@@ -590,45 +623,45 @@ stroke
 1.000 UL
 LTb
 LCb setrgbcolor
-1356 448 M
+1683 448 M
 0 63 V
-0 1841 R
+0 2848 R
 0 -63 V
 stroke
-1356 308 M
+1683 308 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 5)]
 ] -46.7 MCshow
 1.000 UL
 LTb
 LCb setrgbcolor
-1941 448 M
+2596 448 M
 0 63 V
-0 1841 R
+0 2848 R
 0 -63 V
 stroke
-1941 308 M
+2596 308 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 10)]
 ] -46.7 MCshow
 1.000 UL
 LTb
 LCb setrgbcolor
-2527 448 M
+3509 448 M
 0 63 V
-0 1841 R
+0 2848 R
 0 -63 V
 stroke
-2527 308 M
+3509 308 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 15)]
 ] -46.7 MCshow
 1.000 UL
 LTb
 LCb setrgbcolor
-3113 448 M
+4422 448 M
 0 63 V
-0 1841 R
+0 2848 R
 0 -63 V
 stroke
-3113 308 M
+4422 308 M
 [ [(Helvetica) 140.0 0.0 true true 0 ( 20)]
 ] -46.7 MCshow
 1.000 UL
@@ -637,53 +670,56 @@ LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-770 2352 N
+770 3359 N
 770 448 L
-2577 0 V
-0 1904 V
--2577 0 V
+4017 0 V
+0 2911 V
+-4017 0 V
 Z stroke
+1.000 UP
+1.000 UL
+LTb
 LCb setrgbcolor
-112 1400 M
+LCb setrgbcolor
+112 1903 M
 currentpoint gsave translate -270 rotate 0 0 moveto
 [ [(Helvetica) 140.0 0.0 true true 0 (Data transfer time \(s\))]
 ] -46.7 MCshow
 grestore
 LTb
 LCb setrgbcolor
-2058 98 M
-[ [(Helvetica) 140.0 0.0 true true 0 (Number of replication)]
+2778 98 M
+[ [(Helvetica) 140.0 0.0 true true 0 (Number of replications)]
 ] -46.7 MCshow
 LTb
-1.000 UP
-1.000 UL
-LTb
-LCb setrgbcolor
 % Begin plot #1
 1.000 UP
 3.000 UL
-LT0
-1.00 0.00 0.00 C 770 2147 M
-351 -519 V
-469 -85 V
-469 -29 V
-468 -14 V
-469 -10 V
-770 2147 Circle
-1121 1628 Circle
-1590 1543 Circle
-2059 1514 Circle
-2527 1500 Circle
-2996 1490 Circle
+LTb
+1.00 0.00 0.00 C 770 3046 M
+548 -793 V
+730 -131 V
+731 -44 V
+730 -22 V
+730 -14 V
+770 3046 Circle
+1318 2253 Circle
+2048 2122 Circle
+2779 2078 Circle
+3509 2056 Circle
+4239 2042 Circle
 % End plot #1
+2.000 UL
+LTb
+LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-770 2352 N
+770 3359 N
 770 448 L
-2577 0 V
-0 1904 V
--2577 0 V
+4017 0 V
+0 2911 V
+-4017 0 V
 Z stroke
 1.000 UP
 1.000 UL

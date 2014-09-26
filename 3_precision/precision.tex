@@ -11,18 +11,16 @@ This chapter presents a precision optimisation approach to maximise real-time pe
 The proposed approach is applied to image-guidance of medical surgery robot.
 
 \gls{pq} is an important compute-intensive and real-time application which requires substantial acceleration before it can be used in clinical setting.
-Fast and efficient \gls{pq} is a pre-requisite to provide haptic guidance which allow the operator perform effective and safe surgery. 
-This guidance is particularly important during soft tissue surgery, which involves large-scale and rapid tissue deformations. 
-A high update frequency above 1~kHz is required to maintain smooth and steady manipulation guidance. 
-Due to its intrinsic complexity and this real-time requirement, \gls{pq} is computationally challenging.
-The computation burden is increased by the need to compute the placement of anatomical model relative to the robot whose shape is represented by more than~1~million~vertices.
+It is because fast and efficient \gls{pq} (update frequency above 1~kHz) is required to maintain smooth and steady manipulation guidance which is particularly essential for soft tissue surgery having large-scale and rapid tissue deformations.
+This real-time requirement, as well as the intrinsic complexity of the algorithm, make \gls{pq} computationally challenging as a high update frequency above 1~kHz is required. 
+The computation burden is increased by the need to model the shape of tissue and surgery robot by more than~1~million~points.
 
 Due to its compute-intensive nature, \gls{pq} can greatly benefit from hardware acceleration.
 However, the massive amount of floating-point computations constitute a long data-path which is resource-demanding.
 Even if we could implement the data-path in an \gls{fpga}, the acceleration would be restricted by low parallelism and clock frequency.
 This challenge limits the implementation of \gls{pq} on an \gls{fpga}.
 
-In this chapter, we derive a \gls{pq} formulation which allows objects to be represented in complex geometry with vertices.
+In this chapter, we derive a \gls{pq} formulation which allows objects to be represented in complex geometry with points.
 To leverage the advantages of \gls{fpga}s, function transformation eliminates iterative trigonometric functions such that the algorithm can be fully-pipelined.
 We increase data-path parallelism by adopting a reduced precision data format which consumes fewer logic resources than high precision.
 To maintain the accuracy of results, potential incorrect outputs are re-computed in high precision.
@@ -32,8 +30,8 @@ To the best of our knowledge, our work is the first to apply reconfigurable tech
 
 The contributions of this chapter are as follows.
 \begin{itemize}
-\item A hardware-friendly \gls{pq} formulation for calculating the relative placement of objects modelled by vertices with complex morphology, which facilitates
-restructuring of trigonometric and search functions to be amenable to parallel implementation in hardware.
+\item A hardware-friendly \gls{pq} formulation for calculating the relative placement of objects modelled by points with complex morphology, which facilitates
+restructuring of trigonometric and search-functions to be amenable to parallel implementation in hardware.
 \item Enhanced parallelism by treating input points as a novel data structure propagating through pipelines, 
 together with \gls{fpga}-specific optimisations such as adapting \gls{pq} to reduced precision arithmetic,
 supporting multiple precisions in a novel memory architecture, and automating precision management with run-time reconfiguration.
@@ -42,8 +40,8 @@ supporting multiple precisions in a novel memory architecture, and automating pr
 
 The rest of the chapter is organised as follows.
 Section~\ref{sec:precision_formulation} presents our proposed \gls{pq} formulation.
-Section~\ref{sec:precision_optimisation} discusses the optimisation of \gls{pq} for reconfigurable accelerator.
-Section~\ref{sec:precision_implementation} describes the system design that maps \gls{pq} to a reconfigurable accelerator.
+Section~\ref{sec:precision_optimisation} discusses the optimisation of \gls{pq} for reconfigurable system.
+Section~\ref{sec:precision_implementation} describes the system design that maps \gls{pq} to a reconfigurable system.
 Section~\ref{sec:precision_evaluation} provides experimental results and
 Section~\ref{sec:precision_summary} concludes our work.
 
@@ -51,43 +49,62 @@ Section~\ref{sec:precision_summary} concludes our work.
 \section{Formulation of PQ}
 \label{sec:precision_formulation}
 
-In this section, we derive our modified \gls{pq} process which was originally proposed in our previous work~\cite{kwok13}. 
+In this section, we derive our modified \gls{pq} process which was originally proposed in~\cite{kwok13}. 
 The significance of this modification is to formulate the \gls{pq} capable of processing the contours in complex shapes. 
-As a result, it allows the analytical measure of the shortest Euclidean distance between an arbitrary set of vertices and a series of segments $\Omega_j$ (cf. Definition 1) which has been a well-known representation of a complex three-dimensional object~\cite{ponce89}. 
-Each segment is enclosed by two adjacent contours which are outlined by vertices arranged in polar coordinates; 
-hence, it outperforms the existing narrow-phase \gls{pq}s which are only compatible with convex objects. 
+As shown in Figure~\ref{fig:pqa_ch3}, \gls{pq} allows the analytical measure of the shortest Euclidean distance between an arbitrary set of points and a series of segments $\Omega_j$ (cf. Definition 1) which has been a well-known representation of a complex three-dimensional object~\cite{ponce89}. 
+Each segment $\Omega_j$ is enclosed by two adjacent contours which are outlined by points arranged in polar coordinates; 
+hence, it outperforms the existing narrow-phase \gls{pq}s which are only compatible with convex objects.
 
-In consideration of the point-to-segment distance, as shown in Fig.~\ref{fig:pqa}, four steps are taken to calculate the shortest distance $\delta_j$ between a point $\boldsymbol{x}$ and the corresponding edge $^jV_2 \rightarrow ^jV_3$.
+\begin{mydef}
+Each contour is denoted by $C_j$, $\forall j \in [1,...,N_C]$.
+A single segment $\Omega_j$ comprises two adjacent contours $C_j$ and $C_{j+1}$.
+$P_j$ is the centre of the contour $C_j$.
+$M_j$ is the tangent of centre line of contour $C_j$.
+$^j\omega_i=[^j\omega_{xi},^j\omega_{yi},^j\omega_{zi}]^T, (i=1,...,W)$ are the contour points,
+where $W$ is the number of points outlining each contour.
+\end{mydef}
+
+Four steps are taken to calculate the point-to-segment distance $\delta_j$, which is shown in Figure~\ref{fig:pqa_ch3} as the shortest distance $\delta_j$ between a point $\boldsymbol{x}$ and the corresponding edge $^jV_2 \rightarrow ^jV_3$.
 %the formulation is modified to efficiently find out the four-edge polygon which is a cross section cutting through the poles of the two contours as well as the 3D point. 
 %The \gls{pq} is proceeded effectively to calculate the shortest distance only between a point and the corresponding edge of the polygon. 
-%Vertices ${^jV}_3$ and ${^jV}_4$ are then to be calculated as the linear combination of, respectively, ${^{j-1}\omega_i}$ and ${^{j-1}\omega_{i+1}}$, and ${^{j}\omega_i}$ and ${^{j}\omega_{i+1}}$. 
-
+%Vertices ${^jV}_3$ and ${^jV}_4$ are then to be calculated as the linear combination of, respectively, ${^{j-1}\omega_i}$ and ${^{j-1}\omega_{i+1}}$, and ${^{j}\omega_i}$ and ${^{j}\omega_{i+1}}$.
 %\noindent \textbf{Pre-processing step}:
 %This step is done at design time.
-Before these steps, we capture the computation using polar coordinates.
-Given a contour $C_j$, $^j\phi_i$ are the polar angles corresponding to each contour vertex $^j\omega_i$.
-The polar angles of all the $^j\omega_i$ along the contour have to be computed. 
+Before introducing these steps, we describe the computation using polar coordinates.
+Given a contour $C_j$, $^j\phi_i$ is the polar angle corresponding to contour points $^j\omega_i$.
+The polar angles of all the $^j\omega_i$ along the contour, i.e. $^j\omega_1, ..., ^j\omega_W$, have to be computed. 
 This computation can be further simplified by ignoring an axis coordinate. 
-The poles and the contour vertices are then projected either on X-Y, Y-Z or X-Z plane based on the following conditions:   
+The poles and the contour points are then projected either on X-Y, Y-Z or X-Z plane based on the following conditions:   
 
 \begin{equation}
 \begin{aligned}
-\mbox{if } &|M_{zj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \\
-&{^j\omega}^{\prime}_i = [{^j\omega}_{1i},{^j\omega}_{2i}]^T = [{^j\omega}_{xi},{^j\omega}_{yi}]^T, P^{\prime}_j=[P_{xj},P_{yj}]^T \\
-\mbox{if } &|M_{xj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \\
-&{^j\omega}^{\prime}_i = [{^j\omega}_{1i},{^j\omega}_{2i}]^T = [{^j\omega}_{yi},{^j\omega}_{zi}]^T, P^{\prime}_j=[P_{yj},P_{zj}]^T \\
-\mbox{if } &|M_{yj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \\
-&{^j\omega}^{\prime}_i = [{^j\omega}_{1i},{^j\omega}_{2i}]^T = [{^j\omega}_{zi},{^j\omega}_{xi}]^T, P^{\prime}_j=[P_{zj},P_{xj}]^T 
+\mbox{if } &|M_{zj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \mbox{, } \\
+&{^j\omega}^{\prime}_i = [{^j\omega}_{1i},{^j\omega}_{2i}]^T = [{^j\omega}_{xi},{^j\omega}_{yi}]^T, P^{\prime}_j=[P_{xj},P_{yj}]^T \mbox{, } \\
+\mbox{if } &|M_{xj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \mbox{, } \\
+&{^j\omega}^{\prime}_i = [{^j\omega}_{1i},{^j\omega}_{2i}]^T = [{^j\omega}_{yi},{^j\omega}_{zi}]^T, P^{\prime}_j=[P_{yj},P_{zj}]^T \mbox{, } \\
+\mbox{if } &|M_{yj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \mbox{, } \\
+&{^j\omega}^{\prime}_i = [{^j\omega}_{1i},{^j\omega}_{2i}]^T = [{^j\omega}_{zi},{^j\omega}_{xi}]^T, P^{\prime}_j=[P_{zj},P_{xj}]^T \mbox{, } 
 \end{aligned}
 \label{eqt:preprocess1}
 \end{equation}
+
+where $M_j=(M_{xj}, M_{yj}, M_{zj})$ is the tangent of centre line of contour $C_j$.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.7\textwidth]{3_precision/figures/pqa}
+\end{center}
+\caption[Various sets of points aligned on a series of contours; A set of points located on an arbitrary form of mesh.]{(Left) Various sets of points aligned on a series of contours; 
+(Right) A set of points located on an arbitrary form of mesh.}
+\label{fig:pqa_ch3}
+\end{figure}
 
 Then ${^j\phi_i}$ is calculated as follows:
 
 \begin{equation}
 \begin{aligned}
 \overline{{^j\omega}^{\prime}_i} = {^j\omega}^{\prime}_i - P^{\prime}_j \mbox{ , } \qquad
-{^j\phi}_i = atan2 \left ( \overline{{^j\omega}_{2i}},\overline{{^j\omega}_{1i}} \right )
+{^j\phi}_i = atan2 \left ( \overline{{^j\omega}_{2i}},\overline{{^j\omega}_{1i}} \right ) \mbox{.}
 \end{aligned}
 \label{eqt:preprocess2}
 \end{equation}
@@ -95,12 +112,13 @@ Then ${^j\phi_i}$ is calculated as follows:
 We will explain the details of $atan2$ is Section~\ref{sec:precision_trigo}.
 
 \noindent \textbf{Step 1}:
-Find the normal of a plane containing points $\boldsymbol{x}$, $P_j$ and $P_{j+1}$.
+Find the normal of a plane containing three points: $\boldsymbol{x}$, $P_j$ and $P_{j+1}$.
 The symbol $\times$ denotes a cross product of two vectors in three-dimensional space.
+The normal $n_j$ is calculated by:
 
 \begin{equation}
 \begin{aligned}
-n_j = \left ( P_j-x \right ) \times \left ( P_{j+1}-x \right )
+n_j = \left ( P_j-x \right ) \times \left ( P_{j+1}-x \right ) \mbox{.}
 \end{aligned}
 \label{eqt:normal}
 \end{equation}
@@ -115,7 +133,7 @@ Calculate vectors $\rho_j$ and $\rho_{j+1}$ which are respectively perpendicular
 \mbox{ , }
 \qquad
 \begin{aligned}[c]
-\rho_{j+1} = n_j \times M_{j+1}
+\rho_{j+1} = n_j \times M_{j+1} \mbox{.}
 \end{aligned}
 \label{eqt:rho}
 \end{equation}
@@ -126,28 +144,29 @@ This section is cut by a plane containing the point $\boldsymbol{x}$ and the lin
 
 \begin{equation}
 \begin{aligned}[c]
-{^jV}_1 &= P_j \\
-{^jV}_4 &= P_{j+1}
+{^jV}_1 &= P_j \mbox{,} \\
+{^jV}_4 &= P_{j+1} \mbox{,}
 \end{aligned}
 \qquad
 \begin{aligned}[c]
-{^jV}_2 &= P_j + t_j \cdot \rho_j \\
-{^jV}_3 &= P_{j+1} + t_{j+1} \cdot\rho_{j+1}
+{^jV}_2 &= P_j + t_j \cdot \rho_j \mbox{,} \\
+{^jV}_3 &= P_{j+1} + t_{j+1} \cdot\rho_{j+1} \mbox{.}
 \end{aligned}
 \label{eqt:vertices}
 \end{equation}
 
-At this stage, we need to calculate $t_j$ and $t_{j+1}$.
+At this stage, we need to calculate $t_j$ and $t_{j+1}$ of Equation~\ref{eqt:vertices}.
 This can be achieved by mapping the values of $\rho_j$ to a two-dimensional plane.
+The two-dimensional mapping of $\rho_j$ is $\rho^{\prime}_j$.
 
 \begin{equation}
 \begin{aligned}
 \mbox{if } &|M_{zj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \\
-&\rho^{\prime}_j = [\rho_{1j},\rho_{2j}]^T = [\rho_{xj},\rho_{yj}]^T \\
+&\rho^{\prime}_j = [\rho_{1j},\rho_{2j}]^T = [\rho_{xj},\rho_{yj}]^T \mbox{,} \\
 \mbox{if } &|M_{xj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \\
-&\rho^{\prime}_j = [\rho_{1j},\rho_{2j}]^T = [\rho_{yj},\rho_{zj}]^T \\
+&\rho^{\prime}_j = [\rho_{1j},\rho_{2j}]^T = [\rho_{yj},\rho_{zj}]^T \mbox{,} \\
 \mbox{if } &|M_{yj}| = \max \left ( {|M_{xj}|,|M_{yj}|,|M_{zj}|} \right ) \\
-&\rho^{\prime}_j = [\rho_{1j},\rho_{2j}]^T = [\rho_{zj},\rho_{xj}]^T
+&\rho^{\prime}_j = [\rho_{1j},\rho_{2j}]^T = [\rho_{zj},\rho_{xj}]^T \mbox{.}
 \end{aligned}
 \label{eqt:rhoprocess}
 \end{equation}
@@ -156,13 +175,13 @@ Then we calculate ${^j\theta}$, the corresponding polar angle of $\rho^{\prime}_
 
 \begin{equation}
 \begin{aligned}
-{^j\theta} = atan2 \left ( \rho_{2j},\rho_{1j} \right )
+{^j\theta} = atan2 \left ( \rho_{2j},\rho_{1j} \right ) \mbox{.}
 \end{aligned}
 \label{eqt:theta}
 \end{equation}
 
 %Algorithm~\ref{algo:search} is performed to find ${^j\phi}$ and ${^{j+1}\phi}$ which embrace ${^j\theta}$.
-A search is performed to find ${^j\phi_i}$ and ${^j\phi_{i+1}}$ which embrace ${^j\theta}$.
+A search is performed to find ${^j\phi_i}$ and ${^j\phi_{i+1}}$ such that ${^j\phi_i} \leq {^j\theta} \leq {^j\phi_{i+1}}$.
 The polar angles $^j\phi_i$ and ${^j\phi_{i+1}}$ are calculated from Equation~\ref{eqt:preprocess2}.
 
 %\begin{algorithm}
@@ -178,14 +197,14 @@ The polar angles $^j\phi_i$ and ${^j\phi_{i+1}}$ are calculated from Equation~\r
 %\label{algo:search}
 %\end{algorithm}
 
-Based on the value $i$ obtained from the search, $t_j$ is calculated.
+Based on the value $i$ obtained from the search, $t_j$, which is used in Equation~\ref{eqt:vertices}, is calculated.
 
 \begin{equation}
 \begin{aligned}
-a &= [(P_j-{^j\omega}_i)({^j\omega}_{i+1}-{^j\omega}_i)][({^j\omega}_{i+1}-{^j\omega}_i)\rho] \\
-b &= [(P_j-{^j\omega}_i)\rho]\|{^j\omega}_{i+1}-{^j\omega}_i\|^2 \\
-c &= \|\rho\|^2\|{^j\omega}_{i+1}-{^j\omega}_i\|^2-\|({^j\omega}_{i+1}-{^j\omega}_i)\rho\|^2 \\
-t_j &= \frac{a-b}{c}
+a &= [(P_j-{^j\omega}_i)({^j\omega}_{i+1}-{^j\omega}_i)][({^j\omega}_{i+1}-{^j\omega}_i)\rho] \mbox{,} \\
+b &= [(P_j-{^j\omega}_i)\rho]\|{^j\omega}_{i+1}-{^j\omega}_i\|^2 \mbox{,} \\
+c &= \|\rho\|^2\|{^j\omega}_{i+1}-{^j\omega}_i\|^2-\|({^j\omega}_{i+1}-{^j\omega}_i)\rho\|^2 \mbox{,} \\
+t_j &= \frac{a-b}{c} \mbox{.}
 \end{aligned}
 \label{eqt:t}
 \end{equation}
@@ -197,26 +216,26 @@ Referring to~\cite{preparata85}, it can be determined by three variables $\lambd
 \begin{equation}
 \begin{aligned}
 \lambda_i &= n_j \cdot \psi_i, i={1,...,3} \\
-\mbox{s.t. } \psi_i &= (^jV_i-x) \times (^jV_{i+1}-x).
+\mbox{s.t. } \psi_i &= (^jV_i-\textbf{x}) \times (^jV_{i+1}-\textbf{x}) \mbox{.}
 \end{aligned}
 \label{eqt:lamda}
 \end{equation}
 
 Here $n_j$ denotes the normal defined in Equation~\ref{eqt:normal} and $\psi_i$ denotes the normal of the plane containing $^jV_{i=1...4}$.
-For all $\lambda_{i=1,...,3} \ge 0$, the shortest distance $\delta_j$ from point $x$ to the segment $\Omega_j$ is assigned to zero such that $\delta_j(x)=0$.
-Otherwise $\delta_j(x)$ will be considered as the distance from the point $\boldsymbol{x}$ to the line segment $^jV_2 \rightarrow ^jV_3$.
-Referring to~\cite{weisstein}, such a point-segment distance in three-dimensional space can be calculated as shown in Equation~\ref{eqt:distance}.
+For all $\lambda_{i=1,...,3} \ge 0$, the shortest distance $\delta_j$ from point $\boldsymbol{x}$ to the segment $\Omega_j$ is assigned to zero such that $\delta_j(\boldsymbol{x})=0$.
+Otherwise $\delta_j(\boldsymbol{x})$ will be considered as the distance from the point $\boldsymbol{x}$ to the line segment $^jV_2 \rightarrow ^jV_3$.
+Referring to~\cite{weisstein}, such a point-segment distance in three-dimensional space can be calculated as shown in Equation~\ref{eqt:distance}:
 
 \begin{equation}
 \begin{aligned}
-^j\mu = \frac{(^jV_2-X)\cdot(^jV_3-^jV_2)}{||^jV_3-^jV_2||^2} \\
-\chi_j = (1-^j\mu)^jV_2 + ^j\mu^jV_3 \\
-\delta_{j}(x) = ||x-\chi_j||
+^j\mu = \frac{(^jV_2-X)\cdot(^jV_3-^jV_2)}{||^jV_3-^jV_2||^2} \mbox{,} \\
+\chi_j = (1-^j\mu)^jV_2 + ^j\mu^jV_3 \mbox{,} \\
+\delta_{j}(\textbf{x}) = ||\textbf{x}-\chi_j|| \mbox{.}
 \end{aligned}
 \label{eqt:distance}
 \end{equation}
 
-In consideration of many points and segments, Equation~\ref{eqt:dev_min} generally expresses the deviation in distance from a single coordinate $x_i$ to a series of constraint segments ($\Omega_{1},...,\Omega_{N_C-1}$), where $i=1,...,N_P$ and $N_P$ is the total number of vertex points belong to the mesh model and $N_C-1$ is the number of segments involved in the calculation.
+In consideration of many points and segments, Equation~\ref{eqt:dev_min} generally expresses the deviation in distance from a single coordinate $x_i$ to a series of constraint segments ($\Omega_{1},...,\Omega_{N_C-1}$), where $i=1,...,N_P$, $N_P$ is the total number of points belong to the mesh model, $N_C-1$ is the number of segments involved in the calculation.
 
 %If so, we can count the resultant shortest distance $d$ as zero, as shown in Equation~\ref{eqt:d_zero}.
 %The vector $n_v$ and $d_i$ respectively denotes the normal of the plane containing $V_{i=1...4}$ %and the point along with vertex $i$ and $i+1$.
@@ -266,16 +285,16 @@ In consideration of many points and segments, Equation~\ref{eqt:dev_min} general
 
 \begin{equation}
 \begin{aligned}
-{_i\delta}_{N_C-1} = \min \left ( \delta_{1}(\boldsymbol{x}_i),\delta_{2}(\boldsymbol{x}_i),...,\delta_{N_C-1}(\boldsymbol{x}_i) \right )
+{_i\delta}_{N_C-1} = \min \left ( \delta_{1}(\boldsymbol{x}_i),\delta_{2}(\boldsymbol{x}_i),...,\delta_{N_C-1}(\boldsymbol{x}_i) \right ) \mbox{.}
 \end{aligned}
 \label{eqt:dev_min}
 \end{equation}
 
-The point with the maximum deviation, also known as penetration depth, is obtained below.
+The point with the maximum deviation, also known as penetration depth, is obtained below:
 
 \begin{equation}
 \begin{aligned}
-d^{N_C-1} = \max_{i=1,...,N_P} \left ( {_i\delta}_{N_C-1}(\boldsymbol{x}_i) \right )
+d^{N_C-1} = \max_{i=1,...,N_P} \left ( {_i\delta}_{N_C-1}(\boldsymbol{x}_i) \right ) \mbox{.}
 \end{aligned}
 \label{eqt:dev_max}
 \end{equation}
@@ -286,29 +305,29 @@ d^{N_C-1} = \max_{i=1,...,N_P} \left ( {_i\delta}_{N_C-1}(\boldsymbol{x}_i) \rig
 \label{sec:precision_optimisation}
 
 The \gls{pq} formulation sketched in the previous section is not entirely hardware-friendly.
-In this section we discuss several techniques to allow \gls{pq} to benefit from \gls{fpga} technology.
+In this section we discuss several techniques allowing \gls{pq} to benefit from \gls{fpga} technology.
 
 \subsection{Transformation of Trigonometric and Search Functions}
 \label{sec:precision_trigo}
 %Line~\ref{algo:check} of Algorithm~\ref{algo:search} checks whether ${^j\phi}_i \le {^j\theta}$.
-The search process in step 3 of \gls{pq} checks whether \linebreak ${^j\phi}_i \le {^j\theta}$.
+The search process in step 3 of \gls{pq} (described in Section~\ref{sec:precision_formulation}) checks whether \linebreak ${^j\phi}_i \le {^j\theta}$.
 
 \begin{equation}
 \begin{aligned}
-{^j\phi}_i = atan2 \left ( \overline{{^j\omega}_{2i}},\overline{{^j\omega}_{1i}} \right ) \mbox{ , } \;
-{^j\theta} = atan2 \left ( \rho_{2j},\rho_{1j} \right ) \\
+{^j\phi}_i = atan2 \left ( \overline{{^j\omega}_{2i}},\overline{{^j\omega}_{1i}} \right ) \mbox{, } \\
+{^j\theta} = atan2 \left ( \rho_{2j},\rho_{1j} \right ) \mbox{.} \\
 \end{aligned}
 \label{eqt:check1}
 \end{equation}
 
 $atan2(a,b)$ is not a hardware-friendly operator.
 It requires the calculation of $tan^{-1}(a,b)$ and then determines the appropriate quadrant of the computed angle based on the signs of $a$ and $b$.
-$tan^{-1}(a,b)$ is expensive and is often not available in \gls{fpga} libraries, therefore, we transform Equation~\ref{eqt:check1} to another form as shown below:
+$tan^{-1}(a,b)$ is resource and timing expensive~\cite{altera_megafunctions} and not available in many \gls{fpga} libraries, therefore, we transform Equation~\ref{eqt:check1} to another form as shown below:
 
 \begin{equation}
 \begin{aligned}
-{^j\phi}_i &= tan^{-1} \left ( \frac{\overline{{^j\omega}_{2i}}}{\sqrt{\overline{{^j\omega}_{1i}}^2+\overline{{^j\omega}_{2i}}^2}+\overline{{^j\omega}_{1i}}} \right )\\
-{^j\theta} &= tan^{-1} \left ( \frac{\rho_{2j}}{\sqrt{\rho_{1j}^2+\rho_{2j}^2}+\rho_{1j}} \right ) 
+{^j\phi}_i &= tan^{-1} \left ( \frac{\overline{{^j\omega}_{2i}}}{\sqrt{\overline{{^j\omega}_{1i}}^2+\overline{{^j\omega}_{2i}}^2}+\overline{{^j\omega}_{1i}}} \right ) \mbox{, } \\
+{^j\theta} &= tan^{-1} \left ( \frac{\rho_{2j}}{\sqrt{\rho_{1j}^2+\rho_{2j}^2}+\rho_{1j}} \right ) \mbox{.}
 \end{aligned}
 \label{eqt:check2}
 \end{equation}
@@ -318,7 +337,7 @@ As a result, the comparison becomes:
 
 \begin{equation}
 \begin{aligned}
-\frac{\overline{{^j\omega}_{2i}}}{\sqrt{\overline{{^j\omega}_{1i}}^2+\overline{{^j\omega}_{2i}}^2}+\overline{{^j\omega}_{1i}}} &\le \frac{\rho_{2j}}{\sqrt{\rho_{1j}^2+\rho_{2j}^2}+\rho_{1j}}
+\frac{\overline{{^j\omega}_{2i}}}{\sqrt{\overline{{^j\omega}_{1i}}^2+\overline{{^j\omega}_{2i}}^2}+\overline{{^j\omega}_{1i}}} &\le \frac{\rho_{2j}}{\sqrt{\rho_{1j}^2+\rho_{2j}^2}+\rho_{1j}} \mbox{.}
 \end{aligned}
 \label{eqt:check3}
 \end{equation}
@@ -328,73 +347,75 @@ In this case, square root calculation is much easier to be mapped to hardware.
 \subsection{Applying Reduced Precision}
 \label{sec:precision_mixed_precision}
 Reduced precision data-paths consume less logic resource at the expense of lower accuracy of results.
-To benefit from reduced precision data-paths without compromising accuracy, we partition the computation into two data-paths:
+To benefit from reduced precision data-paths without compromising accuracy, we partition the computation of \gls{pq} into two data-paths:
 
 \begin{itemize}
 \item Reduced precision data-path: Compute the deviations based on Equation~\ref{eqt:normal} to ~\ref{eqt:dev_min}.
 \item High precision data-path: Re-compute those deviations which are not accurate enough and calculate the penetration depth according to Equation~\ref{eqt:dev_max}.
 \end{itemize}
 
-In Equation~\ref{eqt:dev_min}, there are $\Delta m - 1$ comparisons involved to find the minimum value.
-The only item of interest is the minimum value ${_i\delta}_{\Delta m}$, rather than the exact values of every $\delta_{j}(\boldsymbol{x}_i)$.
+In Equation~\ref{eqt:dev_min}, there are $N_C-2$ comparisons involved to find the minimum value.
+The only item of interest is the minimum value ${_i\delta}_{N_C-1}$, rather than the exact values of every $\delta_{j}(\boldsymbol{x}_i)$.
 Based on this insight, we define the comparison operation:
 
 \begin{equation}
 \begin{aligned}
-\delta^{min}_{1,...,j} = \min \left ( {\delta_{1}(\boldsymbol{x}_i),...,\delta_{j}(\boldsymbol{x}_i)} \right ) \\
-D = \delta^{min}_{1,...,j} - \delta_{j+1}(\boldsymbol{x}_i)
+{_i\delta}^{min}_{1,...,j} = \min \left ( {\delta_{1}(\boldsymbol{x}_i),...,\delta_{j}(\boldsymbol{x}_i)} \right ) \mbox{,} \\
+D = {_i\delta}^{min}_{1,...,j} - \delta_{j+1}(\boldsymbol{x}_i) \mbox{.}
 \end{aligned}
 \label{eqt:comparison}
 \end{equation}
 
-The values of $D$ when computed in reduced and high precision are denoted as $D_{p_L}$ and $D_{p_H}$, respectively.
+When computed in reduced and high precision, the values of $D$ are denoted as $D_{p_L}$ and $D_{p_H}$, respectively.
 $D_{p_L}$ might have a flipped sign compared with $D_{p_H}$.
 We use the following three steps to make sure the results of Equation~\ref{eqt:dev_min} is correct.
 
 \begin{enumerate}
 \item Evaluate Equation~\ref{eqt:comparison} using a reduced precision data format. 
-\item Estimate the maximum and minimum values of the value in high precision, i.e. $min(D_{p_H})$ and $max(D_{p_H})$, as shown in Equation~\ref{eqt:mixed}.
-
-$E_{p_L}(\delta_{j+1}(\boldsymbol{x}_i))$ is the absolute error of $\delta_{j+1}(\boldsymbol{x}_i)$ in reduced precision $p_L$.
-It is computed at run-time and the details will be discussed later in Section~\ref{sec:precision_search}.
+\item Estimate the maximum and minimum values of the value in high precision, i.e. $min(D_{p_H})$ and $max(D_{p_H})$, as shown in Equation~\ref{eqt:mixed}:
 
 \begin{equation}
 \begin{aligned}
-E_{p_L}(D_{p_L}) &= E_{p_L}(\delta^{min}_{1,...,j}) + E_{p_L}(\delta_{j+1}(\boldsymbol{}_i)) \\
-\min{(D_{p_H})} &= D_{p_L} - E_{p_L}(D_{p_L}) \\
-\max{(D_{p_H})} &= D_{p_L} + E_{p_L}(D_{p_L})
+E_{p_L}(D_{p_L}) &= E_{p_L}({_i\delta}^{min}_{1,...,j}) + E_{p_L}(\delta_{j+1}(\boldsymbol{x}_i)) \mbox{,} \\
+\min{(D_{p_H})} &= D_{p_L} - E_{p_L}(D_{p_L}) \mbox{,} \\
+\max{(D_{p_H})} &= D_{p_L} + E_{p_L}(D_{p_L}) \mbox{,}
 \end{aligned}
 \label{eqt:mixed}
 \end{equation}
 
+where $E_{p_L}(y)$ is the absolute error of $y$ in reduced precision $p_L$.
+
+$E_{p_L}(\delta_{j+1}(\boldsymbol{x}_i))$ is computed at run-time and the details will be discussed later in Section~\ref{sec:precision_search}.
+
 \item Determine whether the comparison result should be re-computed or dropped. \\
-Case A: $\min{(D_{p_H})}>0$, $\delta_{j+1}(\boldsymbol{x}_i)$ is smaller. \\
-Case B: $\max{(D_{p_H})}<0$, $\delta^{min}_{1,...,j}$ is smaller. \\
+Case A: $\min{(D_{p_H})}>0$, $\delta_{j+1}(\boldsymbol{x}_i)$ is smaller. No re-computation is necessary. \\
+Case B: $\max{(D_{p_H})}<0$, ${_i\delta}^{min}_{1,...,j}$ is smaller. No re-computation is necessary. \\
 Case C: Cannot determine which value is smaller. Store both values for re-computation using high precision $p_H$.
 \end{enumerate}
 
 In case A and B, the difference between the values is large enough to distinguish the sign of $D_{p_H}$ even in the presence of errors introduced by reduced precision computations.
-In case C, the difference is small compared with the uncertainty introduced and therefore re-computation in high precision is necessary.
-The frequency of case C is lower than case A and B, therefore the performance gain from using reduced precision outweighs the re-computation overhead.
+In case C, the difference is small compared with the uncertainty introduced by reduced precision, and therefore re-computation in high precision is necessary.
+The frequency of case C is lower than case A and B, therefore the gain in computation speed from using reduced precision outweighs the re-computation overhead.
 
-\subsection{Finding the right precision}
+\subsection{Finding the Right Precision}
 \label{sec:precision_search}
-We optimise the error bound based on feedback from run-time environment.
-Although the error bound $E_{p_L}(D_{p_L})$ can be derived statically~\cite{lee05},
+We optimise the error bound $E_{p_L}(D_{p_L})$ based on feedback from run-time environment.
+Although the error bound can be derived statically~\cite{lee05},
 the estimated error bound grows pessimistically as it propagates along the data-path.
-Thus, we calculate the error bound using run-time data $y$ and relative error $RE_{p_L}$.
-$RE_{p_L}$ is profiled using a number of test vectors relative to a double precision data-path.
+Thus, we calculate the error bound using Equation~\ref{eqt:error}:
 
 \begin{equation}
 \begin{aligned}
-E_{p_L}(y) = y \cdot RE_{p_L}
+E_{p_L}(y) = y \cdot RE_{p_L} \mbox{.}
 \end{aligned}
 \label{eqt:error}
 \end{equation}
 
+where $y$ is the run-time data and $RE_{p_L}$ is the relative error which is profiled using a number of test vectors relative to a double precision data-path.
+
 %\subsection{Run-time Reconfiguration}
 On the other hand, we need to decide the precision used in the reduced precision data-paths.
-A lower precision increases the level of parallelism and hence increases the throughput of reduce precision data-path.
+A lower precision increases the level of parallelism and hence increases the throughput of reduced precision data-path.
 However, it increases the ratio of re-computation and the total run-time.
 It is important to find an optimal precision for the best performance.
 %The ratio of re-computation is data-dependent which changes over time and cannot be computed in advance.
@@ -405,20 +426,20 @@ Algorithm~\ref{algo:reconfig} is invoked on the \gls{cpu} to reconfigure the \gl
 On a system with multiple FPGAs, one of the FPGAs is reconfigured to approach the optimal precision over a number of time steps
 while the remaining FPGAs keep the system running.
 %The computation overhead of the algorithm is negligible.
-$TH_{Comp,p_L}$ (Equation~\ref{eqt:fM}) is the run-time measured throughput when using precision $p_L$ as the reduced precision.
+$TH_{comp,p_L}$, which will be seen in Equation~\ref{eqt:fM} in Section~\ref{sec:precision_model}, is the run-time measured throughput when using reduced precision $p_L$.
 
-\begin{algorithm}[t!]
+\begin{algorithm}[ht]
 \caption{Run-time tuning of precision for system with $N \geq 2$ FPGAs}
 \begin{algorithmic}[1]
 \STATE {Get the list of precisions $P$}
-\STATE {$TH_{Comp,p_{test}}) \gets 0$}
+\STATE {$TH_{comp,p_{test}} \gets 0$}
 \REPEAT
-	\STATE {$TH_{Comp,p_L} \gets TH_{Comp,p_{test}}$}
+	\STATE {$TH_{comp,p_L} \gets TH_{comp,p_{test}}$}
 	\STATE {$p_{test} \gets \min{(p \in {P})}$}
 	\STATE {Remove $p_{test}$ from ${P}$}
 	\STATE {Configure the $FPGA_1$ with precision $p_{test}$, $FPGA_{2...N}$ are not reconfigured}
-	\STATE {Compute \gls{pq} and get $TH_{Comp,p_{test}}$}
-\UNTIL{$TH_{Comp,p_{test}} < TH_{Comp,p_L}$}
+	\STATE {Compute \gls{pq} and get $TH_{comp,p_{test}}$}
+\UNTIL{$TH_{comp,p_{test}} < TH_{comp,p_L}$}
 \end{algorithmic}
 \label{algo:reconfig}
 \end{algorithm}
@@ -441,12 +462,12 @@ Referring to Equation~\ref{eqt:distance}, \gls{pq} computes the shortest distanc
 An intuitive implementation is to stream one point into the \gls{fpga} at the beginning,
 then the contours are streamed in the subsequent $N_C$ iterations.
 In other words, Equation~\ref{eqt:normal} to~\ref{eqt:dev_min} are iterated for $N_C-1$ times.
-However, since every comparison operation in Equation~\ref{eqt:dev_min} takes $L_{Cmp}>1$ clock cycles to compute, the next comparison can only start after the current one completes. 
-This significantly reduces the \gls{fpga}'s throughput for $L_{Cmp}$ times because the pipeline is not fully-filled.
+However, since every comparison operation in Equation~\ref{eqt:dev_min} takes more than one clock cycles of latency (denoted as $L_{cmp}$), the next comparison can only start after the current one completes. 
+This significantly reduces the \gls{fpga}'s throughput for $L_{cmp}$ times because the pipeline is not fully-filled.
 
 To tackle this problem, we propose a data structure for efficient streaming.
-As shown in Fig.~\ref{fig:precision_stream}, data are streamed in an order as indicated by the arrows.
-In each iteration of $N_S$ cycles, $N_{S}>L_{Cmp}$ points are processed together as a group.
+As shown in Figure~\ref{fig:precision_stream}, data are streamed in an order as indicated by the arrows.
+In each iteration of $N_S$ cycles, $N_{S}$ (a number greater than $L_{cmp}$) points are processed together as a group.
 A new contour value is streamed in at the beginning of each iteration.
 In this manner, $N_{S}$ points are being processed together in the pipeline to retain one output per clock cycle.
 
@@ -462,7 +483,7 @@ Data are streamed in an order as indicated by the arrows.}
 \end{figure}
 
 \subsection{System Architecture}
-Fig.~\ref{fig:precision_arch} shows our proposed system architecture which consists of three major components.
+Figure~\ref{fig:precision_arch} shows our proposed system architecture which consists of three major components.
 
 \begin{figure}[t!]
 \begin{center}
@@ -482,7 +503,7 @@ The reduced precision and high precision data-paths are interfaced by a comparat
 
 \noindent \textbf{Comparator:}
 The comparator compares the values of two point-segment distances and determines which one is smaller.
-Consider a group of $N_{S}$ points (i.e. $x_1, x_2, ..., x_{N_S}$) being processed together in the pipeline, we use a FIFO of length $N_{S}$ where
+Consider a group of $N_{S}$ points (i.e. $\boldsymbol{x_1}$, $\boldsymbol{x_2}$, ..., $\boldsymbol{x_{N_S}}$) being processed together in the pipeline, we use a FIFO of length $N_{S}$ where
 each slot of the FIFO stores the latest minimum deviation corresponding to a point.
 Since the point-segment distances are calculated in reduced precision, according to Section~\ref{sec:precision_mixed_precision}, 
 either one of the three conditions happens:
@@ -492,21 +513,21 @@ either one of the three conditions happens:
 
 \noindent \textbf{Memory Architecture:}
 The purpose of the memory architecture is to store the contours that require re-computation.
-We design a memory array as shown in Fig.~\ref{fig:memory}.
+We design a memory array as shown in Figure~\ref{fig:memory}.
 There are $N_S$ rows, each of which corresponds to the computation of one point which is addressed by a \textit{point counter}.
 Each row consists of $N_C$ elements and it serves as a buffer for contours that may need re-computation.
 $N_C$ elements are needed as in the worst case all the contours have to be re-computed.
-Instead of storing the contours in three-dimensional coordinate, we store their indices to save memory space.
+Instead of storing the contours in three-dimensional coordinate, we store their indices so as to save memory space.
 The indices are counted by a \textit{contour counter}.
 There are $N_S$ \textit{tracking units}, each for one row, to keep track of the latest elements where the indices should be written.
 
-To understand the mechanism of memory architecture, consider the example in Fig.~\ref{fig:memory1}.
+To understand the mechanism of memory architecture, consider the example in Figure~\ref{fig:memory1}.
 First, the deviation in distance of \textit{point 1} is being calculated.
 If the comparator indicates \emph{condition A}, the value from the reduced precision data-path is the smallest, and all previous values stored in that row will be cleared.
 Second, the index corresponding to the new value is written to \textit{element 1} of \textit{row 1}.
 Third, \textit{tracking unit 1} is updated to point to that element.
 If \emph{condition B} is indicated, the minimum value is already stored in the memory and no update is required.
-Consider another example in Fig.~\ref{fig:memory2} where the calculation of \textit{point $N_S$} indicates \emph{condition C}. 
+Consider another example in Figure~\ref{fig:memory2} where the calculation of \textit{point $N_S$} indicates \emph{condition C}. 
 Both the indices in the memory and from the data-path should be stored.
 Thus, a contour index is written to the next element and \textit{tracking unit $N_S$} advances one element further.
 
@@ -537,54 +558,59 @@ Previous vales stored in \textit{row 1} are cleared.]
 
 We derive a performance model to make the most effective use of the \gls{fpga}'s resources and to address real-time requirements.
 The results will be presented in Section~\ref{sec:precision_parallelism} and~\ref{sec:precision_recompute}.
-The total computation time $T_{Comp}$ is affected by the time spent on three parts:
+The total computation time $T_{comp}$ is affected by the time spent on three parts:
 (1) the reduced precision data-path on \gls{fpga},
 (2) the high precision data-path on \gls{cpu},
 (3) the data transfer through the bus connecting the \gls{cpu} to \gls{fpga}.
-Equation~\ref{eqt:fM} shows the three parts respectively.
+Equation~\ref{eqt:fM} shows the three parts respectively:
 
 \begin{equation}
 \begin{aligned}
-T_{Comp,p_L} = T_{p_L} + T_{p_H} + T_{Tran} \\
-TH_{Comp,p_L} = \frac{1}{T_{Comp,p_L}}
+T_{comp,p_L} = T_{p_L} + T_{p_H} + T_{tran} \mbox{,} \\
+TH_{comp,p_L} = \frac{1}{T_{comp,p_L}} \mbox{,}
 \end{aligned}
 \label{eqt:fM}
 \end{equation}
 
-As shown in Equation~\ref{eqt:fL}, the computation time of \gls{fpga} depends on the number of points $N_P$ and the number of contours $N_C$.
-$L_{p_L}$ is the length of the data-path but this term is usually negligible when compared with the amount of data being processed.
-Each point needs $L_{Output}$ cycles to output indices on the memory array to \gls{dram}.
-$L_{Output}$ is affected by the bit-width available between the \gls{fpga} and the \gls{dram} and their relations are shown in Equation~\ref{eqt:output}.
+where $T_{p_L}$, $T_{p_H}$ and $T_{tran}$ represent the time spent on (1), (2) and (3) respectively.
+
+The computation time of \gls{fpga}, $T_{p_L}$, is shown in Equation~\ref{eqt:fL}:
 
 \begin{equation}
 \begin{aligned}
-T_{p_L} = \frac{N_P \cdot (N_C+L_{Output})}{freq_{p_L} \cdot N_{p_L}} + L_{p_L}
+T_{p_L} = \frac{N_P \cdot (N_C+L_{output})}{freq_{p_L} \cdot N_{p_L}} + L_{p_L} \mbox{,}
 \end{aligned}
 \label{eqt:fL}
 \end{equation}
 
+where $N_P$ is the number of points, $N_C$ is the number of contours,
+$L_{p_L}$ is the length of the data-path but this term is usually negligible when compared with the amount of data being processed.
+Each point needs $L_{output}$ cycles to output indices on the memory array to \gls{dram}.
+
+$L_{output}$ is affected by the bit-width available between the \gls{fpga} and the \gls{dram} and their relations are shown in Equation~\ref{eqt:output}:
+
 \begin{equation}
 \begin{aligned}
-L_{Output} = \frac{N_C}{N_{Output}} \mbox{ , } \quad
-N_{Output} = \frac{W_{DRAM}}{W_{Idx} \cdot N_{p_L}}
+L_{output} = \frac{N_C}{N_{output}} \mbox{ , } \quad
+N_{output} = \frac{W_{DRAM}}{W_{idx} \cdot N_{p_L}} \mbox{.}
 \end{aligned}
 \label{eqt:output}
 \end{equation}
 
-The computation time of \gls{cpu} is related to the amount of data and the ratio of re-computation.
+The computation time of \gls{cpu}, $T_{p_H}$, is related to the amount of data and the ratio of re-computation:
 
 \begin{equation}
 \begin{aligned}
-T_{p_H} = \alpha \cdot R \cdot N_P \cdot N_C
+T_{p_H} = \alpha \cdot R \cdot N_P \cdot N_C \mbox{.}
 \end{aligned}
 \label{eqt:fH}
 \end{equation}
 
-The data transfer time from the \gls{dram} to \gls{cpu} is judged by the amount of data, the ratio of re-computation and the bandwidth of the bus connecting the \gls{cpu} to \gls{fpga}.
+The data transfer time from the \gls{dram} to \gls{cpu}, $T_{tran}$, is judged by the amount of data, the ratio of re-computation, $R$,and the bandwidth of the bus connecting the \gls{cpu} to \gls{fpga}, $BW_{bus}$:
 
 \begin{equation}
 \begin{aligned}
-T_{Tran} = \frac{R \cdot N_P \cdot N_C \cdot W_{Idx}}{BW_{bus}}
+T_{tran} = \frac{R \cdot N_P \cdot N_C \cdot W_{idx}}{BW_{bus}} \mbox{.}
 \end{aligned}
 \label{eqt:tran}
 \end{equation}
@@ -593,7 +619,7 @@ With the model, designer can ensure that the system parameters (Table~\ref{tab:m
 
 \begin{table}[t!]
 	\begin{spacing}{1.0}
-	\caption{Parameters of the performance model}
+	\caption{Parameters of the performance model.}
 	\label{tab:model}
 	\centering
 	\smallskip
@@ -604,11 +630,12 @@ With the model, designer can ensure that the system parameters (Table~\ref{tab:m
 			$N_{p_L}$ 		& Num. of reduced precision data-path \\
 			$N_{p_H}$ 		& Num. of high precision data-path \\
 			$L_{p_L}$			& Length of the data-path \\
-			$N_{Output}$ 	& Num. of outputs per data-path per cycle \\
-			$L_{Output}$ 	& Num. of output cycles \\
+			$N_{output}$ 	& Num. of outputs per data-path per cycle \\
+			$L_{output}$ 	& Num. of output cycles \\
+			$L_{cmp}$			& Latency of a comparison operation \\
 			$R$ 			& Ratio of re-computation \\
 			$W_{DRAM}$ 		& Bit-width of \gls{fpga}-\gls{dram} connection \\
-			$W_{Idx}$ 		& Bit-width of one contour index \\
+			$W_{idx}$ 		& Bit-width of one contour index \\
 			$freq_{p_L}$  	& Clk. freq. of reduced precision data-path \\
 			$\alpha$ 		& Empirical constant of \gls{cpu} speed \\
 			$BW_{bus}$ 	& Bandwidth of the bus connecting the \gls{cpu} to \gls{fpga} \\
@@ -639,7 +666,7 @@ We use the MPC-C500 reconfigurable system from Maxeler Technologies for our eval
 The system has four MAX3 cards, each of which has a Virtex-6 XC6VSX475T \gls{fpga} with 476,100 logic cells and 2,016 \glspl{dsp}.
 The cards are connected to two Intel Xeon X5650 \gls{cpu}s and each card communicates with the \gls{cpu}s via a PCI Express gen2 x8 link. 
 The \gls{cpu}s have 12 physical cores and are clocked at 2.66 GHz.
-We develop the \gls{fpga} kernels using MaxCompiler which adopts a streaming programming model and it supports customisable floating-point data formats.
+We develop the \gls{fpga} kernels using MaxCompiler which adopts a streaming programming model supporting customisable floating-point data formats.
 
 We also build a \gls{cpu}-based system by implementing the \gls{pq} formulation on a platform with two Intel Xeon X5650 \gls{cpu}s running at 2.66 GHz.
 The code is written in C++ and compiled by Intel C compiler with the highest optimisation.
@@ -653,7 +680,7 @@ Our \gls{pq} implementation supports 100 contours and we set an update rate of 1
 \subsection{Parallelism versus Precision}
 \label{sec:precision_parallelism}
 
-Fig.~\ref{fig:exectime} shows the overall computation time ($T_{Comp}$)
+Figure~\ref{fig:exectime} shows the overall computation time ($T_{Comp}$)
 and the degree of parallelism of \gls{pq} versus different number of mantissa bits.
 Please note that all different configurations of mantissa bits have the same output accuracy.
 The data set includes 73k points and 100 contours.
@@ -670,14 +697,13 @@ This is indicated by the last data points of both curves.
 \begin{center}
 \includegraphics[width=0.7\textwidth]{3_precision/figures/fig_exectime}
 \end{center}
-\caption[Computation time and the level of parallelism vs. different number of mantissa bits.]{Computation time [dotted line] and the level of parallelism [solid line] 
-vs. different number of mantissa bits.}
+\caption[Computation time and the level of parallelism versus different number of mantissa bits.]{Computation time (dotted line) and the level of parallelism (solid line) versus different number of mantissa bits.}
 \label{fig:exectime}
 \end{figure}
 
 \subsection{Ratio of Re-computation versus Precision}
 \label{sec:precision_recompute}
-The dotted line in Fig.~\ref{fig:recompute} shows the ratio of re-computation versus the number of mantissa bits.
+The dotted line in Figure~\ref{fig:recompute} shows the ratio of re-computation versus the number of mantissa bits.
 The results are obtained from a software version of \gls{pq} implementation with precisions adjusted using MPFR library~\cite{fousse07}.
 For each point, 100 computations of deviation in distance are required.
 The ratio of re-computation drops exponentially as the number of mantissa bits increases.
@@ -686,9 +712,9 @@ When the number of mantissa bits is four, in average 2.66 out of 100 computation
 When the number of mantissa bits is greater then 15, the ratio of re-computation drops to 1\% which is the minimum value as only one out of 100 values is re-computed.
 The last data points of both curves indicate the situation when double precision is used on the \gls{fpga} and no re-computation is necessary.
 
-The solid line in Fig.~\ref{fig:recompute} shows the number of point processed in 1~ms versus the number of mantissa bits.
+The solid line in Figure~\ref{fig:recompute} shows the number of point processed in 1~ms versus the number of mantissa bits.
 The application has a real-time update requirement of 1~kHz so the results are updated every 1~ms.
-The number of required vertex points is based on the user specification of the model resolution in three-dimensional space.
+The number of required points is based on the user specification of the model resolution in three-dimensional space.
 When the number of mantissa bits is 10, the maximum number of points can be processed.
 It is because the throughput is the highest by balancing the ratio of re-computation and the degree of parallelism.
 Since more points can be processed in real-time, we can handle a more complex robot model with a finer resolution.
@@ -697,13 +723,12 @@ Since more points can be processed in real-time, we can handle a more complex ro
 \begin{center}
 \includegraphics[width=0.7\textwidth]{3_precision/figures/fig_recompute}
 \end{center}
-\caption[Ratio of re-computation and the number of points processed in 1 ms vs. different number of mantissa bits.]{Ratio of re-computation [dotted line] and 
-the number of points processed in 1 ms [solid line] 
-vs. different number of mantissa bits.}
+\caption[Ratio of re-computation and the number of points processed in 1 ms versus different number of mantissa bits.]{Ratio of re-computation (dotted line) and 
+the number of points processed in 1 ms (solid line) versus different number of mantissa bits.}
 \label{fig:recompute}
 \end{figure}
 
-\subsection{Comparison: CPU, GPU and FPGA}
+\subsection{Comparison: CPU, GPU and Reconfigurable System}
 Table~\ref{tab:performance} compares the performance of \gls{pq} running on \gls{cpu}, \gls{gpu} and \gls{fpga} in double precision arithmetic, 
 and our proposed reconfigurable system with \gls{cpu}s and \gls{fpga}s.
 
@@ -712,21 +737,21 @@ and our proposed reconfigurable system with \gls{cpu}s and \gls{fpga}s.
 
 In 1~ms, our proposed system is able to process 58 times more points than a 12-core \gls{cpu} system, and 9 times more points than a \gls{gpu} system.
 Without any optimisation, we can only implement one double precision data-path on an \gls{fpga}.
-Our proposed approach can support five reduced precision data-paths to be implemented in parallel on one chip, i.e. 20 data-paths in total on the 4-\gls{fpga} system.
+Our proposed approach can support five reduced precision data-paths to be implemented in parallel on one chip, i.e.~20 data-paths in total on the 4-\gls{fpga} system.
 The clock frequency is also higher because reduced precision simplifies routing of signals.
 The performance gain over a double precision \gls{fpga} implementation is over 3 times.
 
 %\newcolumntype{g}{>{\columncolor{Gray}}c}
 \begin{table}[t!]
 	\begin{spacing}{1.0}
-	\caption[Comparison of PQ computation in 1 ms using CPU-based system, GPU-based system, double precision FPGA-based system and FPGA+CPU system with reduced precision]{Comparison of PQ computation in 1 ms using CPU-based system (CPU), GPU-based system (GPU), double precision FPGA-based system (FPGA DP) and FPGA+CPU system with reduced precision (FPGA RP)}
+	\caption{Comparison of PQ computation in 1 ms using CPU-based system (CPU), GPU-based system (GPU), double precision FPGA-based reconfigurable system (RS DP) and FPGA+CPU reconfigurable system with reduced precision (RS RP).}
 	\label{tab:performance}
 	\centering
 	\smallskip
 	\begin{threeparttable}
 		\begin{tabular}{l|c|c|c|g}
 			\hline
-			  							& \gls{cpu} 		& \gls{gpu}  	& \gls{fpga} DP 		& \gls{fpga} RP \\
+			  							& \gls{cpu} 		& \gls{gpu}  	& RS DP 		& RS RP \\
 			\hline
 			Clock freq. (MHz) 			& 2,660 	& 1,150 			& 80 			& 130 \& 2,660 \tnote{a}  \\
 			Num. of cores				& 12		& 448				& 4 			& 20 \\
@@ -750,17 +775,17 @@ The performance gain over a double precision \gls{fpga} implementation is over 3
 	\end{spacing}
 \end{table}
 
-Fig.~\ref{fig:scalability} shows the computation time for a \gls{pq} update against the number of vertex points.
+Figure~\ref{fig:scalability} shows the computation time for a \gls{pq} update against the number of points.
 The black solid line indicates the real-time bound of 1~ms.
 In the \gls{cpu}-based system, even with the fastest configuration (12 cores), only 173 points can be processed in real-time.
-Meanwhile, the performance of our proposed 1-\gls{fpga} system is on-par with a 4-\gls{fpga}s system in double precision.
+Meanwhile, the performance of our proposed 1-\gls{fpga} reconfigurable system is on-par with a 4-\gls{fpga} reconfigurable system in double precision.
 Our proposed 4-\gls{fpga}s system can process 10,094 points within the 1~ms interval.
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=0.7\textwidth]{3_precision/figures/fig_scalability}
 \end{center}
-\caption{Computation time for a PQ update with 100 contours vs. the number of points.}
+\caption{Computation time for a PQ update with 100 contours versus the number of points.}
 \label{fig:scalability}
 \end{figure}
 
@@ -769,11 +794,12 @@ Our proposed 4-\gls{fpga}s system can process 10,094 points within the 1~ms inte
 \label{sec:precision_summary}
 
 This chapter presents a reconfigurable computing solution to proximity query computation.
-To the best of our knowledge, our approach is the first to apply \gls{fpga}s to this problem.
+To the best of our knowledge, this is the first application of \glspl{fpga} to this problem.
+%our approach is the first to apply \gls{fpga}s to this problem.
 
 We transform the algorithm to enable pipelining and apply reduced precision methodology to maximise parallelism.
 Run-time reconfiguration is employed to optimise precision automatically.
 We then map the optimised algorithm to a reconfigurable system with four Virtex-6 \gls{fpga}s and 12 \gls{cpu} cores.
-Our proposed system achieves 478 times speedup over a single-core \gls{cpu}, 58 times speedup over a 12-core \gls{cpu} system, 9 times speedup over a \gls{gpu},
+Our proposed reconfigurable system achieves 478 times speedup over a single-core \gls{cpu}, 58 times speedup over a 12-core \gls{cpu} system, 9 times speedup over a \gls{gpu},
 and 3 times speedup over an \gls{fpga} implementation in double precision.
 Since more points can be processed in real-time, we can handle a more complex robot model with a finer resolution.
