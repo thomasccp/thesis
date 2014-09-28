@@ -51,7 +51,7 @@ Section~\ref{sec:precision_summary} concludes our work.
 
 In this section, we derive our modified \gls{pq} process which was originally proposed in~\cite{kwok13}. 
 The significance of this modification is to formulate the \gls{pq} capable of processing the contours in complex shapes. 
-As shown in Figure~\ref{fig:pqa_ch3}, \gls{pq} allows the analytical measure of the shortest Euclidean distance between an arbitrary set of points and a series of segments $\Omega_j$ (cf. Definition 1) which has been a well-known representation of a complex three-dimensional object~\cite{ponce89}. 
+As shown in Figure~\ref{fig:pqa_ch3}, \gls{pq} allows the analytical measure of the shortest Euclidean distance between an arbitrary set of points and a series of segments $\Omega_j$ (cf. Definition~1) which has been a well-known representation of a complex three-dimensional object~\cite{ponce89}. 
 Each segment $\Omega_j$ is enclosed by two adjacent contours which are outlined by points arranged in polar coordinates; 
 hence, it outperforms the existing narrow-phase \gls{pq}s which are only compatible with convex objects.
 
@@ -473,7 +473,7 @@ In this manner, $N_{S}$ points are being processed together in the pipeline to r
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{3_precision/figures/stream}
+\includegraphics[width=0.85\textwidth]{3_precision/figures/stream}
 \end{center}
 \caption{Data structure: 
 $N_S$ points are processed in a group. 
@@ -487,7 +487,7 @@ Figure~\ref{fig:precision_arch} shows our proposed system architecture which con
 
 \begin{figure}[t!]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{3_precision/figures/arch}
+\includegraphics[width=0.75\textwidth]{3_precision/figures/arch}
 \end{center}
 \caption{System architecture:
 Solid lines represent communication on the FPGA board while dotted lines represent the bus connecting the reduced precision data-path on FPGA to the high precision data-path on CPU.
@@ -625,18 +625,18 @@ With the model, designer can ensure that the system parameters (Table~\ref{tab:m
 	\smallskip
 	\begin{tabular}{l|l}
 			\hline
-			$N_P$			& Num. of points \\
-			$N_C$			& Num. of contours \\
-			$N_{p_L}$ 		& Num. of reduced precision data-path \\
-			$N_{p_H}$ 		& Num. of high precision data-path \\
+			$N_P$			& Number of points \\
+			$N_C$			& Number of contours \\
+			$N_{p_L}$ 		& Number of reduced precision data-path \\
+			$N_{p_H}$ 		& Number of high precision data-path \\
 			$L_{p_L}$			& Length of the data-path \\
-			$N_{output}$ 	& Num. of outputs per data-path per cycle \\
-			$L_{output}$ 	& Num. of output cycles \\
+			$N_{output}$ 	& Number of outputs per data-path per cycle \\
+			$L_{output}$ 	& Number of output cycles \\
 			$L_{cmp}$			& Latency of a comparison operation \\
 			$R$ 			& Ratio of re-computation \\
 			$W_{DRAM}$ 		& Bit-width of \gls{fpga}-\gls{dram} connection \\
 			$W_{idx}$ 		& Bit-width of one contour index \\
-			$freq_{p_L}$  	& Clk. freq. of reduced precision data-path \\
+			$freq_{p_L}$  	& Clock frequency of reduced precision data-path \\
 			$\alpha$ 		& Empirical constant of \gls{cpu} speed \\
 			$BW_{bus}$ 	& Bandwidth of the bus connecting the \gls{cpu} to \gls{fpga} \\
 			\hline
@@ -695,7 +695,7 @@ This is indicated by the last data points of both curves.
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{3_precision/figures/fig_exectime}
+\includegraphics[width=0.78\textwidth]{3_precision/figures/fig_exectime}
 \end{center}
 \caption[Computation time and the level of parallelism versus different number of mantissa bits.]{Computation time (dotted line) and the level of parallelism (solid line) versus different number of mantissa bits.}
 \label{fig:exectime}
@@ -721,7 +721,7 @@ Since more points can be processed in real-time, we can handle a more complex ro
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{3_precision/figures/fig_recompute}
+\includegraphics[width=0.78\textwidth]{3_precision/figures/fig_recompute}
 \end{center}
 \caption[Ratio of re-computation and the number of points processed in 1 ms versus different number of mantissa bits.]{Ratio of re-computation (dotted line) and 
 the number of points processed in 1 ms (solid line) versus different number of mantissa bits.}
@@ -753,16 +753,16 @@ The performance gain over a double precision \gls{fpga} implementation is over 3
 			\hline
 			  							& \gls{cpu} 		& \gls{gpu}  	& RS DP 		& RS RP \\
 			\hline
-			Clock freq. (MHz) 			& 2,660 	& 1,150 			& 80 			& 130 \& 2,660 \tnote{a}  \\
-			Num. of cores				& 12		& 448				& 4 			& 20 \\
+			Clock frequency (MHz) 			& 2,660 	& 1,150 			& 80 			& 130 \& 2,660 \tnote{a}  \\
+			Number of cores				& 12		& 448				& 4 			& 20 \\
 			\hline
-			Num. of mantissa bits		& 53		& 53				& 53			& 10 \& 53 \tnote{b} \\
-			Num. of $p_L$ eval. (k)		& 0 		& 0 				& 0 			& 1009.4 \\
-			Num. of $p_H$ eval. (k)		& 173 		& 106 				& 320			& 10.1 \\
-			Num. of total eval. (k)		& 173 		& 106 				& 320			& 1019.5 \\
-			Eval. in $p_H$ (\%) 		& 100		& 100				& 100 			& 1 \\
+			Number of mantissa bits		& 53		& 53				& 53			& 10 \& 53 \tnote{b} \\
+			Number of $p_L$ eval. (k)		& 0 		& 0 				& 0 			& 1009.4 \\
+			Number of $p_H$ eval. (k)		& 173 		& 106 				& 320			& 10.1 \\
+			Number of total eval. (k)		& 173 		& 106 				& 320			& 1019.5 \\
+			Evaluated in $p_H$ (\%) 		& 100		& 100				& 100 			& 1 \\
 			\hline
-			Num. of points in 1 ms		& 173		& 1,064				& 3,200 		& 10,094 \\
+			Number of points in 1 ms		& 173		& 1,064				& 3,200 		& 10,094 \\
 			Normalised speedup 			& 1x 		& 6.15x 				& 18.5x 		& 58.35x \\
 			Reduced precision gain 		& -  		& -  				& 1x 			& 3.15x  \\
 			\hline
@@ -783,7 +783,7 @@ Our proposed 4-\gls{fpga}s system can process 10,094 points within the 1~ms inte
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{3_precision/figures/fig_scalability}
+\includegraphics[width=0.78\textwidth]{3_precision/figures/fig_scalability}
 \end{center}
 \caption{Computation time for a PQ update with 100 contours versus the number of points.}
 \label{fig:scalability}

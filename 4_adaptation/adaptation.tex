@@ -306,11 +306,11 @@ We derive a model to analyse the computation time of reconfigurable system.
 The model helps us to design a configuration schedule that satisfies the real-time requirement and, if necessary, amend the application's specification.
 The model will be validated by experiments in Section~\ref{sec:reconfig_results}.
 
-The computation time, $T_{comp}$, of reconfigurable system consists of three components: (1) Data path time $T_{datapath}$, (2) \gls{cpu} time $T_{\gls{cpu}}$, and (3) Data transfer time $T_{tran}$ as shown in Equation~\ref{eqt:total}:
+The computation time, $T_{comp}$, of reconfigurable system consists of three components: (1) Data path time $T_{datapath}$, (2) \gls{cpu} time $T_{cpu}$, and (3) Data transfer time $T_{tran}$ as shown in Equation~\ref{eqt:total}:
 
 \begin{equation}
 \begin{aligned}
-T_{comp} = itl\_repeat \cdot \left ( T_{datapath} + T_{\gls{cpu}} + T_{tran} \right ) \mbox{,}
+T_{comp} = itl\_repeat \cdot \left ( T_{datapath} + T_{cpu} + T_{tran} \right ) \mbox{,}
 \end{aligned}
 \label{eqt:total}
 \end{equation}
@@ -321,7 +321,7 @@ where $itl\_repeat$ represents the number of times that the sampling, importance
 
 \begin{equation}
 \begin{aligned}
-T_{datapath} = \left(\frac{P_t}{f_{\gls{fpga}} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{\gls{fpga}}} \mbox{,}
+T_{datapath} = \left(\frac{P_t}{f_{fpga} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:kernel}
 \end{equation}
@@ -329,25 +329,25 @@ T_{datapath} = \left(\frac{P_t}{f_{\gls{fpga}} \cdot N_{datapath}} + L - 1 \righ
 where $P_t$ denotes the number of particles at the current time-step and $f_{\gls{fpga}}$ denotes the clock frequency of the \glspl{fpga}.
 $L$ is the length of the pipeline.
 $N_{datapath}$ denotes the number of data paths on one \gls{fpga} board.
-$N_{\gls{fpga}}$ is the number of \gls{fpga} boards in the system.
+$N_{fpga}$ is the number of \gls{fpga} boards in the system.
 
-\textbf{\gls{cpu} time}, $T_{\gls{cpu}}$, denotes the time spent on the \glspl{cpu}.
+\textbf{\gls{cpu} time}, $T_{cpu}$, denotes the time spent on the \glspl{cpu}.
 
 \begin{equation}
 \begin{aligned}
-T_{\gls{cpu}} = \alpha \cdot \frac{P_t}{f_{\gls{cpu}}} \cdot \left(1-par+\frac{par}{N_{thread}}\right) \mbox{,}
+T_{cpu} = \alpha \cdot \frac{P_t}{f_{cpu}} \cdot \left(1-par+\frac{par}{N_{thread}}\right) \mbox{,}
 \end{aligned}
 \label{eqt:host}
 \end{equation}
 
-where the clock frequency and number of threads of the \glspl{cpu} are represented by $f_{\gls{cpu}}$ and $N_{thread}$ respectively.
+where the clock frequency and number of threads of the \glspl{cpu} are represented by $f_{cpu}$ and $N_{thread}$ respectively.
 $par$ is an application-specific parameter in the range of $[0,1]$ which represents the ratio of \gls{cpu} instructions that are parallelisable, and $\alpha$ is a scaling constant derived empirically.
 
 \textbf{Data transfer time}, $T_{tran}$, denotes the time of moving a particle stream between the \glspl{fpga} and the \glspl{cpu}.
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{\gls{fpga}}} \mbox{,}
+T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:data}
 \end{equation}
@@ -553,9 +553,10 @@ Therefore, the \gls{cpu} time does not scale with the number of \gls{gpu}s.
 The comparison of adaptive and non-adaptive \gls{smc} is shown in Table~\ref{tab:smc}.
 Both model estimation and experimental results are listed.
 Initially, the maximum number of particles are instantiated for global localisation.
+
 For the non-adaptive scheme, the particle set size does not change.
 The total computation time estimated and measured are 1.328 seconds and 1.885 seconds, respectively.
-The difference is due to the difference between the effective and maximum bandwidth of the PCI Express bus.
+The measured computation time is longer due to the difference between the effective and maximum bandwidth of the PCI Express bus.
 
 \begin{table}[ht]
 	\centering
@@ -566,17 +567,17 @@ The difference is due to the difference between the effective and maximum bandwi
 	\smallskip
 		\begin{tabular}{l || c c | c c}
 			\hline
-			 \multirow{2}{*}{}  & \multicolumn{2}{|c|}{Non-adaptive \gls{smc}} & \multicolumn{2}{|c|}{Adaptive \gls{smc}} \\
+			 \multirow{2}{*}{}  & \multicolumn{2}{c|}{Non-adaptive \gls{smc}} & \multicolumn{2}{c}{Adaptive \gls{smc}} \\
 			\hline
-			  & Model & Exp. & Model & Exp. \\
+			  & Model & Experiment & Model & Experiment \\
 			\hline
 			\hline
-			 No. of particles & \multicolumn{2}{|c|}{67M} & \multicolumn{2}{|c|}{573k} \\
+			 Number of particles & \multicolumn{2}{c|}{67M} & \multicolumn{2}{c}{573k} \\
 			\hline
 			 Data path time $T_{datapath}$ (s) 		& 0.336 & 0.336 & 0.003 & 0.003 \\
-			 \gls{cpu} time $T_{\gls{cpu}}$ (s) 				& 0.117 & 0.117 & 0.001 & 0.001 \\
+			 \gls{cpu} time $T_{cpu}$ (s) 				& 0.117 & 0.117 & 0.001 & 0.001 \\
 			 Data time $T_{tran}$ (s) 				& 0.875 & 1.432 & 0.007 & 0.012 \\
-			 Total comp. time $T_{comp}$ (s)			& 1.328 & 1.885 & 0.011	& 0.016 \\
+			 Total computation time $T_{comp}$ (s)			& 1.328 & 1.885 & 0.011	& 0.016 \\
 			\hline
 			 Comp. speedup (higher is better)		& 1x	& 1x	& 120.7x	& 117.8x \\
 			\hline
@@ -655,27 +656,27 @@ Notice that the \glspl{cpu} violate the real-time constraint of 5 seconds.
 												& \gls{cpu}(1) $^a$ 					& \gls{cpu}(2) $^a$ 				& \gls{gpu}(1) $^b$ 				& \gls{gpu}(2) $^b$ 				& \gls{gpu}(3) $^b$ 				& RS(1) $^c$& RS(2) $^d$& RS(3) $^d$ \\
 		\hline
 		\hline
-		Clock freq. (MHz) 						& 2660							& 2660 						& 1150  					& 1150						& 1150						& 100  		&  100 		& 100 		\\
+		Clock frequency (MHz) 						& 2660							& 2660 						& 1150  					& 1150						& 1150						& 100  		&  100 		& 100 		\\
 		\multirow{2}{*}{Precision}				& \multirow{2}{*}{single}		& \multirow{2}{*}{single} 	& \multirow{2}{*}{single} 	& \multirow{2}{*}{single} 	& \multirow{2}{*}{single} 	& single	& single	& single	\\
 												&								&							&							&							&							& + custom	& + custom	& + custom	\\
 		Level of parallelism					& 1								& 24						& 448   					& 896						& 1792						& 2+8 $^e$ 	& 4+24 $^e$ & 8+24 $^e$ \\
 		\hline
 		Data path time (s) 		   				& 27.530							& 6.363 					& 1.000						& 0.500						& 0.250						& 0.336 	& 0.168 	& 0.084 	\\
 		Data path speedup						& 1x							& 4.3x 						& 27.5x 					& 55.1x						& 110.1x					& 81.9x 	& 163.9x	& 327.7x 	\\
-		\multirow{3}{*}{Data tran. time (s)} 	& \multirow{3}{*}{0}			& \multirow{3}{*}{0}		& \multirow{3}{*}{0.360} 	& \multirow{3}{*}{0.180} 	& \multirow{3}{*}{0.090} 	& 1.432 $^f$& 0.716 $^f$& 0.358 $^f$\\
+		\multirow{3}{*}{Data transfer time (s)} 	& \multirow{3}{*}{0}			& \multirow{3}{*}{0}		& \multirow{3}{*}{0.360} 	& \multirow{3}{*}{0.180} 	& \multirow{3}{*}{0.090} 	& 1.432 $^f$& 0.716 $^f$& 0.358 $^f$\\
 												&								& 							& 							& 							&							& 0.363 $^g$& 0.182 $^g$& 0.091 $^g$\\
 												&								& 							& 							& 							&							& 0.223 $^h$& 0.111 $^h$& 0.056 $^h$\\
 		\gls{cpu} time (s)							& 0.420							& 0.334						& 0.117						& 0.117						& 0.117						& 0.030		& 0.025		& 0.025		\\
 		Total comp. time (s)  					& 27.95							& 6.697 					& 1.477						& 0.797						& 0.457						& 0.589 	& 0.304		& 0.165 	\\
 		Overall speedup  						& 1x							& 4.2x	 					& 18.9x						& 35.1x						& 61.2x						& 47.5x 	& 91.9x		& 169.4x	\\
 		\hline
-		Comp. power (W) 	   					& 183							& 279 						& 287  						& 424						& 698						& 145 		& 420		& 480		\\
-		Comp. power eff.						& 1x							& 0.7x						& 0.6x 						& 0.4x						& 0.3x						& 1.3x 		& 0.4x 		& 0.4x		\\
+		Computation power (W) 	   					& 183							& 279 						& 287  						& 424						& 698						& 145 		& 420		& 480		\\
+		Computation power eff.						& 1x							& 0.7x						& 0.6x 						& 0.4x						& 0.3x						& 1.3x 		& 0.4x 		& 0.4x		\\
 		Idle power (W)    						& 133							& 133						& 208   					& 266 						& 382						& 95		& 360		& 360		\\
 		Idle power eff.					    	& 1x							& 1x						& 0.6x	 					& 0.5x						& 0.4x						& 1.4x 	& 0.4x		& 0.4x		\\
 		\hline
 		Energy. (J) $^i$						& 677/5115						& 673/1868 					& 1041/1157 				& 1331/1456					& 1911/2054					& 489/595 	& 1896/1914	& 1994/2012	\\
-		Energy eff.								& 1x							& 1x/2.7x 					& 0.7x/4.4x 				& 0.5x/3.5x 				& 0.4x/2.5x					& 1.4x/8.6x	& 0.4x/2.7x	& 0.3x/2.5x\\
+		Energy eff.							& 1x							& 1x/2.7x 					& 0.7x/4.4x 				& 0.5x/3.5x 				& 0.4x/2.5x					& 1.4x/8.6x	& 0.4x/2.7x	& 0.3x/2.5x\\
 		\hline
 		\end{tabular}
 			\begin{tablenotes}
@@ -708,7 +709,7 @@ The resource management software of our system (MaxelerOS) simplifies the effort
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.8\textwidth]{4_adaptation/figures/fig_power2}
-\caption[Power consumption of reconfigurable system (RS), CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement]{Power consumption of reconfigurable system, CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement (The lines of RS(2) and RS(3) overlap).}
+\caption[Power consumption of reconfigurable system (RS), CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement]{Power consumption of reconfigurable system (RS), CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement (The lines of RS(2) and RS(3) overlap).}
 \label{fig:power}
 \end{figure}
 

@@ -72,28 +72,28 @@ This section will elaborate on the current limitations of this thesis, and sugge
 %\subsection{Precision Optimisation of Reconfigurable Data-paths}
 \subsection{Proximity Query Formulation}
 
-The work in Chapter~\ref{ch:precision} shows the potential of reconfigurable computing for \gls{pq} formulation.
+The work in Chapter~\ref{ch:precision} shows the acceleration of \gls{pq} with reconfigurable system.
 \gls{pq} has substantial potential in medial surgery which involves human-robot collaborative control.
 The proposed reduced precision approach can be extended to cover applications which could not be applied to clinical setting due to complex models and stringent real-time requirements.
-One example is image-guided catheterisation that involves cardiac electrophysiology intervention as illustrated in Figure~\ref{fig:heart_model}.
-To deal with rapid deformation of the heart and the associated blood vessels, it is vitally important to provide the operator of a surgical robot online intra-operative guidance in real time, for which fast and efficient \gls{pq} computation is essential.
+One example is image-guided catheterisation as illustrated in Figure~\ref{fig:heart_model}.
+To deal with rapid deformation of the heart and the associated blood vessels, it is vitally important to provide the operator of surgical robot online guidance in real time, for which fast and efficient \gls{pq} computation is essential.
 The current implementation of \gls{pq} has three limitations that can be improved in the future:
 \begin{itemize}
 \item \gls{pq} is currently modelled with points and contours, for example in minimal invasive heart surgery, the surgical instrument is described by a cloud of points and the aorta vessel is modelled by a series of contours.
-The data structure and memory buffer are designed specifically for this point-contour model, which limits the availability in various kinds of applications.
-In the future, the \gls{pq} formulation can be extended to point-point model, thus maximising the flexibility.
-Such an extended model will increase the computation requirement, therefore a faster reconfigurable system is necessary.
-\item The heterogeneous reconfigurable system consists of \glspl{fpga} and \glspl{cpu} which are connected via PCI Express.
+The data structure and memory buffer are designed specifically for this point-contour model. %which limits the availability in various kinds of applications.
+In the future, the \gls{pq} formulation can be extended to point-point model to maximise the flexibility.
+Such an extended model will increase the computation requirement, thus a faster reconfigurable system is necessary.
+\item The proposed heterogeneous reconfigurable system connects \glspl{fpga} and \glspl{cpu} via the PCI Express bus.
 Data accessed by \glspl{fpga} have to be copied from the main memory hosted by \glspl{cpu}, and vice versa.
-The performance of such decoupled heterogeneous architecture is limited by high latency and limited bandwidth.
-In the future, we can investigate closely-coupled platform where \gls{cpu} and \gls{fpga} fabric lies in the same board or even the same chip.
-Examples are \gls{soc}-\gls{fpga} introduced by Altera~\cite{alterasoc} and Xilinx~\cite{xilinxzynq} which put ARM processors and FPGA fabric in one chip.
-Figure~\ref{fig:altera_soc} shows the block diagram of an Altera SOC which integrates an ARM-based hard processor, peripherals, memory interfaces and FPGA fabric.
-The \glspl{cpu} and \glspl{fpga} partition interface via an \gls{amba} which supports high performance and low power on-chip communication.
+The performance of such decoupled heterogeneous architecture is restricted by high latency and limited bandwidth.
+In the future, we can investigate closely-coupled platform where \gls{cpu} and \gls{fpga} fabric lie in the same board or even the same chip.
+One example is \gls{soc}-\gls{fpga} introduced by Altera~\cite{alterasoc} and Xilinx~\cite{xilinxzynq}.
+Figure~\ref{fig:altera_soc} shows the block diagram of an Altera \gls{soc}-\gls{fpga} which integrates an ARM-based hard processor, input/output peripherals, memory interfaces and FPGA fabric.
+\gls{amba} provides high throughput interconnect between \glspl{cpu} and \glspl{fpga}.
 This closely-coupled platform follows the topologies described in Figure~\ref{fig:het_arch}.
 The \glspl{fpga} partition acts as a deterministic real-time co-processor which connects to peripherals.
-It is different from the \gls{fpga} with micro-processor~\cite{paul12} which requires task scheduling managed by \gls{rtos}.
-\item Currently, the run-time reconfiguration is done on full chip basis, which means that the entire \gls{fpga} is loaded with a new bit-stream each time it is reconfigured.
+The ARM processor runs a \gls{rtos} to serve real-time requests in software.
+\item At present, the run-time reconfiguration is done on full chip basis, which means that the entire \gls{fpga} is loaded with a new bit-stream each time it is reconfigured.
 On our targeting platform, full chip reconfiguration takes around one second, which precludes its usage in many applications that require fast response time.
 In Chapter~\ref{ch:precision}, we try to overcome this drawback by reconfiguring one \gls{fpga} at a time while keeping the remaining \glspl{fpga} operating.
 This method needs multiple \gls{fpga} boards to support individual reconfiguration.
@@ -101,15 +101,14 @@ It is worth investigating partial reconfiguration technique, where only a subset
 To do this, the design is partitioned into two regions.
 The critical sections of the data-path, such as those having reduced precision arithmetic, are run-time reconfigurable.
 The remaining parts, such as PCI Express interface and memory controller, can be kept static.
-Instead of disabling an entire \gls{fpga} board for reconfiguration, the proposed scheme still allows some data-paths to be functioning.
+Instead of disabling an entire \gls{fpga} board for reconfiguration, the proposed scheme still allows some data-paths to be functioning during reconfiguration.
 %These applications, such as the real-time \gls{pq} between a robotic device and a rapidly deforming anatomy, will help us to evaluate the impact of run-time reconfiguration on various data sets.
 \end{itemize}
 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.7\textwidth]{6_conclusion/figures/heart_model}
-\caption{The use of active constraint on a beating heart model where light blue bubbles represent the control points registered on the surface for proximity
-queries~\cite{kwok13}.}
+\caption{Image-guided catheterisation: Perform PQ based on a beating heart model, where light blue bubbles represent the control points registered on the surface and yellow spheres indicate the control points forming the centre line of the pathway~\cite{kwok13}.}
 \label{fig:heart_model}
 \end{figure}
 
@@ -137,16 +136,24 @@ To reduce reconfiguration overhead, these components need not to be reconfigured
 
 Apart from partial reconfiguration, the fixed computation interval of real-time system can be exploited by other power saving techniques as summarised in Figure~\ref{fig:partial_scheme}:
 
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.7\textwidth]{6_conclusion/figures/partial_scheme}
+\caption{Different schemes to put FPGA to sleep.}
+\label{fig:partial_scheme}
+\end{figure}
+
 \begin{itemize}
 \item \gls{dfs}: Instead of the ``best-effort'' approach which finishes the computation as quickly as possible (Figure~\ref{fig:adaptive_scheme_1}), we can use a ``just-in-time'' approach (Figure~\ref{fig:adaptive_scheme_2}) which lowers the clock speed to an extent that the system could finish just within the real-time interval.
 To enable this approach, effective and efficient real-time scheduling should be studied to guarantee meeting real-time requirement.
 \item Clock gating: This is a common power optimisation technique employed in both \gls{asic} and \gls{fpga} designs to eliminate unnecessary switching activity and thus dynamic power consumption.
-To enable clock gating, designers need to add additional logic to the \gls{rtl} code to disable unnecessarily active sequential elements which need not to switch states.
-In \glspl{asic}, the clock tree that distributes the clock to all clocked elements is built specifically for each device.
-The clock tree can be added with any gating element to gate particular groups of clocks, and the delays introduced by these gating elements are specifically handled.
+To enable clock gating, designers need to add additional gating components to the \gls{rtl} code.
+The added components disable unnecessarily active sequential elements which need not to switch states.
+In \glspl{asic}, the clock tree that distributes the clock to all sequential elements is built specifically for each device.
+The clock tree can be added with any gating component to gate particular groups of clocks, and the delays introduced by these gating components are specifically handled.
 In \glspl{fpga}, the clock trees are fixed because dedicated nets and buffers are responsible for distributing the clock to all logic elements.
 It is not possible to do the arbitrary gating that is possible in \glspl{asic}.
-In addition, adding gating element and determining portions of gated circuit requires intimate knowledge of the design and numerous changes to the \gls{rtl}.
+In addition, adding gating components and determining portions of gated circuit require intimate knowledge of the design and numerous changes to the \gls{rtl}.
 For example, if a clock is gated using a \gls{lut}, the clock needs to leave the clock network and be routed using general routing resources to a \gls{lut}, and then be routed back to the desired clock. 
 The \glspl{lut} used for clock gating can introduce glitch and the extra routing can make the clock arrive later than any clock that stays on the clock tree.
 \end{itemize}
@@ -165,16 +172,9 @@ The \glspl{lut} used for clock gating can introduce glitch and the extra routing
 \caption{(a) Best-effort adaptive scheme described in Chapter~\ref{ch:adaptation}; (b) Just-in-time adaptive scheme.}
 \end{figure}
 
-\begin{figure}[t!]
-\centering
-\includegraphics[width=0.7\textwidth]{6_conclusion/figures/partial_scheme}
-\caption{Different schemes to put FPGA to sleep.}
-\label{fig:partial_scheme}
-\end{figure}
-
 As mentioned earlier in this chapter, the proposed heterogeneous reconfigurable system consists of \glspl{fpga} and \glspl{cpu} which are not closely coupled.
-In Chapter \ref{ch:adaptation}, particle data are transferred frequently between \gls{fpga} fabric and \gls{cpu}, and hence significant processing time and power consumption are introduced.
-Again, the above mentioned \gls{soc}-\gls{fpga} device (Figure~\ref{fig:altera_soc}) with closely-coupled \glspl{cpu} and \gls{fpga} fabric has promising opportunities.
+In Chapter \ref{ch:adaptation}, particle data are transferred frequently between \glspl{fpga} fabric and \glspl{cpu}, and hence significant processing time and power consumption are introduced.
+The above mentioned \gls{soc}-\gls{fpga} device (Figure~\ref{fig:altera_soc}) with closely-coupled \glspl{cpu} and \gls{fpga} fabric has promising opportunities.
 An \gls{rtos}, such as VxWork~\cite{vxworks} and MicroC/OS-II~\cite{microcos}, can run on the \glspl{cpu} to guarantee real-time capability.
 
 %\subsection{Design Flow for Domain-specific Reconfigurable Applications}
@@ -189,17 +189,17 @@ However, there are challenges when bringing in device-specific parameters to the
 In particular, the optimisation time will be significantly longer because the time required to generate and benchmark the hardware configurations is extremely long, and these new parameters introduces more dimensions to the optimisation space.
 To address these challenges, an initial study has been conducted in~\cite{kurek14fccm}, where an ARDEGO algorithm is proposed to offer automatic optimisation of device-specific parameters in reconfigurable designs.
 The time spent on hardware generation is reduced by only exploring the parameters that are most likely to give better results, rather than doing exhaustive search.
-Lastly, to make our proposed design flow more accessible and usable to software programmer, the design flow can be enhanced as illustrated in Figure~\ref{fig:flow_extended}.
+Lastly, to make our proposed design flow more accessible and usable to software programmer, the design flow can be enhanced.
 It will allow generation of both hardware and software from designs captured in software programming languages (e.g. R, MATLAB) to reconfigurable implementations,
 and extend the software template in VHDL/Verilog to support a wider range of systems apart from the current Maxeler platform.
 %We are currently applying this work to cover more \gls{smc} applications, 
 %including aerial vehicle (UAV)~\cite{conde09} navigation 
 %where real-time performance and lower energy consumption are major design considerations.
 
-\begin{figure}[t!]
-\centering
-\includegraphics[width=0.8\textwidth]{6_conclusion/figures/flow_extended}
-\caption{Extended design flow that allow generation of both hardware and software from designs captured in software programming languages.}
-\label{fig:flow_extended}
-\end{figure}
+%\begin{figure}[t!]
+%\centering
+%\includegraphics[width=0.8\textwidth]{6_conclusion/figures/flow_extended}
+%\caption{Extended design flow that allow generation of both hardware and software from designs captured in software programming languages.}
+%\label{fig:flow_extended}
+%\end{figure}
 

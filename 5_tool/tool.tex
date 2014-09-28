@@ -22,8 +22,8 @@ Through templating the \gls{smc} structure, users can design efficient, multiple
 Moreover, the software template is open-source.\footnote{Available online: \url{http://cc.doc.ic.ac.uk/projects/smcgen}}
 \item A machine learning approach that explores the \gls{smc} design space automatically and tunes design parameters to improve performance and accuracy (Section~\ref{sec:flow_optimisation}). The resulting parameters can be applied to the hardware design at run-time without the need for resynthesis.
 It is demonstrated that parameter optimisation enables the design space to be explored an order of magnitude faster without sacrificing quality.
-Compared with previous work~\cite{chau14trets,chau13acm}.
-Our approach provides better quality of solutions and faster designs.
+When compared with previous work~\cite{chau14trets,chau13acm},
+our approach provides better quality of solutions and faster designs.
 \item The benefit of this approach in terms of design productivity and performance is quantified over a diverse set of \gls{smc} problems.
 Two applications are implemented on Altera and Xilinx-based reconfigurable platforms, with varying numbers of \glspl{fpga}. For these problems, the number of lines of code for the \gls{fpga} implementation is reduced by approximately 76\%, and 
 significant speedup and energy improvement over \gls{cpu} and \gls{gpu} implementations (Section~\ref{sec:flow_evaluation}) are demonstrated.
@@ -329,7 +329,7 @@ $T_{tran}$ can be omitted if no \gls{dram} is used.
 
 \begin{equation}
 \begin{aligned}
-T_{transfer} = \frac{N_P \cdot N_A \cdot \left ( H \cdot sizeof(state)\right)}{bandwidth} \mbox{.}
+T_{tran} = \frac{N_P \cdot N_A \cdot \left ( H \cdot sizeof(state)\right)}{bandwidth} \mbox{.}
 \end{aligned}
 \end{equation}
 
@@ -654,8 +654,8 @@ As we will see in the applications below, we are able to choose the optimal set 
 
 %Now we look at an application with larger data set.
 %For this example the same reconfigurable system as application 1 is used.
-Our design flow is used in targeting a robot localisation application to a Xilinx Virtex-6 XC6VSX475T \gls{fpga} at 120 MHz.
-Two processing cores are instantiated in an \gls{fpga}.
+Our design flow is used in targeting a robot localisation application to a Xilinx Virtex-6 XC6VSX475T \gls{fpga}.
+Two processing cores clocked at 120 MHz are instantiated in the \gls{fpga}.
 Core computation in the sampling and importance weighting process is implemented using fixed-point arithmetic to optimise resource usage.
 The implementation utilises 148,431 \glspl{lut} (50\%), 1,278 \glspl{dsp} (63\%) and 549 block \glspl{ram} (26\%).
 
@@ -686,7 +686,7 @@ It is because CPU has lower performance, and a different set of parameters is ap
 															& opt.~\tnote{a}		&	opt.~\tnote{b}		& w/o opt.~\tnote{b}		& opt. ~\tnote{c} \\
 			\hline
 			\hline
-			Clk. freq. (MHz) 	& 2,930 & 120 	& 100 	& 1,150 \\
+			Clock frequency (MHz) 	& 2,930 & 120 	& 100 	& 1,150 \\
 			Number of cores					& 4		& 2 	& 2 	& 448 \\
 			\hline
 			\hline
@@ -706,10 +706,11 @@ It is because CPU has lower performance, and a different set of parameters is ap
 	\end{spacing}
 \end{table}
 
-When parameters of the \gls{smc} computation engine are adapted to the run-time environment, the effect on computation time is shown in Figure~\ref{fig:adaptiveb}.
+In this application, the number of particles are adapted to the run-time environment.
+Figure~\ref{fig:adaptiveb} shows the effect of the number of particles on the breakdown of computation time.
 The largest amount of particles are used to determine the robot's initial location (known as global localisation).
 Then the number of particles needed decreases sharply, only a small amount of particles are used to keep tracking the robot's movement.
-Reducing in the number of particles implies decrease in the computation time, and hence results in a longer idle time when the \gls{fpga} runs in low-power mode.
+Reduction in the number of particles implies decrease in the computation time, and hence results in a longer idle time when the \gls{fpga} runs in low-power mode.
 
 \begin{figure}[t!]
 \centering
@@ -757,7 +758,7 @@ Hence, the parameter optimisation time is reduced from days to hours.
 			\hline
 			\multirow{2}{*}{$N_A$}			& Parameter	sets		& \multicolumn{4}{|c}{Parameter set obtained} \\
 			\cline{3-6}
-																	& evaluated / total					& $itl\_outer$  		& $H$ & $N_P$ & $S$ \\
+																	& Evaluated / Total					& $itl\_outer$  		& $H$ & $N_P$ & $S$ \\
 			\hline
 			\hline
 			4 													& 41 / 4000											& 20								&	5		&	500	  & 0.1 \\
@@ -780,10 +781,10 @@ Hence, the parameter optimisation time is reduced from days to hours.
 		\begin{tabular}{c|p{4cm}|ccgc}
 			\hline
 															&											& \gls{cpu}										& \gls{gpu} 									& This work 					& Ref. \gls{fpga}~\cite{chau13acm} 	\\
-															&											& opt.~\tnote{a}		& opt.~\tnote{b} 	& opt.~\tnote{c} & w/o opt.~\tnote{d} 	\\
+															&											& w/ opt.~\tnote{a}		& w/ opt.~\tnote{b} 	& w/ opt.~\tnote{c} & w/o opt.~\tnote{d} 	\\
 			\hline
 			\hline
-															& Clk. freq. (MHz) & 2,660 							& 1,150 								& 220 								& 150  \\
+															& Clock frequency (MHz) & 2,660 							& 1,150 								& 220 								& 150  \\
 															& Number of cores			& 24										& 1,792									& 6										& 5 \\
 															& Power (W)						& 550										& 1100									& 600									& N/A \\
 			\hline
