@@ -49,6 +49,7 @@
 }
 
 \def\abstract{
+	\cleardoublepage
 	\begin{center}{
 		\large\bf Abstract}
 	\end{center}
@@ -56,7 +57,7 @@
 		%\def\baselinestretch{1.5}
 	\linespread{1.5}
 	\normalsize
-}
+}{\cleardoublepage}
 \def\endabstract{
 	\par
 }
@@ -84,6 +85,19 @@
 	\normalsize
 }{\cleardoublepage}
 \def\endcopyrightdecl{
+	\par
+}
+
+\newenvironment{originalitydecl}{
+	\cleardoublepage
+		\begin{center}{
+			\large \bf Declaration of Originality}
+	\end{center}
+	\small
+		\linespread{1.5}
+	\normalsize
+}{\cleardoublepage}
+\def\endoriginalitydecl{
 	\par
 }
 

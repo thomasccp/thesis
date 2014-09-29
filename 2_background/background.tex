@@ -6,8 +6,8 @@
 \section{Introduction}
 
 This chapter begins with a brief overview of reconfigurable systems in Section~\ref{sec:bg_reconfig}.
-The underlying system architecture and the design flow that maps designs to this platform are illustrated.
-In Section~\ref{sec:bg_realtime}, real-time systems and their typical applications are covered.
+The underlying system architecture and the design flow that maps designs to this system are illustrated.
+Real-time systems and their typical applications are covered in Section~\ref{sec:bg_realtime}.
 Section~\ref{sec:bg_summary} provides a summary.
 
 \section{Reconfigurable Systems}
@@ -21,12 +21,12 @@ In order to perform as functional circuits, \glspl{fpga} provide numerous fine-g
 \glspl{fpga} enable sequential circuits by providing registers along \gls{lut} outputs.
 By providing hundreds of thousands of \glspl{lut} and registers, \glspl{fpga} can implement massively parallel circuits.
 Modern FPGAs also have coarse-grained resources such as \glspl{clb}, multipliers, \glspl{dsp}, on-chip \glspl{ram}, and even microprocessor cores.
-Microprocessor cores can be dedicated hard processor, such as ARM Cortex A9 in Xilinx Zynq~\cite{xilinxzynq} and Altera Soc FPGA~\cite{alterasoc}.
-In addition, designers can use the \glspl{lut} to implement soft processors, such as Xilinx's MicroBlaze~\cite{xilinxmicroblaze} and Altera's Nios II~\cite{alteranios2}.
+Microprocessor cores can be dedicated hard processor, such as ARM Cortex A9 in Altera \gls{soc}-\gls{fpga}~\cite{alterasoc} and Xilinx Zynq~\cite{xilinxzynq}.
+In addition, designers can use the \glspl{lut} to implement soft processors, such as Altera's Nios II~\cite{alteranios2} and Xilinx's MicroBlaze~\cite{xilinxmicroblaze}.
 
 To combine these resources into larger circuits, \glspl{fpga} provide reconfigurable interconnect.
 In between each row and column of resources, \glspl{fpga} contain numerous routing tracks, which are wires carrying signals across the chip.
-Connection boxes provide programmable connections between resources I/O and routing tracks, while switch boxes provide programmable connections between intersecting routing tracks.
+Connection boxes provide programmable connections between resources \gls{io} and routing tracks, while switch boxes provide programmable connections between intersecting routing tracks.
 Such programmable connections allow a signal to be routed to any destination on the \gls{fpga} chip.
 This architecture is called an island-style fabric as shown in Figure~\ref{fig:bg_islandstyle}.
 
@@ -41,15 +41,15 @@ This architecture is called an island-style fabric as shown in Figure~\ref{fig:b
 The reconfigurability of ~\glspl{fpga} leads to an unique feature which allows circuitry to be selectively updated on the fly, without disturbing the execution of the remaining system.
 This technique is referred to as run-time reconfiguration or dynamic reconfiguration.
 Many dynamically reconfigurable architectures ~\cite{hauser97,trimberger97,ye00,fujii99} and design approach~\cite{li02,shenoy01,jeong00,li00,noguera01} have been proposed.
-Run-time reconfiguration is also available in industry products such as Xilinx~\cite{xilinxdpr} and Altera~\cite{alteradpr}. 
+Run-time reconfiguration is also available in industry products such as Altera~\cite{alteradpr} and Xilinx~\cite{xilinxdpr}. 
 
-\glspl{fpga} have also been employed in ~\gls{hpc}.
-There exists a number of reconfigurable architectures which target compute-intensive applications that requires high throughput.
-Convey HC-2 Computer integrates an FPGA-based reconfigurable co-processor with Intel-based x86 host.
+\glspl{fpga} have also been employed in \gls{hpc}.
+There exists a number of reconfigurable architectures which target compute-intensive applications.
+Convey HC-2 Computer~\cite{conveyhc2} integrates an FPGA-based reconfigurable co-processor with Intel-based x86 host.
 The co-processor's FPGAs execute compute-intensive operations which take a large component of an application's run-time.
 The HC-2 system has a memory subsystem and crossbar which provide a highly parallel and high bandwidth (80 GB/s) connections between the FPGAs and the corresponding physical memory.
 It also employs a scatter-gather dual inline memory modules (SG-DIMMs) to increase performance of random memory access.
-Meanwhile, Maxeler Technologies develop a series of reconfigurable systems which consist of Intel-based x86 host and FPGA-based data-flow engines.
+Meanwhile, Maxeler Technologies develop a series of reconfigurable systems which consist of Intel-based x86 host and FPGA-based data-flow engines~\cite{maxeler}.
 Their MPC-C500 machine can deliver over 400 GFlop/s computation speed and over 35GB/s of bandwidth to external physical memory.
 
 \subsection{Design Flow}
@@ -62,7 +62,7 @@ Finally, \textit{routing} programs the interconnect to implement all connections
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.5\textwidth]{2_background/figures/flow}
+\includegraphics[width=0.8\textwidth]{2_background/figures/flow}
 \end{center}
 \caption{Design flow of FPGAs.}
 \label{fig:bg_flow}
@@ -73,7 +73,7 @@ The most common model manually converts the code into a semantically equivalent 
 Designing \gls{rtl} circuits is time consuming.
 Designers must specify the entire structure of the data path, define control for components, and manage data movement from inputs to outputs which involve devices such as DDR memory, PCI Express bus, ethernet, and so on.
 Such complexity leads researchers to work on \gls{hls} tools.
-Commercial \gls{hls} tools are becoming increasingly common.
+Commercial \gls{hls} tools become increasingly common.
 Example includes Xilinx's Vivado HLS~\cite{xilinxvivado}, Impulse Accelerated Technologies' Impulse C~\cite{impulsec}, Calypto's Catapult C~\cite{catapultc}, Mentor Graphics' Handel-C~\cite{handelc}, IBM's Lime~\cite{lime}, Bluespec~\cite{bluespec}, OpenSPL~\cite{openspl,maxcompiler}, OpenCL in Altera \glspl{fpga}~\cite{alteraopencl}, and Mathworks' Simulink (via HDL Coder~\cite{hdlcoder}, DSP Builder~\cite{alteradspbuilder} and System Generator~\cite{xilinxsysgen}).
 Open-source tools such as LegUp~\cite{legup} are also gaining researchers' attention.
 
@@ -83,7 +83,7 @@ Both OpenSPL~\cite{openspl} and OpenCL include software-like programming languag
 OpenSPL, which stands for Open Spatial Programming Language, is a programming language focusing on data-flow computing.
 Maxeler Technologies' MaxCompiler~\cite{maxcompiler} is a commercial tool which supports OpenSPL and a series of reconfigurable \gls{hpc} systems.
 Traditionally, designers targeting different \glspl{fpga} must make significant board-specific changes to RTL circuits which are described at low-level.
-OpenSPL simplifies the effort of customising the \gls{fpga} application for a specific model of \gls{fpga} by automatically generate interfaces such as buses between c\glspl{cpu} and \glspl{fpga}, as well as controller for external memory.
+OpenSPL simplifies the effort of customising an \gls{fpga} application for a specific model of \gls{fpga} by automatically generate interfaces such as buses between \glspl{cpu} and \glspl{fpga}, as well as controller for external memory.
 In addition, OpenSPL provides functional level simulation which reduces the debugging effort on \gls{rtl}-level code simulation.
 On the other hand, OpenCL, which stands for Open Computing Language, is being promoted by Altera to target software developers who are new to \glspl{fpga}.
 As the requirement of hardware knowledge is low compared to traditional \gls{hdl} development, OpenCL enables designers focus on high-level algorithm and software system design.
@@ -96,7 +96,7 @@ As the requirement of hardware knowledge is low compared to traditional \gls{hdl
 \label{fig:openspl}
 \end{figure}
 
-MathWork promotes \gls{hls} with a model-based design flow.
+MathWork promotes \gls{hls} with a model-based design flow~\cite{mathworks,sharma09}.
 As shown in Figure~\ref{fig:hdlcoder}, designers first simulate and verify operations in the Simulink development environment, then \gls{fpga} \gls{ip} cores are generated from the Simulink models using HDL Coder, while software executables for ARM processor are compiled using Embedded Coder.
 The design flow also includes various board-support-packages which generate device-specific interfaces automatically.
 
@@ -115,71 +115,70 @@ The design space exploration of reconfigurable designs requires substantial effo
 Sometimes such an approach is infeasible as numerical properties cannot result in a closed-form analytical model.
 One can proceed with automated optimisation based on an exhaustive search through design parameters, yet even automation of design space exploration is problematic because of the large number of evaluations needed.
 In dealing with large design space, an optimisation approach~\cite{kurek13arc} is developed based on Efficient Global Optimisation (EGO)~\cite{jones98}.
-It has a surrogate model consisting of both a Gaussian process regressor~\cite{rasmussen06} and a Support Vector Machine (SVM) classifier~\cite{kurek13arc,basudhar12}.
+It has a surrogate model consisting of both a Gaussian process regressor~\cite{rasmussen06} and a Support Vector Machine (SVM) classifier~\cite{basudhar12}.
 By using the surrogate model, the algorithm allows for automated design space exploration.
 The classification mechanism employed in the optimisation approach allows for constrained optimisation and it is particularly designed to cope with reconfigurable designs parameter tuning. 
 This work is extended in~\cite{kurek14fccm} to offer automatic and calibration free optimisation.
 
 \subsection{Domain Specific Languages}
-At present, \glspl{fpga} are programmed in \gls{rtl} using Verilog or VHDL. 
+At present, \glspl{fpga} are mainly programmed in \gls{rtl} using Verilog or VHDL. 
 The long development times and requirement for low-level, hardware-centric design expertise have served as a historical barrier for programmers and software engineers. 
 \gls{rtl} design is error prone and non-portable.
 \glspl{dsl} or \glspl{dcl} are being promoted to increase programmer productivity and code quality.
-\gls{dsl} allows application to be described using abstractions that are closer to a problem domain. 
+\glspl{dsl} allow application to be described using abstractions that are closer to a problem domain. 
 
 GraphGen~\cite{nurvitadhi14} is a vertex-centric framework that targets \gls{fpga} for graph computations.
 The framework accepts a vertex-centric graph specification and automatically compiles it onto an application-specific synthesised graph processor.
 The graph processor is customisable by user-defined graph instructions.
 There is also a special-purpose memory subsystem for graph computations.
 In the area of packet parsing, G~\cite{brebner09} and PP~\cite{attig11} are high-level programming languages which can be compiled to produce high-speed \gls{fpga}-based packet parsers.
-Model-based design~\cite{sharma09} is employed by MathWorks to reduce the design and verification effort of FPGAs for automotive applications.
+%Model-based design~\cite{sharma09} is employed by MathWorks to reduce the design and verification effort of FPGAs for automotive applications.
 
 \section{Real-time Systems}
 \label{sec:bg_realtime}
 
-A real-time system is one which must process information and produce a response within a specified time. %otherwise severe consequences, including failure, can result.
+%A real-time system is one which must process information and produce a response within a specified time. %otherwise severe consequences, including failure, can result.
 A system is defined as being real-time if it is required to respond to an input stimulus within a finite and specified time interval.
 The stimulus could either be an event at the interface to the system or an internal signal.
 The correctness of a real-time system is based on both the correctness of the outputs and their timeliness.
 However, the system does not have to be fast.
-A hard real-time system should guarantee a response to events within a fixed time.
-A timing bound is normally referred to as a deadline.
-Missing an operation deadline can lead to a catastrophic effect such as a total system failure. 
-As soft real-time system is a loosen form where exact response time is not critical but missing an operation deadline can cause degraded quality of service.
-Uncomfortably long response times cause degraded quality of service but the system still functions even if deadlines are sometimes not met.
+A hard real-time system should guarantee a response to events within a timing bound which is normally referred to as a \textit{deadline}.
+Missing an operation deadline can lead to catastrophic effects such as a total system failure. 
+Soft real-time system is a loosen form where exact response time is not critical, but missing an operation deadline can cause degraded quality of service.
+%Uncomfortably long response times cause degraded quality of service but the system still functions even if deadlines are sometimes not met.
 
-In summary, Buttazzo~\cite{buttazzo11} listed basic properties that real-time systems must have to support critical applications:
+In summary, real-time systems must have the following properties to support critical applications~\cite{buttazzo11}:
 \begin{itemize}
 \item Timeliness: Output values are produced before the deadlines.
 \item Robustness: The system should work when subject to a peak load.
 \item Predictability: The system behaviour is known before it is put into operation.
 %\item Testability: the system can be tested whether it can meet all deadlines.
-\item Fault tolerance: Failures of software and hardware should not cause the system to crash.
+%\item Fault tolerance: Failures of software and hardware should not cause the system to crash.
 \item Maintainability: The architecture of a real-time system should be designed to ensure that system modifications are easy to perform.
 \end{itemize}
 
 \subsection{Real-time Applications}
 
-This thesis focuses on accelerating high performance real-time applications using reconfigurable systems, which are optimised for three important applications as described below.
+This thesis focuses on accelerating high performance real-time applications using reconfigurable systems. Three important applications as described below.
 
 \subsubsection{A. Proximity Query for Image-guided Surgery}
 
-Advanced surgical robots support image guidance and haptic (force-based) feedback for effective navigation of surgical instruments. 
-Such image-guided robots rely real-time computing the intersection or the closest point-pair
+Advanced surgical robots support image guidance and force-based haptic feedback for effective navigation of surgical instruments. 
+Such image-guided robots rely on real-time computing the intersection or the closest point-pair
 between two objects in three-dimensional space; 
 this computation is known as \gls{pq}.
 
 \gls{pq} has been widely studied in areas such as robot motion planning, haptics rendering, virtual prototyping, computer graphics, and animation~\cite{gilbert90}.
 Robot motion planning is particularly demanding for the real-time performance of \gls{pq}~\cite{chakraborty08}. 
-In the past decade, \gls{pq} has also been used as a key task for Active Constraints~\cite{kwok10} and Virtual Fixtures~\cite{li07}, which are collaborative control strategies mostly applied in image-guided surgical robotics. 
+In the past decade, \gls{pq} has also been used as a key task for active constraints~\cite{kwok10} and virtual fixtures~\cite{li07}, which are collaborative control strategies mostly applied in image-guided surgical robotics. 
 The clinical potential of this control strategy has been demonstrated by imposing haptic feedback~\cite{constantinescu05} on instrument manipulation based on imaging data~\cite{jakopec03}.
 This haptic feedback provides the operator with kinaesthetic perception for sensing positions, velocities, forces, constraints and inertia associated with direct maneuvering of surgical
 instrument within the target anatomy.
 
 Fast and efficient \gls{pq} is a pre-requisite for effective navigation through access routes to the target anatomy~\cite{kwok10}.
-This haptic guidance, rendered based on imaging data, can enable a distinct awareness of the position of the surgical device relative to the target anatomy so as to prevent the operator from feeling disoriented within the surrounding organs. 
+Haptic guidance, rendered based on imaging data, can enable a distinct awareness of the position of the surgical device relative to the target anatomy so as to prevent the operator from feeling disoriented within the surrounding organs. 
 Such disorientation could potentially cause unnoticed major organ damage. 
-This guidance is particularly important during soft tissue surgery, which involves large-scale and rapid tissue deformations. 
+Haptic guidance is particularly important during soft tissue surgery, which involves large-scale and rapid tissue deformations. 
 A high update frequency above 1~kHz is required to maintain smooth and steady manipulation guidance. 
 Due to its intrinsic complexity and this real-time requirement, \gls{pq} is computationally challenging.
 Various approaches have been proposed to achieve the required update rate~\cite{benallegue09,chakraborty08}, 
