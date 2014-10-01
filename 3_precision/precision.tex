@@ -60,8 +60,8 @@ Each contour is denoted by $C_j$, $\forall j \in [1,...,N_C]$.
 A single segment $\Omega_j$ comprises two adjacent contours $C_j$ and $C_{j+1}$.
 $P_j$ is the centre of the contour $C_j$.
 $M_j$ is the tangent of centre line of contour $C_j$.
-$^j\omega_i=[^j\omega_{xi},^j\omega_{yi},^j\omega_{zi}]^T, (i=1,...,W)$ are the contour points,
-where $W$ is the number of points outlining each contour.
+$^j\omega_i=[^j\omega_{xi},^j\omega_{yi},^j\omega_{zi}]^T$ are the contour points,
+where $i=1,...,W$ and $W$ is the number of points outlining each contour.
 \end{mydef}
 
 Four steps are taken to calculate the point-to-segment distance $\delta_j$, which is shown in Figure~\ref{fig:pqa_ch3} as the shortest distance between a point $\textbf{x}$ and the corresponding edge $^jV_2 \rightarrow ^jV_3$.
@@ -235,7 +235,7 @@ Referring to~\cite{weisstein}, such a point-segment distance in three-dimensiona
 \label{eqt:distance}
 \end{equation}
 
-In consideration of many points and segments, Equation~\ref{eqt:dev_min} generally expresses the deviation in distance from a single coordinate $\textbf{x}_i$ to a series of constraint segments ($\Omega_{1},...,\Omega_{N_C-1}$), where $i=1,...,N_P$, $N_P$ is the total number of points belong to the mesh model, $N_C-1$ is the number of segments involved in the calculation.
+In consideration of many points and segments, Equation~\ref{eqt:dev_min} generally expresses the deviation in distance from a single point $\textbf{x}_i$ to a series of constraint segments ($\Omega_{1},...,\Omega_{N_C-1}$), where $i=1,...,N_P$, $N_P$ is the total number of points belong to the mesh model, $N_C-1$ is the number of segments involved in the calculation.
 
 %If so, we can count the resultant shortest distance $d$ as zero, as shown in Equation~\ref{eqt:d_zero}.
 %The vector $n_v$ and $d_i$ respectively denotes the normal of the plane containing $V_{i=1...4}$ %and the point along with vertex $i$ and $i+1$.
@@ -423,7 +423,7 @@ It is important to find an optimal precision for the best performance.
 When the properties of data set do not change, the ratio of re-computation can be determined by offline profiling.
 Otherwise, when a new data set is applied or the ratio of re-computation exceeds a threshold, the optimal precision has to be searched at run-time using our proposed method as shown in Algorithm~\ref{algo:reconfig}.
 The search is run on the \gls{cpu} to reconfigure the \gls{fpga} with a higher precision.
-On a system with multiple FPGAs, one of the FPGAs is reconfigured to approach the optimal precision over a number of time steps
+On a system with multiple FPGAs, one of the FPGAs is reconfigured to approach the optimal precision over a number of time-steps
 while the remaining FPGAs keep the system running.
 %The computation overhead of the algorithm is negligible.
 $TH_{comp,p_L}$, which will be seen in Equation~\ref{eqt:fM} in Section~\ref{sec:precision_model}, is the throughput measured at run-time for data-paths implemented in precision $p_L$.
@@ -437,9 +437,12 @@ $TH_{comp,p_L}$, which will be seen in Equation~\ref{eqt:fM} in Section~\ref{sec
 	\STATE {$TH_{comp,p_L} \gets TH_{comp,p_{test}}$}
 	\STATE {$p_{test} \gets \min{(p \in {P})}$}
 	\STATE {Remove $p_{test}$ from ${P}$}
-	\STATE {Configure the $FPGA_1$ with precision $p_{test}$, $FPGA_{2...N}$ are not reconfigured}
+	\STATE {Configure $FPGA_1$ with precision $p_{test}$, $FPGA_{2...N}$ are not reconfigured}
 	\STATE {Compute \gls{pq} and get $TH_{comp,p_{test}}$}
 \UNTIL{$TH_{comp,p_{test}} < TH_{comp,p_L}$}
+%\FOR{$i$ in $2$ to $N$}
+%	\STATE {Configure $FPGA_i$ with precision $p_{test}$}
+%\ENDFOR
 \end{algorithmic}
 \label{algo:reconfig}
 \end{algorithm}
@@ -553,7 +556,7 @@ Previous vales stored in \textit{row 1} are cleared.]
 \label{fig:memory}
 \end{figure}
 
-\subsection{Performance Estimation}
+\subsection{Performance Model}
 \label{sec:precision_model}
 
 We derive a performance model to make the most effective use of the \gls{fpga}'s resources and to address real-time requirements.
@@ -663,7 +666,7 @@ With the model, designer can ensure that the system parameters (Table~\ref{tab:m
 
 \subsection{General Settings}
 We use the MPC-C500 reconfigurable system from Maxeler Technologies for our evaluation.
-The system has four MAX3 cards, each of which has a Virtex-6 XC6VSX475T \gls{fpga} with 476,100 logic cells and 2,016 \glspl{dsp}.
+The system has four MAX3 cards, each of which has a Virtex-6 XC6VSX475T \gls{fpga} with 297,600 \glspl{lut} and 2,016 \glspl{dsp}.
 The cards are connected to two Intel Xeon X5650 \gls{cpu}s and each card communicates with the \gls{cpu}s via a PCI Express gen2 x8 link. 
 The \gls{cpu}s have 12 physical cores and are clocked at 2.66 GHz.
 We develop the \gls{fpga} kernels using MaxCompiler which adopts a streaming programming model supporting customisable floating-point data formats.

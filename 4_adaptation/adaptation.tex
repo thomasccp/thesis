@@ -270,7 +270,7 @@ Despite the parallelisation effort, these methods do not address the problem of 
 \label{fig:particles_stream}
 \end{figure}
 
-\subsection{FPGA Kernel Design}
+\subsection{FPGA Kernel}
 Sampling, importance weighting and lower bound calculation are the most computation intensive stages.
 In each time-step, these three stages are iterated for $itl\_repeat$ times.
 An \gls{fpga} kernel enabling efficient acceleration is proposed.
@@ -300,7 +300,7 @@ In order to achieve one result per clock cycle, fixed-point data-path is impleme
 \label{fig:reconfig_kernel}
 \end{figure}
 
-\subsection{Timing Model for Run-time Reconfiguration}
+\subsection{Performance Model for Run-time Reconfiguration}
 \label{sec:reconfig_reconfig}
 
 We derive a model to analyse the computation time of reconfigurable system.
@@ -322,12 +322,12 @@ where $itl\_repeat$ represents the number of times that the sampling, importance
 
 \begin{equation}
 \begin{aligned}
-T_{datapath} = \left(\frac{{N_{P_t}}}{f_{fpga} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{fpga}} \mbox{,}
+T_{datapath} = \left(\frac{{N_{P_t}}}{freq_{fpga} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:kernel}
 \end{equation}
 
-where $P_t$ denotes the number of particles at the current time-step and $f_{\gls{fpga}}$ denotes the clock frequency of the \glspl{fpga}.
+where $P_t$ denotes the number of particles at the current time-step and $freq_{fpga}$ denotes the clock frequency of the \glspl{fpga}.
 $L$ is the length of the pipeline.
 $N_{datapath}$ denotes the number of data-paths on one \gls{fpga} board.
 $N_{fpga}$ is the number of \gls{fpga} boards in the system.
@@ -336,19 +336,19 @@ $N_{fpga}$ is the number of \gls{fpga} boards in the system.
 
 \begin{equation}
 \begin{aligned}
-T_{cpu} = \alpha \cdot \frac{{N_{P_t}}}{f_{cpu}} \cdot \left(1-par+\frac{par}{N_{thread}}\right) \mbox{,}
+T_{cpu} = \alpha \cdot \frac{{N_{P_t}}}{freq_{cpu}} \cdot \left(1-par+\frac{par}{N_{thread}}\right) \mbox{,}
 \end{aligned}
 \label{eqt:host}
 \end{equation}
 
-where the clock frequency and number of threads of the \glspl{cpu} are represented by $f_{cpu}$ and $N_{thread}$ respectively.
+where the clock frequency and number of threads of the \glspl{cpu} are represented by $freq_{cpu}$ and $N_{thread}$ respectively.
 $par$ is an application-specific parameter in the range of $[0,1]$ which represents the ratio of \gls{cpu} instructions that are parallelisable, and $\alpha$ is a scaling constant derived empirically.
 
 \textbf{Data transfer time}, $T_{tran}$, denotes the time of moving a particle stream between the \glspl{fpga} and the \glspl{cpu}.
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot {N_{P_t}}}{f_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
+T_{tran} = \frac{(2 \cdot df + 1) \cdot W_{data} \cdot {N_{P_t}}}{freq_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:data}
 \end{equation}
@@ -356,8 +356,8 @@ T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot {N_{P_t}}}{f_{bus} \cdot
 where $df$ is the number of data fields of a particle.
 For example, if a particle contains the information of coordinates ($x$, $y$) and heading $h$, $df=3$.
 Given that the constant 1 represents the weight and the constant 2 accounts for the movement of data in and out of the \glspl{fpga},
-and $bw_{data}$ is the bit-width of one data field, the expression $(2 \cdot df + 1) \cdot bw_{data}$ is regarded as the size of a particle.
-$f_{bus}$ is the clock frequency of the bus connecting the \glspl{cpu} to \glspl{fpga} and $lane$ is the number of bus lanes connected to one \gls{fpga}.
+and $W_{data}$ is the bit-width of one data field, the expression $(2 \cdot df + 1) \cdot W_{data}$ is regarded as the size of a particle.
+$freq_{bus}$ is the clock frequency of the bus connecting the \glspl{cpu} to \glspl{fpga} and $lane$ is the number of bus lanes connected to one \gls{fpga}.
 Since many buses, such as the PCI Express Bus, encode data during transfer, the effective data are denoted by $eff$ (in PCI Express Gen2 the value is 8/10).
 In our previous work~\cite{chau13arc}, the data transfer time has a significant performance impact on reconfigurable system.
 To reduced the data transfer overhead, we introduce a data compression technique that will be described in Section~\ref{sec:reconfig_stream}.
@@ -392,12 +392,12 @@ T_{sleep} = T_{idle} - T_{config} \mbox{.}
 
 \begin{equation}
 \begin{aligned}
-T_{config} = \frac{size_{bs}}{f_{config} \cdot bw_{config}} \mbox{,}
+T_{config} = \frac{size_{bs}}{freq_{config} \cdot W_{config}} \mbox{,}
 \end{aligned}
 \label{eqt:cf}
 \end{equation}
 
-where $size_{bs}$ represents the size of bitstream in bits, and $f_{config}$ is the configuration clock frequency in Hz and $bw_{config}$ is the width of the configuration port.
+where $size_{bs}$ represents the size of bitstream in bits, and $freq_{config}$ is the configuration clock frequency in Hz and $W_{config}$ is the bit-width of the configuration port.
 
 \setcounter{subfigure}{0}
 \begin{figure}[t!]
@@ -463,14 +463,14 @@ The data transfer time with compression, $T_{Tran}$, is shown below:
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot bw_{data} \cdot {N_{P_t}}}{f_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
+T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot W_{data} \cdot {N_{P_t}}}{freq_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:data_opt}
 \end{equation}
 
 where $Rep$ is the average number of replication of the particles,
 and therefore the size of the resampled particle stream is reduced by a ratio of $Rep$ when compared to that without compression.
-The range of $Rep$ is from 1 to $P_t$, depending on the distribution of particles after the resampling process.
+The range of $Rep$ is from 1 to $N_{P_t}$, depending on the distribution of particles after the resampling process.
 The effect of $Rep$ on data transfer time will be evaluated in the next section.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -520,7 +520,7 @@ From Equation~\ref{eqt:data}, the size of a particle is $(2 \cdot 3 + 1) \cdot 3
 The system is developed using MaxCompiler, which adopts a stream computing model.
 \begin{itemize}
 \item \textit{MaxWorkstation} is a microATX form factor system which is equipped with one Xilinx Virtex-6 XC6VSX475T \gls{fpga}.
-The \gls{fpga} has 297,600 \glspl{lut}, 595,200 \glspl{ff}, 2,016 \glspl{dsp} and 1,064 block \glspl{ram}. 
+The \gls{fpga} has 297,600 \glspl{lut}, 595,200 registers, 2,016 \glspl{dsp} and 1,064 block \glspl{ram}. 
 The \gls{fpga} board is connected to an Intel i7-870 \gls{cpu} (4 physical cores, 8 threads in total, clocked at 2.93 GHz) via a PCI Express Gen2 x8 bus.
 The maximum bandwidth of the PCI Express bus is 2 GB/s according to the specification provided by Maxeler Technologies.
 \item \textit{MPC-C500} is a 1U server accommodating four \gls{fpga} boards, each of which has a Xilinx Virtex-6 XC6VSX475T \gls{fpga}.
@@ -531,8 +531,8 @@ To support run-time reconfigurability, two \gls{fpga} configurations are used:
 \begin{itemize}
 \item {\it Sampling and importance weighting configuration} is clocked at 100 MHz.
 Two data-paths are implemented on one \gls{fpga} to process particles in parallel.
-The total resource usage is 231,922 \glspl{lut} (78\%), 338,376 \glspl{ff} (56\%), 1,934 \glspl{dsp} (96\%) and 514 block \glspl{ram} (48\%).
-\item {\it Low-power configuration} is clocked at 10 MHz, with 5,962 \glspl{lut} (2\%), 6,943 \glspl{ff} (1\%) and 12 block \glspl{ram} (1\%).
+The total resource usage is 231,922 \glspl{lut} (78\%), 338,376 registers (56\%), 1,934 \glspl{dsp} (96\%) and 514 block \glspl{ram} (48\%).
+\item {\it Low-power configuration} is clocked at 10 MHz, with 5,962 \glspl{lut} (2\%), 6,943 registers (1\%) and 12 block \glspl{ram} (1\%).
 It uses minimal resources just to maintain communication between the \glspl{fpga} and \glspl{cpu}.
 \end{itemize}
 

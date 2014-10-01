@@ -5,12 +5,13 @@
 
 \section{Motivation}
 
-Reconfigurable system is a computing system which combines the flexibility of software with the high performance of hardware by deploying \gls{fpga} technology.
+Reconfigurable systems are computing systems which combine the flexibility of software with the high performance of hardware by deploying \gls{fpga} technology.
 The structure of a reconfigurable system can be changed by the end-user after the manufacturing process or even at run-time.
 The development of reconfigurable system has been driven largely by \glspl{fpga}, which are semiconductor devices with prefabricated logic and routing resources.
 The functionality and interconnection of an \gls{fpga} can be reconfigured with any new design multiple times.
 The reconfiguration enables application-specific tuning of designs and their adaptation to new standards.
-This reconfigurability make \glspl{fpga} suited to prototyping \gls{asic} designs.
+This reconfigurability make \glspl{fpga} suited to application specialisation without the high cost of making custom silicon.
+%prototyping \gls{asic} designs.
 In recent years, there has been a significant increase in the size of \glspl{fpga}.
 Modern state-of-the-art \glspl{fpga} contain numerous programmable logic cells, \glspl{dsp}, memory blocks, high-throughput transceivers, peripheral \gls{io}, customisable IP blocks and even micro-processor cores~\cite{alterasoc,xilinxzynq}.
 These components enable higher integration level, faster execution speed and lower power consumption through tailor-made data-paths, increased fine-grained parallelism and better memory utilisation.
@@ -26,7 +27,7 @@ In the last decade, researchers have extended the scope of \glspl{fpga} from pro
 Execution time and power consumption of applications running on \glspl{fpga} can be improved by up to several orders of magnitude compared to state-of-the-art microprocessors~\cite{chow11,chow12,craven07,guo04,pell11}.
 
 %While the main requirement of ~\gls{hpc} is performance,
-Real-time computing is driven by system being able to respond to input stimulus in finite intervals.
+Real-time computing is defined to be a system that must be able to respond to input stimulus in finite intervals.
 %focuses on meeting deadline which are finite and specified time intervals within which the system must respond to an input stimulus.
 Failing a deadline can cause degraded quality of service and even a total system failure.
 Real-time systems are found in a wide range of applications areas, from simple domestic appliances to financial systems, large scale process control and safety critical avionics.
@@ -34,7 +35,7 @@ Examples include air traffic management~\cite{crisostomi07,eele11}, unmanned aer
 In some applications, the required response times are measured in milliseconds, in others it is seconds or even minutes. 
 Nevertheless, they all must be satisfied.
 
-\glspl{fpga} are considered as a platform for embedded real-time applications where software tasks running on micro-processors coexist with hardware tasks running on reconfigurable logics~\cite{paul12,schoeberl08,whitham09,alteradoc}.
+\glspl{fpga} are considered as a platform for embedded real-time applications where software tasks running on micro-processors coexist with hardware tasks running on reconfigurable logic~\cite{paul12,schoeberl08,whitham09,alteradoc}.
 However, these implementations are software-based which means that multiple real-time tasks are managed by dedicated \gls{rtos} for reconfigurable devices.
 Real-time tasks running on micro-processors have to consider problems resulting from complex architectures.
 Pipelines, caches, branch prediction, or out-of-order execution result in complex state machines which to be managed by either software or hardware.

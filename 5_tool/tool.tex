@@ -16,17 +16,17 @@ To enable rapid learning of a large design space, a timing model relates design 
 
 The contributions are as follows:
 \begin{itemize}
-\item A design flow that reduces the development effort of \gls{smc} applications on reconfigurable systems (Section~\ref{sec:flow_design}).
+\item A design flow that reduces the development effort of \gls{smc} applications on reconfigurable systems.
 The reconfigurable system is generalised based on the one mentioned in Chapter~\ref{ch:adaptation}.
 Through templating the \gls{smc} structure, users can design efficient, multiple-\gls{fpga} \gls{smc} applications for arbitrary problems without any knowledge of reconfigurable computing.
 Moreover, the software template is open-source.\footnote{Available online: \url{http://cc.doc.ic.ac.uk/projects/smcgen}}
-\item A machine learning approach that explores the \gls{smc} design space automatically and tunes design parameters to improve performance and accuracy (Section~\ref{sec:flow_optimisation}). The resulting parameters can be applied to the hardware design at run-time without the need for resynthesis.
+\item A machine learning approach that explores the \gls{smc} design space automatically and tunes design parameters to improve performance and accuracy. The resulting parameters can be applied to the hardware design at run-time without the need for resynthesis.
 It is demonstrated that parameter optimisation enables the design space to be explored an order of magnitude faster without sacrificing quality.
 When compared with previous work~\cite{chau14trets,chau13acm},
 our approach provides better quality of solutions and faster designs.
 \item The benefit of this approach in terms of design productivity and performance is quantified over a diverse set of \gls{smc} problems.
 Two applications are implemented on Altera and Xilinx-based reconfigurable platforms, with varying numbers of \glspl{fpga}. For these problems, the number of lines of code for the \gls{fpga} implementation is reduced by approximately 76\%, and 
-significant speedup and energy improvement over \gls{cpu} and \gls{gpu} implementations (Section~\ref{sec:flow_evaluation}) are demonstrated.
+significant speedup and energy improvement over \gls{cpu} and \gls{gpu} implementations are demonstrated.
 \end{itemize}
 
 The rest of the chapter is organised as follows.
@@ -54,7 +54,7 @@ We will start with three high-level stages as shown in Figure~\ref{fig:flow}, an
 \begin{center}
 \includegraphics[width=0.8\textwidth]{5_tool/figures/flow}
 \end{center}
-\caption{Design flow (Compile-time and run-time) for SMC applications. Users only customise the application-specific descriptions inside the dotted box.}
+\caption{Design flow (Compile-time and run-time) for SMC applications: Users only customise the application-specific descriptions inside the dotted box.}
 \label{fig:flow}
 \end{figure}
 
@@ -129,16 +129,16 @@ public class Def {
 	static final DFEType fixed_t = 
 		KernelLib.dfeFixOffset(26,-20,SignMode.TWOSCOMPLEMENT);
 	// State Struct
-	public static final DFEStructType state_t = new 
-	DFEStructType(
+	public static final DFEStructType state_t = new DFEStructType(
 		new StructFieldType(''x'', float_t);
 		new StructFieldType(''y'', float_t);
-		new StructFieldType(''h'', float_t););
+		new StructFieldType(''h'', float_t);
+	);
 	// Reference Struct
-	public static final DFEStructType ref_t = new 
-	DFEStructType(
+	public static final DFEStructType ref_t = new DFEStructType(
 		new StructFieldType(''d'', float_t);
-		new StructFieldType(''r'', float_t););
+		new StructFieldType(''r'', float_t);
+	);
 	// Static Design parameters (Table I)
 	public static int NPMin = 5000, NPMax = 25000;
 	public static int H = 1, NA = 1;
@@ -192,7 +192,7 @@ public class Func {
 \end{Code}
 
 
-\subsection{Computation Engine Design}
+\subsection{Computation Engine}
 \label{sec:flow_system}
 
 In Chapter~\ref{ch:adaptation}, a heterogeneous reconfigurable system has been designed for accelerating \gls{smc} applications.
@@ -222,13 +222,13 @@ To maximise the system throughput, remaining non-compute-intensive tasks that in
 \end{figure}
 
 From the control paths (dotted lines) of Figure~\ref{fig:system}, we see that there are three loops: 
-(1) inner, (2) outer, and (3) time step.
+(1) inner, (2) outer, and (3) time-step.
 First, the inner loop iterates $itl\_inner$ number of times for \textit{sampling} and \textit{importance weighting},
 $itl\_inner$ increases with the iteration count of the outer loop.
 Second, the outer loop iterates $itl\_outer$ times to do \textit{resampling}.
 The resampling process is performed $itl\_outer$ times to refine the pool of particles.
 The particle indices are scrambled after this stage and the indices are transferred to the \glspl{cpu} to update the particles.
-Third, the time loop iterates once per time step to obtain a new control strategy and to update the current state.
+Third, the time loop iterates once per time-step to obtain a new control strategy and to update the current state.
 
 Based on this fact, the data structure shown in Figure~\ref{fig:flow_stream} is derived.
 %It utilises a deep pipeline of \glspl{fpga} so that particles can be processed simultaneously.
@@ -263,7 +263,7 @@ Secondly, \textit{Constraint handling} uses the states from the \emph{Next state
 The block raises a fail flag if a constraint is violated.
 Lastly, \textit{Weight calculation} combines the scores of the states over the horizon.
 
-Part of the resampling process is handled by the \textbf{Resampling index generation} and \textbf{weight accumulation} blocks.
+Part of the resampling process is handled by the \textbf{Resampling index generation} and \textbf{Weight accumulation} blocks.
 Weights are accumulated to calculate the cumulative distribution function, then particles indices are reordered.
 These two blocks can either be computed on \glspl{fpga} or \glspl{cpu}.
 
@@ -277,7 +277,7 @@ Users have the flexibility to make trade-off between result accuracy and design 
 We derive a performance model to analyse the effect of parameters on the processing speed as well as resource utilisation of the computation engine.
 It will be used in Section~\ref{sec:flow_optimisation} for parameter optimisation.
 
-The processing time of a time step is shown in Equation~\ref{eqt:time_step}.
+The processing time of a time-step is shown in Equation~\ref{eqt:time_step}.
 It has four components which are iterated $itl\_outer$ times.
 
 \begin{equation}
@@ -291,7 +291,7 @@ $T_{s\&i}$ is the time spent on sampling and importance weighting in the \gls{fp
 
 \begin{equation}
 \begin{aligned}
-T_{s\&i} = \frac{itl\_inner \cdot N_P \cdot N_A \cdot H}{N_C \cdot N_{board} \cdot freq} \cdot \min\left(1,\frac{bandwidth}{sizeof(state) \cdot freq}\right) \mbox{.}
+T_{s\&i} = \frac{itl\_inner \cdot N_P \cdot N_A \cdot H}{N_C \cdot N_{board} \cdot freq} \cdot \min\left(1,\frac{BW_{bus}}{sizeof(state) \cdot freq}\right) \mbox{.}
 \end{aligned}
 \end{equation}
 
@@ -299,7 +299,9 @@ Since the data is organised as a stream as described in Section~\ref{sec:flow_sy
 It is iterated $itl\_inner$ times in the inner loop.
 The sampling and importance weighting process can be accelerated using multiple cores, such that each of them is responsible for part of the inner loop iterations or particles.
 $N_C$ represents the number of processing cores being used on one \gls{fpga}, and $N_{board}$ is the number of \gls{fpga} boards being used.
-$min(1,\frac{bandwidth}{sizeof(state) \cdot freq})$ accounts for the limitation of bandwidth between \glspl{fpga} and \glspl{cpu}.
+$freq$ is the clock frequency of the processing cores.
+$BW_{bus}$ is the bandwidth of the bus connecting the \gls{cpu} to \gls{fpga}.
+$min(1,\frac{BW_{bus}}{sizeof(state) \cdot freq})$ accounts for the limitation of bandwidth between \glspl{fpga} and \glspl{cpu}.
 
 $T_{resample}$ is the time spent on generating the resampling indices.
 
@@ -317,19 +319,19 @@ $T_{cpu}$ is the time spent on resampling and updating the current state on the 
 
 \begin{equation}
 \begin{aligned}
-T_{cpu} = \alpha_1 \cdot H \cdot N_P \cdot N_A \mbox{.}
+T_{cpu} = \alpha \cdot H \cdot N_P \cdot N_A \mbox{.}
 \end{aligned}
 \end{equation}
 
 The time is related to the amount of data and the speed of the \gls{cpu}.
-$\alpha_1$ is the scaling factor of the \gls{cpu} speed.
+$\alpha$ is the scaling factor of the \gls{cpu} speed.
 
 $T_{tran}$ is the data transfer time that accounts for the time taken to transfer the state stream between \glspl{cpu} and \gls{dram} on an \gls{fpga} board.
 $T_{tran}$ can be omitted if no \gls{dram} is used.
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{N_P \cdot N_A \cdot \left ( H \cdot sizeof(state)\right)}{bandwidth} \mbox{.}
+T_{tran} = \frac{N_P \cdot N_A \cdot \left ( H \cdot sizeof(state)\right)}{BW_{bus}} \mbox{.}
 \end{aligned}
 \end{equation}
 
@@ -395,8 +397,8 @@ If the value of $S$ (scaling factor for the standard deviation of noise) is also
 
 \begin{equation}
 \begin{aligned}
-\mbox{minimise } \gls{rmse} &= f(N_P, itl\_outer, S) \mbox{,} \\
-\mbox{subject to } \gls{rmse} & \leq \mbox{1 m, } T_{step} \leq \mbox{5s, } \mbox{.}
+\mbox{minimise } \gls{rmse} &= \mbox{localisation}(N_P, itl\_outer, S) \mbox{,} \\
+\mbox{subject to } \gls{rmse} & \leq \mbox{1 m, } T_{step} \leq \mbox{5s.}
 %U_{logic} \leq U_{logic\_A} \mbox{, } U_{dsp} & \leq U_{dsp\_A} \mbox{, } U_{mem} \leq U_{mem\_A} \\
 \end{aligned}
 \label{eqt:opt_mcl}
@@ -414,8 +416,8 @@ The computation workload decreases with the number of particles and hence introd
 The power consumption during the idle period is reduced by reconfigurating the \glspl{fpga} to low-power mode, where the \glspl{fpga} runs at a lower frequency and all the unnecessary features are disabled or removed.
 The run-time reconfiguration and parameter adaptation are applied to the proposed \gls{smc} computation engine in this chapter.
 For convenience, Algorithm~\ref{algo:smcb} recaptures the approach, with modifications made to cope with the generalised computation engine.
-In particular, an inner loop $itl\_inner$ is included to deal with multiple iteration of sampling and importance within a time step.
-$P_{t+1}$ describes the lower bound of particle size which is used in Algorithm~\ref{algo:smcb}:
+In particular, an inner loop $itl\_inner$ is included to deal with multiple iteration of sampling and importance within a time-step.
+$N_{P_{t+1}}$ describes the lower bound of particle size which is used in Algorithm~\ref{algo:smcb}:
 
 \begin{equation}
 \begin{aligned}
@@ -580,8 +582,8 @@ As we will see in the applications below, we are able to choose the optimal set 
 			\hline
 			\hline
 			%Sto. vol. 	& 31 & 44  & 84 & 1,164 & 13.7 \\
-			Robot loc.	& 54 & 143 & 56 & 1,113 & 22.7 \\
-			Air traffic	& 45 & 360 & 70 & 1,360 & 35.0 \\
+			Robot localisation	& 54 & 143 & 56 & 1,113 & 22.7 \\
+			Air traffic	management & 45 & 360 & 70 & 1,360 & 35.0 \\
 			\hline
 		\end{tabular}
 	\end{threeparttable}
@@ -742,8 +744,8 @@ Both parts are connected via InfiniBand.
 
 This application has four design parameters leading to a space with 4000 sets of parameters.
 The optimisation target is to minimise the time of aircraft spending in the air traffic control region,
-i.e. the number of time steps required for all aircraft to reach their destinations.
-Each time step is subject to a real-time requirement of 30 seconds.
+i.e. the number of time-steps required for all aircraft to reach their destinations.
+Each time-step is subject to a real-time requirement of 30 seconds.
 The machine learning approach reduces the number of evaluations to 1\% as indicated in Table~\ref{tab:dse}.
 Hence, the parameter optimisation time is reduced from days to hours.
 
@@ -778,7 +780,7 @@ Hence, the parameter optimisation time is reduced from days to hours.
 	\centering
 	\smallskip
 	\begin{threeparttable}
-		\begin{tabular}{c|p{4cm}|ccgc}
+		\begin{tabular}{c|p{6cm}|ccgc}
 			\hline
 															&											& \gls{cpu}										& \gls{gpu} 									& This work 					& Ref. \gls{fpga}~\cite{chau13acm} 	\\
 															&											& w/ opt.~\tnote{a}		& w/ opt.~\tnote{b} 	& w/ opt.~\tnote{c} & w/o opt.~\tnote{d} 	\\

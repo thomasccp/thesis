@@ -2,7 +2,7 @@ reset
 set term postscript eps enhanced color
 set output "fig_surrogate_ei.eps"
 set size 0.5, 0.5
-set xlabel "Parameter X" font "Times-Roman, 20"
+set xlabel "Parameter" font "Times-Roman, 20"
 set xrange [0:11]
 set ylabel "Objective function" font "Times-Roman, 20"
 set yrange [0:10]

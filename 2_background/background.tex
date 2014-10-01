@@ -86,7 +86,7 @@ Designing \gls{rtl} circuits is time consuming.
 Designers must specify the entire structure of the data-path, define control for components, and manage data movement from inputs to outputs which involve devices such as DDR memory, PCI Express bus, ethernet, and so on.
 Such complexity leads researchers to work on \gls{hls} tools.
 Commercial \gls{hls} tools become increasingly common.
-Example includes Xilinx's Vivado HLS~\cite{xilinxvivado}, Impulse Accelerated Technologies' Impulse C~\cite{impulsec}, Calypto's Catapult C~\cite{catapultc}, Mentor Graphics' Handel-C~\cite{handelc}, IBM's Lime~\cite{lime}, Bluespec~\cite{bluespec}, OpenSPL~\cite{openspl,maxcompiler}, OpenCL in Altera \glspl{fpga}~\cite{alteraopencl}, and Mathworks' Simulink (via HDL Coder~\cite{hdlcoder}, DSP Builder~\cite{alteradspbuilder} and System Generator~\cite{xilinxsysgen}).
+Example includes Xilinx's Vivado HLS~\cite{xilinxvivado}, Impulse Accelerated Technologies' Impulse C~\cite{impulsec}, Calypto's Catapult C~\cite{catapultc}, Mentor Graphics' Handel-C~\cite{handelc}, IBM's Lime~\cite{lime}, Bluespec~\cite{bluespec}, OpenSPL~\cite{openspl,maxcompiler}, OpenCL in Altera \glspl{fpga}~\cite{alteraopencl}, and MathWorks' Simulink (via HDL Coder~\cite{hdlcoder}, DSP Builder~\cite{alteradspbuilder} and System Generator~\cite{xilinxsysgen}).
 Open-source tools such as LegUp~\cite{legup} are also gaining researchers' attention.
 
 As heterogeneous computing is becoming more popular, OpenSPL and OpenCL are two standards which have been proposed to provide a framework for writing programs that execute across \glspl{fpga}, \glspl{cpu} and \glspl{gpu}.
@@ -108,7 +108,7 @@ As the requirement of hardware knowledge is low compared to traditional \gls{hdl
 \label{fig:openspl}
 \end{figure}
 
-MathWork promotes \gls{hls} with a model-based design flow~\cite{mathworks,sharma09}.
+MathWorks promote \gls{hls} with a model-based design flow~\cite{mathworks,sharma09}.
 As shown in Figure~\ref{fig:hdlcoder}, designers first simulate and verify operations in the Simulink development environment, then \gls{fpga} \gls{ip} cores are generated from the Simulink models using HDL Coder, while software executables for ARM processor are compiled using Embedded Coder.
 The design flow also includes various board-support-packages which generate device-specific interfaces automatically.
 
@@ -116,7 +116,7 @@ The design flow also includes various board-support-packages which generate devi
 \begin{center}
 \includegraphics[width=0.7\textwidth]{2_background/figures/hdlcoder}
 \end{center}
-\caption{MathWorks' model-based design flow.}
+\caption{Model-based design flow.}
 \label{fig:hdlcoder}
 \end{figure}
 
@@ -159,6 +159,7 @@ Missing an operation deadline can lead to catastrophic effects such as a total s
 Soft real-time system is a loosen form where exact response time is not critical, but missing an operation deadline can cause degraded quality of service.
 %Uncomfortably long response times cause degraded quality of service but the system still functions even if deadlines are sometimes not met.
 
+\pagebreak
 In summary, real-time systems must have the following properties to support critical applications~\cite{buttazzo11}:
 \begin{itemize}
 \item Timeliness: Output values are produced before the deadlines.
@@ -282,7 +283,7 @@ The more complex the problem, the larger the number of particles that are needed
 One drawback of \gls{smc} is its long execution times so its practical use is limited.
 
 %\gls{smc} methods estimate the unobserved states of interest based on observations in controlling various agents.
-In \gls{smc}, the target posterior density $p(s_t|m_t)$ is represented by a set of particles, where $s_t$ is the state and $m_t$ is the observation at time step $t$.
+In \gls{smc}, the target posterior density $p(s_t|m_t)$ is represented by a set of particles, where $s_t$ is the state and $m_t$ is the observation at time-step $t$.
 A sequential importance resampling algorithm~\cite{gordon93} is used to obtain a weighted set of $N_P$ particles $\{s_t^{(i)},w^{(i)}\}^{N_P}_{i=1}$.
 The importance weights $\{w^{(i)}\}^{N_P}_{i=1}$ are approximations to the relative posterior probabilities of the particles such that $\sum^{N_P}_{i=1}w^{(i)}_t = 1$.
 This process is described in Algorithm~\ref{algo:smc_bg}.
@@ -291,7 +292,7 @@ A more detailed description can be found in~\cite{doucet01}.
 \begin{algorithm}
 \caption{\gls{smc} methods.}
 \begin{algorithmic}[1]
-\FOR {each time step t}
+\FOR {each time-step $t$}
 \STATE {$idx1 \gets 0$}
 \STATE {Initialisation}
 \WHILE {$idx1 \le itl\_outer$}
@@ -328,7 +329,7 @@ A more detailed description can be found in~\cite{doucet01}.
 Within each iteration of $itl\_outer$, the sampling and importance weighting stages are iterated $itl\_inner$ times so that those particles with sustained benefits are assigned higher weights.
 $itl\_inner$ increases as a function of $idx1$, because a larger $idx1$ implies that the set of particles reflects a more accurate approximation.
 \item \textbf{Resampling}: Particles with small weights are removed and those with large weights are replicated.
-This process is repeated for $itl\_outer$ times in a time step to address the problem of degeneracy~\cite{kitagawa96}.
+This process is repeated for $itl\_outer$ times in a time-step to address the problem of degeneracy~\cite{kitagawa96}.
 Without resampling, only a small number of particles will have substantial weights for inference.
 \item \textbf{Update}: State $s_{t+1}$ is obtained from the resampled particle set $\{s_{t+1}^{(i)}\}^{N_P}_{i=1}$ via weighted average or more complicated functions.
 \end{enumerate}
@@ -393,8 +394,8 @@ Table~\ref{tab:parameters} summarises the parameters of the \gls{smc} methods de
 
 Adaptive \gls{smc} methods have been proposed to improve performance or quality of state estimation by controlling the number of particles dynamically. 
 Likelihood-based adaptation controls the number of particles such that the sum of weights exceeds a pre-specified threshold~\cite{koller98}.
-Kullback Leibler distance (KLD) sampling is proposed in~\cite{fox03}, which offers better quality results than likelihood-based approach. 
-KLD sampling is improved in~\cite{park10} by adjusting the variance and gradient of data to generate particles near high likelihood regions. 
+\gls{kld} sampling is proposed in~\cite{fox03}, which offers better quality results than likelihood-based approach. 
+\gls{kld} sampling is improved in~\cite{park10} by adjusting the variance and gradient of data to generate particles near high likelihood regions. 
 The above methods introduce data dependencies in the sampling and importance weighting steps, so they are difficult to be parallelised. 
 An adaptive \gls{smc} is proposed in~\cite{bolic02} that changes the number of particles dynamically based on estimation quality. 
 In~\cite{chau12fpl}, adaptive \gls{smc} is extended to a multi-processor system on \gls{fpga}.
@@ -439,7 +440,6 @@ Applications related specifically to each of the contribution of this thesis are
 %where the state transition from $s_{t-1}$ to $s_t$ is used to draw random samples $s^i_t$ from the existing pool of particles,
 %and $\mathcal{N}(\phi s^i_{t-1},1)$ is the proposal distribution.
 
-\pagebreak
 \textbf{Robot Localisation}
 
 \gls{smc} methods are applied to mobile robot localisation~\cite{chau14trets,montemerlo02}.
@@ -523,7 +523,7 @@ Figure~\ref{fig:smc_mpc} provides an overview of the air traffic control problem
 Figure~\ref{fig:atm_model} depicts the model that simulates the dynamic of an aircraft.
 The major variables include the aircraft position in 3 dimensional space $(x,y,a)$, true air speed $V$, aircraft mass $m$, heading angle $\chi$, roll angle $\phi$ and pitch angle $\tau$.
 The forces applied to the aircraft are its weight $mg$, the engine thrust $T$, and the aerodynamic forces of lift $L$ and drag $D$.
-As illustrated in Equation~\ref{eq:atm_c}, $\phi_t$, $\tau_t$ and $T_t$ are control variables which determines the movement of aircraft at time step $t$.
+As illustrated in Equation~\ref{eq:atm_c}, $\phi_t$, $\tau_t$ and $T_t$ are control variables which determines the movement of aircraft at time-step $t$.
 They are chosen within permitted range and are summerised as a state $s_t$, which is optimised by \gls{smc}.
 The state is affected by disturbances from varying wind and atmospheric conditions, therefore, $\phi^{\prime}_t$, $\tau^{\prime}_t$ and $T^{\prime}_t$ represent variables with the effect of disturbances taken into account.
 Then the state adjusts the status of aircraft $r_{t}$, which are the position $(x_t, y_t, a_t)$, heading $\chi_t$, speed $V_t$ and mass $m_t$ of the aircraft as described in Equation~\ref{eq:atm_s}.

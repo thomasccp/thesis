@@ -149,13 +149,15 @@ To enable this approach, effective and efficient real-time scheduling should be 
 \item Clock gating: This is a common power optimisation technique employed in both \gls{asic} and \gls{fpga} designs to eliminate unnecessary switching activity and thus dynamic power consumption.
 To enable clock gating, designers need to add additional gating components to the \gls{rtl} code.
 The added components disable unnecessarily active sequential elements which need not to switch states.
-In \glspl{asic}, the clock tree that distributes the clock to all sequential elements is built specifically for each device.
-The clock tree can be added with any gating component to gate particular groups of clocks, and the delays introduced by these gating components are specifically handled.
-In \glspl{fpga}, the clock trees are fixed because dedicated nets and buffers are responsible for distributing the clock to all logic elements.
-It is not possible to do the arbitrary gating that is possible in \glspl{asic}.
-In addition, adding gating components and determining portions of gated circuit require intimate knowledge of the design and numerous changes to the \gls{rtl}.
-For example, if a clock is gated using a \gls{lut}, the clock needs to leave the clock network and be routed using general routing resources to a \gls{lut}, and then be routed back to the desired clock. 
-The \glspl{lut} used for clock gating can introduce glitch and the extra routing can make the clock arrive later than any clock that stays on the clock tree.
+In \glspl{asic}, the clock nets that distribute the clocks to all sequential elements are built specifically for each device.
+The clock nets can be added with any gating component to gate particular groups of clocks, and the delays introduced by these gating components are specifically handled.
+In \glspl{fpga}, the clock nets are fixed because dedicated nets and buffers are responsible for distributing the clocks to all logic elements.
+To disable a clock net without introducing glitches, or to switch a clock net between two clock frequencies, designer needs to allocate global clock buffers carefully.
+Static circuit and gated circuit can be assigned to different global clock buffers, but the number of global clock buffers are limited and using too many of them can potentially draw more power than that saved by clock gating.
+%It is not possible to do the arbitrary gating that is possible in \glspl{asic}.
+%In addition, adding gating components and determining portions of gated circuit require intimate knowledge of the design and numerous changes to the \gls{rtl}.
+%For example, if a clock is gated using a \gls{lut}, the clock needs to leave the clock network and be routed using general routing resources to a \gls{lut}, and then be routed back to the desired clock. 
+%The \glspl{lut} used for clock gating can introduce glitch and the extra routing can make the clock arrive later than any clock that stays on the clock tree.
 \end{itemize}
 
 \setcounter{subfigure}{0}
