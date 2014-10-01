@@ -4,16 +4,16 @@ set term postscript eps enhanced color
 set output "fig_power.eps"
 set size 0.6, 0.6
 set xtics 5
-set samples 10000
+set samples 50
 set xlabel "Run-time (s)"
 set ylabel "Power (W)"
 set xrange [0:10]
 set yrange [0:700]
 set style func linespoints
-set style line 1 lw 2 lt 1 pt 0 lc rgb 'red' 
-set style line 2 lw 4 lt 2 pt 0 lc rgb '#006700'
+set style line 1 lt 1 lc rgb 'red' 
+set style line 2 lt 2 lc rgb '#006700'
 set style line 3 lw 3 lt 3 pt 0 lc rgb '#006700'
-set style line 4 lw 3 lt 2 pt 0 lc rgb 'blue'
+set style line 4 lt 4 lc rgb 'blue'
 set style line 5 lw 3 lt 1 pt 0 lc rgb 'blue'
 set style line 6 lw 3 lt 9 pt 0 lc rgb 'blue'
 

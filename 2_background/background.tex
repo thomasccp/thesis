@@ -52,6 +52,18 @@ It also employs a scatter-gather dual inline memory modules (SG-DIMMs) to increa
 Meanwhile, Maxeler Technologies develop a series of reconfigurable systems which consist of Intel-based x86 host and FPGA-based data-flow engines~\cite{maxeler}.
 Their MPC-C500 machine can deliver over 400 GFlop/s computation speed and over 35GB/s of bandwidth to external physical memory.
 
+To leverage the advantages of \gls{fpga}s for hardware acceleration, Chow et al.~\cite{chow11} proposed a mixed precision methodology.
+%The work made an assumption that the data-path is short so that both the reduced precision and high precision implementations can fit in a single \gls{fpga}.
+%They also assume that the communication between the reduced-precision data-path and the high-precision data-path is completed via a crossbar, thus the overhead is negligible. 
+%For complicated applications where the level of parallelism is limited by \gls{fpga} resource, their approach is not applicable.
+%On the other hand, they are not applicable for complicated applications when the level of parallelism is limited.
+There are studies on bit-width optimisation which uses minimum precision in a data-path given a required output accuracy.
+Examples include interval arithmetic~\cite{fang03}, affine arithmetic~\cite{lee05,osborne07} and polynomial algebraic approach~\cite{boland10}.
+However, a reduction of precision in any stage within a data-path will result in a loss in output accuracy which is uncorrectable.
+These studies require the use of accuracy models to relate output accuracy with the precisions of data-path.
+%In contrast to these work, we focus on using run-time reconfiguration to derive an automatic way so as to find an optimal precision.
+%Our work is different from these work by deriving an automatic way to find an optimal precision using run-time reconfiguration.
+
 \subsection{Design Flow}
 
 To enable implementation of applications on \glspl{fpga}, \gls{fpga} tools generally support a design flow as shown in Figure~\ref{fig:bg_flow}.
@@ -71,7 +83,7 @@ Finally, \textit{routing} programs the interconnect to implement all connections
 There are two major programming models for \glspl{fpga}.
 The most common model manually converts the code into a semantically equivalent \gls{rtl} circuit, which designers typically specify using \glspl{hdl} such as VHDL and Verilog.
 Designing \gls{rtl} circuits is time consuming.
-Designers must specify the entire structure of the data path, define control for components, and manage data movement from inputs to outputs which involve devices such as DDR memory, PCI Express bus, ethernet, and so on.
+Designers must specify the entire structure of the data-path, define control for components, and manage data movement from inputs to outputs which involve devices such as DDR memory, PCI Express bus, ethernet, and so on.
 Such complexity leads researchers to work on \gls{hls} tools.
 Commercial \gls{hls} tools become increasingly common.
 Example includes Xilinx's Vivado HLS~\cite{xilinxvivado}, Impulse Accelerated Technologies' Impulse C~\cite{impulsec}, Calypto's Catapult C~\cite{catapultc}, Mentor Graphics' Handel-C~\cite{handelc}, IBM's Lime~\cite{lime}, Bluespec~\cite{bluespec}, OpenSPL~\cite{openspl,maxcompiler}, OpenCL in Altera \glspl{fpga}~\cite{alteraopencl}, and Mathworks' Simulink (via HDL Coder~\cite{hdlcoder}, DSP Builder~\cite{alteradspbuilder} and System Generator~\cite{xilinxsysgen}).
@@ -189,16 +201,15 @@ The computation burden is increased by the need to compute the placement of anat
 %\subsection{Geometric Representation for \gls{pq}}
 Fig.~\ref{fig:pqa} illustrates two objects acting as inputs to \gls{pq}. 
 The object shown on the left is bounded by a series of contours $C_j$ $\forall j \in [1,...,N_C]$, each of which is outlined by a set of contour points. 
-This object can be either a luminal anatomy or a robotic endoscope/catheter. 
+This object can be either a luminal anatomy or a robotic endoscope or catheter. 
 On the right, the mesh comprises points which represent the morphological structure of either the robot or the target anatomy in complex shape. 
 Essentially \gls{pq} computes $\delta_j$, which describes how much the mesh deviates beyond the volumetric pathway bounded along the contours.
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{3_precision/figures/pqa}
+\includegraphics[width=0.65\textwidth]{2_background/figures/pqa}
 \end{center}
-\caption[Various sets of points aligned on a series of contours; A set of points located on an arbitrary form of mesh.]{(Left) Various sets of points aligned on a series of contours; 
-(Right) A set of points located on an arbitrary form of mesh.}
+\caption[Sets of points aligned on a series of contours and a set of points located on an arbitrary form of mesh.]{Sets of points aligned on a series of contours and a set of points located on an arbitrary form of mesh.}
 \label{fig:pqa}
 \end{figure}
 
@@ -224,12 +235,12 @@ These contours form a constraint pathway.
 Fig.~\ref{fig:tube2} shows a distance map in three-dimensional space with 177k grid points. 
 Distance from every grid point to the endoscope is computed by \gls{pq}. 
 The warmer colour, the further the point is located beyond the endoscope.
-Each contour is denoted by $C_j$, $\forall j \in [1,...,N_C]$.
-A single segment $\Omega_j$ comprises two adjacent contours $C_j$ and $C_{j+1}$.
-$P_j$ is the centre of the contour $C_j$.
-$M_j$ is the tangent of centre line of contour $C_j$.
-$^j\omega_i=[^j\omega_{xi},^j\omega_{yi},^j\omega_{zi}]^T, (i=1,...,W)$ are the contour points,
-where $W$ is the number of points outlining each contour.
+%Each contour is denoted by $C_j$, $\forall j \in [1,...,N_C]$.
+%A single segment $\Omega_j$ comprises two adjacent contours $C_j$ and $C_{j+1}$.
+%$P_j$ is the centre of the contour $C_j$.
+%$M_j$ is the tangent of centre line of contour $C_j$.
+%$^j\omega_i=[^j\omega_{xi},^j\omega_{yi},^j\omega_{zi}]^T, (i=1,...,W)$ are the contour points,
+%where $W$ is the number of points outlining each contour.
 
 %\subsection{Hardware Acceleration for \gls{pq}}
 There has been previous work on hardware acceleration of board-phase \gls{pq}, which involves detecting collisions between primitive objects, e.g. spheres~\cite{benallegue09} or boxes~\cite{zhang07}. 
@@ -252,23 +263,11 @@ To this end, a \gls{pq} approach for complex-morphology object~\cite{kwok13} is 
 %The only attempts that apply \gls{pq} to haptic rendering, while considering explicitly the interaction of the body with the surrounding anatomical regions, involve modelling the anatomical pathway or the robotic device as a tubular structure~\cite{li07,kwok13}.
 %The computation burden is increased by the need to compute the placement of anatomical model relative to the robot whose shape is represented by more than~1~million~vertices.
 
-To leverage the advantages of \gls{fpga}s for hardware acceleration, Chow et al.~\cite{chow11} proposed a mixed precision methodology.
-The work made an assumption that the data-path is short so that both the reduced precision and high precision implementations can fit in a single \gls{fpga}.
-They also assume that the communication between the reduced-precision data-path and the high-precision data-path is completed via a crossbar, thus the overhead is negligible. 
-%For complicated applications where the level of parallelism is limited by \gls{fpga} resource, their approach is not applicable.
-On the other hand, they are not applicable for complicated applications when the level of parallelism is limited.
 
-Other researchers focus on studying bit-width optimisation which uses minimum precision in a data-path given a required output accuracy.
-Examples include interval arithmetic~\cite{fang03}, affine arithmetic~\cite{lee05,osborne07} and polynomial algebraic approach~\cite{boland10}.
-However, a reduction of precision in any stage within a data-path will result in a loss in output accuracy which is uncorrectable.
-These studies require the use of accuracy models to relate output accuracy with the precisions of data-path.
-%In contrast to these work, we focus on using run-time reconfiguration to derive an automatic way so as to find an optimal precision.
-%Our work is different from these work by deriving an automatic way to find an optimal precision using run-time reconfiguration.
-
-\subsubsection{B. SMC Methods for Finance, Robotic and Control}
+\subsubsection{B. SMC Methods for Robotic and Control}
 \label{sec:smc}
 
-\gls{smc} methods, also known as \gls{pf}, are a set of a posterior density estimation algorithms that perform inference of unknown quantities of interest from observations~\cite{doucet01}.
+\gls{smc} methods, also known as particle filter, are a set of a posterior density estimation algorithms that perform inference of unknown quantities of interest from observations~\cite{doucet01}.
 The observations arrive sequentially in time and the inference is performed on-line.
 \gls{smc} methods are often preferable to Kalman filters and hidden Markov models, as they do not require exact analytical expressions to compute the evolving sequence of posterior distributions.
 \gls{smc} methods work well for dynamic systems involving non-linear and non-Gaussian properties, and they can model high-dimensional data using non-linear dynamics and constraints, are parallelisable, and can greatly benefit from hardware acceleration.
@@ -284,7 +283,7 @@ One drawback of \gls{smc} is its long execution times so its practical use is li
 
 %\gls{smc} methods estimate the unobserved states of interest based on observations in controlling various agents.
 In \gls{smc}, the target posterior density $p(s_t|m_t)$ is represented by a set of particles, where $s_t$ is the state and $m_t$ is the observation at time step $t$.
-A sequential importance resampling (SIR) algorithm~\cite{gordon93} is used to obtain a weighted set of $N_P$ particles $\{s_t^{(i)},w^{(i)}\}^{N_P}_{i=1}$.
+A sequential importance resampling algorithm~\cite{gordon93} is used to obtain a weighted set of $N_P$ particles $\{s_t^{(i)},w^{(i)}\}^{N_P}_{i=1}$.
 The importance weights $\{w^{(i)}\}^{N_P}_{i=1}$ are approximations to the relative posterior probabilities of the particles such that $\sum^{N_P}_{i=1}w^{(i)}_t = 1$.
 This process is described in Algorithm~\ref{algo:smc_bg}.
 A more detailed description can be found in~\cite{doucet01}. 
@@ -324,14 +323,14 @@ A more detailed description can be found in~\cite{doucet01}.
 
 \begin{enumerate}
 \item \textbf{Initialisation}: Weights $\{w^{(i)}\}^{N_P}_{i=1}$ are set to the same value, e.g. $\frac{1}{N_P}$.
-\item \textbf{Sampling}: Next states $\{s_{t+1}^{'(i)}\}^{N_P}_{i=1}$ are computed based on the current state $\{s_{t}^{(i)}\}^{N_P}_{i=1}$.
+\item \textbf{Sampling}: Next states $\{s_{t+1}^{\prime(i)}\}^{N_P}_{i=1}$ are computed based on the current state $\{s_{t}^{(i)}\}^{N_P}_{i=1}$.
 \item \textbf{Importance weighting}: Weight $\{w^{(i)}\}^{N_P}_{i=1}$ is updated based on a score function which accounts for the likelihood of particles fitting the observation.
 Within each iteration of $itl\_outer$, the sampling and importance weighting stages are iterated $itl\_inner$ times so that those particles with sustained benefits are assigned higher weights.
 $itl\_inner$ increases as a function of $idx1$, because a larger $idx1$ implies that the set of particles reflects a more accurate approximation.
 \item \textbf{Resampling}: Particles with small weights are removed and those with large weights are replicated.
 This process is repeated for $itl\_outer$ times in a time step to address the problem of degeneracy~\cite{kitagawa96}.
 Without resampling, only a small number of particles will have substantial weights for inference.
-\item \textbf{Update}: State $s_{t+1}$ is obtained from the resampled particle set $\{s_{t+1}^{(i)}\}^{N_P}_{i=1}$ via weighted average or more complicated functions that will be shown below.
+\item \textbf{Update}: State $s_{t+1}$ is obtained from the resampled particle set $\{s_{t+1}^{(i)}\}^{N_P}_{i=1}$ via weighted average or more complicated functions.
 \end{enumerate}
 
 Table~\ref{tab:parameters} summarises the parameters of the \gls{smc} methods described in Section~\ref{sec:smc}.
@@ -440,10 +439,10 @@ Applications related specifically to each of the contribution of this thesis are
 %where the state transition from $s_{t-1}$ to $s_t$ is used to draw random samples $s^i_t$ from the existing pool of particles,
 %and $\mathcal{N}(\phi s^i_{t-1},1)$ is the proposal distribution.
 
+\pagebreak
 \textbf{Robot Localisation}
 
-\gls{smc} methods are applied to mobile robot localisation~\cite{chau14trets,montemerlo02},
-and this application is used as an example throughout the paper.
+\gls{smc} methods are applied to mobile robot localisation~\cite{chau14trets,montemerlo02}.
 At regular time intervals, a robot obtains sensor values, identifies its location and commits a move.
 The robot needs to be aware of the locations of other moving objects in the environment.
 
@@ -452,19 +451,19 @@ The sampling stage is described by Equations~\ref{eq:mcl_s} and~\ref{eq:mcl_r}:
 \begin{equation}
 \begin{aligned}
   \begin{pmatrix}
-    s^i_{t}    \\ 
+    s^{\prime(i)}_t    \\ 
   \end{pmatrix}
   =
   \begin{pmatrix}
-    x^i_{t}    \\ 
-    y^i_{t}    \\ 
-    h^i_{t}    \\ 
+    x^{(i)}_t    \\ 
+    y^{(i)}_t    \\ 
+    h^{(i)}_t    \\ 
   \end{pmatrix}
   =
   \begin{pmatrix}
-  	x^i_{t-1} + \delta^{'i}_{t} \cos(h^i_{t-1}) \\
-		y^i_{t-1} + \delta^{'i}_{t} \sin(h^i_{t-1}) \\
-		h^i_{t-1} + \gamma^{'i}_{t} \\
+  	x^{(i)}_{t-1} + \delta^{\prime(i)}_{t} \cos(h^{(i)}_{t-1}) \\
+		y^{(i)}_{t-1} + \delta^{\prime(i)}_{t} \sin(h^{(i)}_{t-1}) \\
+		h^{(i)}_{t-1} + \gamma^{\prime(i)}_{t} \\
   \end{pmatrix}
 	\mbox{, }
 \end{aligned}
@@ -474,12 +473,12 @@ The sampling stage is described by Equations~\ref{eq:mcl_s} and~\ref{eq:mcl_r}:
 \begin{equation}
 \begin{aligned}
   \begin{pmatrix}
-    r^i_{t}    \\ 
+    r^{(i)}_t    \\ 
   \end{pmatrix}
   =
   \begin{pmatrix}
-    \delta^{'i}_{t}    \\ 
-    \gamma^{'i}_{t}    \\ 
+    \delta^{\prime(i)}_{t}    \\ 
+    \gamma^{\prime(i)}_{t}    \\ 
   \end{pmatrix}
   =
   \begin{pmatrix}
@@ -491,9 +490,10 @@ The sampling stage is described by Equations~\ref{eq:mcl_s} and~\ref{eq:mcl_r}:
 \label{eq:mcl_r}
 \end{equation}
 
-where the robot estimates its updated state $s_t$ based on the current known location ($x, y$),heading $h$, and external reference status $r_t$ which contains displacement $\delta$ and rotation $\gamma$.
+where the robot estimates its updated state $s^{\prime}_t$ based on the current known location ($x_{t-1}, y_{t-1}$), heading $h_{t-1}$, and external reference status $r_t$ which contains displacement $\delta^{\prime}_t$ and rotation $\gamma^{\prime}_t$.
+Both $\delta^{\prime}_t$ and $\gamma^{\prime}_t$ consider the effect of instability during the robot's movement.
 
-Both $\delta$ and $\gamma$ are subject to Gaussian noises which are modelled as $\mathcal{N}(\delta_{t},\sigma_a^2)$ and $\mathcal{N}(\gamma_{t},\sigma_b^2)$ respectively.
+Both $\delta^{\prime}_t$ and $\gamma^{\prime}_t$ are subject to Gaussian noises which are modelled as $\mathcal{N}(\delta_{t},\sigma_a^2)$ and $\mathcal{N}(\gamma_{t},\sigma_b^2)$ respectively.
 Importance weighting is used to calculate the likelihood of a location based on the observation, i.e. the sensor values.
 
 \textbf{Air Traffic Management}
@@ -502,7 +502,7 @@ Air traffic management is crucial to air transport industry.
 An air traffic management system coordinates the movement of aircraft, and ensures safety by maintaining safe separation distances between aircraft during take-off, landing and cruising.
 These objectives have to be carried effectively that ensures air traffic flows smoothly with minimal expenses in terms of delay, fuel and administration costs. 
 To cope with the growing demand in future air traffic, the capacity of the airspace has to be increased without compromising safety.
-However, the architecture of current air traffic management system relies on human-operated air traffic control services, which are rigid and saturated, impose a constraint in the growth of air traffic.
+However, the architecture of current air traffic management system relies on human-operated air traffic control services, which are rigid and saturated, imposes a constraint in the growth of air traffic.
 Development of air traffic management aims to provide more accurate predictive information about aircraft trajectories.
 The uncertainty of aircraft trajectories can force air traffic control to use larger separations between aircraft to ensure safety, thus reducing the total number of aircraft that an airspace can accommodate, increasing the fuel consumption and time of arrival of aircraft.
 
@@ -513,7 +513,7 @@ Figure~\ref{fig:smc_mpc} provides an overview of the air traffic control problem
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{2_background/figures/smc_mpc}
+\includegraphics[width=0.75\textwidth]{2_background/figures/smc_mpc}
 \end{center}
 \caption{An overview of the air traffic control problem.}
 \label{fig:smc_mpc}
@@ -523,9 +523,11 @@ Figure~\ref{fig:smc_mpc} provides an overview of the air traffic control problem
 Figure~\ref{fig:atm_model} depicts the model that simulates the dynamic of an aircraft.
 The major variables include the aircraft position in 3 dimensional space $(x,y,a)$, true air speed $V$, aircraft mass $m$, heading angle $\chi$, roll angle $\phi$ and pitch angle $\tau$.
 The forces applied to the aircraft are its weight $mg$, the engine thrust $T$, and the aerodynamic forces of lift $L$ and drag $D$.
-As illustrated in Equation~\ref{eq:atm_c}, $\phi$, $\tau$ and $T$ are control variables summerised as a state which is optimised by \gls{smc}.
-The state $s^i_{t}$ determines the movement of aircraft, which is affected by disturbances from varying wind and atmospheric conditions.
-Then $s^i_{t}$ adjust the status of aircraft $r^{'i}_{t}$, which are the position, heading, speed and mass of the aircraft as described in Equation~\ref{eq:atm_s}.
+As illustrated in Equation~\ref{eq:atm_c}, $\phi_t$, $\tau_t$ and $T_t$ are control variables which determines the movement of aircraft at time step $t$.
+They are chosen within permitted range and are summerised as a state $s_t$, which is optimised by \gls{smc}.
+The state is affected by disturbances from varying wind and atmospheric conditions, therefore, $\phi^{\prime}_t$, $\tau^{\prime}_t$ and $T^{\prime}_t$ represent variables with the effect of disturbances taken into account.
+Then the state adjusts the status of aircraft $r_{t}$, which are the position $(x_t, y_t, a_t)$, heading $\chi_t$, speed $V_t$ and mass $m_t$ of the aircraft as described in Equation~\ref{eq:atm_s}.
+Table~\ref{tab:atm_variables} summerises the variables used in air traffic management model.
 %For more details of the model, see~\cite{eele13cdc}.
 %A state is a set of control sequences $\{s_t^{(i),0...H-1}\}^{N_P}_{i=1}$ being picked within a permitted range and applied to the current reference status $r_{t-1}$ to compute the future set of reference statuses $\{r_t^{'{(i),0...H-1}}\}^{N_P}_{i=1}$.
 %The variable $H$ is the prediction horizon which means \gls{smc} consider the future $H$ time steps during the optimisation process.
@@ -534,21 +536,20 @@ Then $s^i_{t}$ adjust the status of aircraft $r^{'i}_{t}$, which are the positio
 %If any particle violates any constraint, its weight is set to zero
 %The first control $s_{t}^0$ in the sequence, is obtained by selecting the best one among $\{s_t^{(i),0...H-1}\}^{N_P}_{i=1}$.
 %Then the selected control is committed to form reference $r_t$.
-Table~\ref{tab:atm_variables} summerises the variables used in air traffic management.
 
 \setcounter{subfigure}{0}
 \begin{figure}[t!]
 \centering
 \subfigure[]{
-	\includegraphics[width=0.3\textwidth]{2_background/figures/atm_model_a}
+	\includegraphics[width=0.32\textwidth]{2_background/figures/atm_model_a}
 	\label{fig:atm_model_a}
 }
 \subfigure[]{
-	\includegraphics[width=0.3\textwidth]{2_background/figures/atm_model_b}
+	\includegraphics[width=0.32\textwidth]{2_background/figures/atm_model_b}
 	\label{fig:atm_model_b}
 }
 \subfigure[]{
-	\includegraphics[width=0.3\textwidth]{2_background/figures/atm_model_c}
+	\includegraphics[width=0.32\textwidth]{2_background/figures/atm_model_c}
 	\label{fig:atm_model_c}
 }
 \caption{Aircraft model.}
@@ -558,13 +559,13 @@ Table~\ref{tab:atm_variables} summerises the variables used in air traffic manag
 \begin{equation}
 \begin{aligned}
   \begin{pmatrix}
-    s^i_{t}    \\ 
+    s^{\prime(i)}_{t}    \\ 
   \end{pmatrix}
   =
   \begin{pmatrix}
-  	\phi^{'i}_{t} \\
-		\tau^{'i}_{t} \\
-		T^{'i}_{t} \\
+  	\phi^{\prime(i)}_{t} \\
+		\tau^{\prime(i)}_{t} \\
+		T^{\prime(i)}_{t} \\
   \end{pmatrix}
   =
   \begin{pmatrix}
@@ -580,32 +581,32 @@ Table~\ref{tab:atm_variables} summerises the variables used in air traffic manag
 \begin{equation}
 \begin{aligned}
   \begin{pmatrix}
-    r^{'i}_{t}    \\ 
+    r^{(i)}_{t}    \\ 
   \end{pmatrix}
   =
   \begin{pmatrix}
-    x^i_{t}    \\ 
-    y^i_{t}    \\ 
-    a^i_{t}    \\ 
-    \chi^i_{t} \\ 
-    V^i_{t}    \\ 
-    m^i_{t}    \\ 
+    x^{(i)}_{t}    \\ 
+    y^{(i)}_{t}    \\ 
+    a^{(i)}_{t}    \\ 
+    \chi^{(i)}_{t} \\ 
+    V^{(i)}_{t}    \\ 
+    m^{(i)}_{t}    \\ 
   \end{pmatrix}
   =
   \begin{pmatrix}
-    x_{t-1}   + V_{t-1} \cos(\chi_{t-1}) \cos(\tau^{'i}_{t}) \\
-    y_{t-1}   + V_{t-1} \sin(\chi_{t-1}) \cos(\tau^{'i}_{t}) \\ 
-    a_{t-1}   + V_{t-1} \sin(\tau^{'i}_{t}) \\
-    \chi_{t-1} + L \sin(\phi^{'i}_{t})/(M_{t-1} V_{t-1}) \\
-    V_{t-1}   + (\frac{T^{'i}_{t}-D}{M_{t-1}} - g \sin(\tau^{'i}_{t})) \\
-    m_{t-1}   - \eta T^{'i}_{t}  \\
+    x_{t-1}   + V_{t-1} \cos(\chi_{t-1}) \cos(\tau^{\prime(i)}_{t}) \\
+    y_{t-1}   + V_{t-1} \sin(\chi_{t-1}) \cos(\tau^{\prime(i)}_{t}) \\ 
+    a_{t-1}   + V_{t-1} \sin(\tau^{\prime(i)}_{t}) \\
+    \chi_{t-1} + L \sin(\phi^{\prime(i)}_{t})/(M_{t-1} V_{t-1}) \\
+    V_{t-1}   + (\frac{T^{\prime(i)}_{t}-D}{M_{t-1}} - g \sin(\tau^{\prime(i)}_{t})) \\
+    m_{t-1}   - \eta T^{\prime(i)}_{t}  \\
   \end{pmatrix}
 	\mbox{, }
 \end{aligned}
 \label{eq:atm_s}
 \end{equation}
 
-where $V^i_{t} \subset [V_{min}, V_{max}]$, $m^i_{t} \subset [m_{min}, m_{max}]$, $T^i_{t} \subset [T_{min}, T_{max}]$, $\phi^i_{t} \subset [\phi_{min}, \phi_{max}]$, $\tau^i_{t} \subset [\tau_{min}, \tau_{max}]$ are constraints.
+where $V^{(i)}_{t} \subset [V_{min}, V_{max}]$, $m^{(i)}_{t} \subset [m_{min}, m_{max}]$, $T^{(i)}_{t} \subset [T_{min}, T_{max}]$, $\phi^{(i)}_{t} \subset [\phi_{min}, \phi_{max}]$, $\tau^{(i)}_{t} \subset [\tau_{min}, \tau_{max}]$ are constraints.
 
 \begin{table}
 	\setlength{\tabcolsep}{3pt}
@@ -628,8 +629,8 @@ where $V^i_{t} \subset [V_{min}, V_{max}]$, $m^i_{t} \subset [m_{min}, m_{max}]$
 			$\phi$ & Roll angle \\
 			$\tau$ & Pitch angle \\
 			$T$ & Engine thrust \\
-			$L$ & lift \\
-			$D$ & drag \\
+			$L$ & Lift \\
+			$D$ & Drag \\
 			\hline
 		\end{tabular}
 		\end{spacing}
@@ -648,10 +649,10 @@ where $V^i_{t} \subset [V_{min}, V_{max}]$, $m^i_{t} \subset [m_{min}, m_{max}]$
 \section{Summary}
 \label{sec:bg_summary}
 
-This chapter first reviewed the architecture and design flow of reconfigurable systems.
+This chapter reviews the architecture and design flow of reconfigurable systems.
 Reconfigurable systems provide high flexibility and performance by customising numerous fine-grained resources and implementing massively parallel circuits.
 The primary challenge is that the traditional \gls{rtl} design flow requires long synthesis time and substantial effort from user, therefore, latest development in \gls{hls} and domain-specific languages are discussed to provide a view on how academia and industry work on reducing the development effort of reconfigurable systems.
 
 This thesis focuses on optimising reconfigurable systems to accelerate the above mentioned high-performance, real-time applications.
-The later part of this chapter reviewed real-time systems and several related applications, which specifically require high-performance.
+The later part of this chapter reviews real-time systems and several related applications, which specifically require high-performance.
 In this thesis, these applications are accelerated by various reconfigurable technologies, which relate to the contributions presented in Chapter~\ref{ch:introduction}.

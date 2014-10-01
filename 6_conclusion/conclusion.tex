@@ -10,7 +10,7 @@ Then we will describe the current limitations of this thesis and suggest future 
 \section{Summary of Achievements}
 
 An \gls{fpga} contains numerous prefabricated logic and routing resources which allow the functionality and interconnection to be reconfigured.
-Many modern \glspl{fpga} have a high level of integration with coarse grained components such as \glspl{dsp}, memory blocks, high-throughput transceivers, \gls{io} peripheral devices, customisable IP blocks and micro-processor cores.
+Many modern \glspl{fpga} have a high level of integration with coarse grained components such as \glspl{dsp}, memory blocks, high-throughput transceivers, peripheral \gls{io}, customisable \gls{ip} blocks and micro-processor cores.
 Benefiting from the reconfigurability and abundance of computation resource, \glspl{fpga} have been increasingly adopted to designs with high performance requirements.
 \glspl{fpga}' deterministic performance also makes them preferable over \glspl{cpu} and \glspl{gpu} in real-time systems.
 However, \glspl{fpga} are restricted in their floating-point computation capability and ability to design in mainstream programming languages.
@@ -20,13 +20,13 @@ This thesis works toward three key areas to address the above mentioned challeng
 
 The computation capability of \glspl{fpga} is restricted by the number of logic components available.
 Chapter~\ref{ch:precision} discusses how we take advantage of \glspl{fpga}' programmability to fit more floating-point operators to an \gls{fpga} chip.
-Instead of using standard IEEE floating-point arithmetic (single and double precision), floating-point operators are implemented in reduced precision, which consumes less logic resource and hence allow a higher degree of parallelism, higher clock frequencies and lower I/O bandwidth.
-The accuracy loss introduced by reduced precision is compensated by re-computation on \glspl{cpu} using the required higher precision.
+Instead of using standard IEEE floating-point arithmetic, floating-point operators are implemented in reduced precision which consumes less logic resource and allows higher degree of parallelism, higher clock frequencies and lower \gls{io} bandwidth.
+The accuracy loss introduced by reduced precision is compensated by re-computation on \glspl{cpu} using the required output precision.
 This chapter proposes a novel data structure and a memory architecture to interface the reduced precision domain on \gls{fpga} and the high precision domain on \gls{cpu}.
 As a result, the accuracy of output is the same as an equivalent system fully implemented with high precision data-paths.
-We demonstrate that an optimal precision and performance point can be chosen that balance the number of \gls{fpga} data-path and the amount of re-computation on \glspl{cpu}.
+We demonstrate that an optimal precision can be chosen that maximises performance by balancing the number of \gls{fpga} data-path and the amount of re-computation on \glspl{cpu}.
 The proposed methodology is applied to an image-guided surgical robot application which employs the \gls{pq} process.
-The resultant reconfigurable platform implementation shows a significant speed-up over \gls{cpu}, \gls{gpu} and the same platform that has not applied our methodology.
+The resultant implementation on the reconfigurable system shows a significant speed-up over \gls{cpu}, \gls{gpu} and the same reconfigurable system that has not applied our methodology.
 
 \glspl{fpga}' data-path can be customised and reconfigured for one particular application, so it usually demonstrates better power and energy efficiency compared to \glspl{cpu} and \glspl{gpu}.
 However, the power of \glspl{fpga} cannot be neglected as they are increasingly used in the high performance computing domain.
@@ -35,13 +35,13 @@ The proposed reconfigurable system has two configurations, which allows the \gls
 In computation mode, the \gls{fpga} is clocked at the maximum frequency and all the available resources are utilised to boost performance.
 In contrast, for low-power mode, the \gls{fpga} is loaded with a configuration which has the slowest possible clock and uses only the minimal amount of resource.
 The proposed run-time reconfiguration approach is applied to a robot localisation application which employs adaptive \gls{smc} methods.
-Compared to a non-adaptive and non-reconfigurable system, the proposed approach reduces idle power by 25-34\% and the overall energy consumption by 17-33\%.
+Compared to a non-adaptive and non-run-time-reconfigurable system, the proposed approach reduces idle power by 25-34\% and the overall energy consumption by 17-33\%.
 %We optimise the algorithm to make use of the proposed run-time reconfiguration, so the computation workload can be adapted without sacrificing the quality of results.
 
 Although techniques proposed in Chapter~\ref{ch:precision} and Chapter~\ref{ch:adaptation} enhance the computation and energy efficiency of reconfigurable systems,
 the design complexity and compilation time of \gls{fpga} applications far exceed that of \glspl{cpu} and \glspl{gpu}, making \glspl{fpga} difficult to be accepted by mainstream application designers.
 Chapter~\ref{ch:tool} discusses the programmability challenges, and describes a design flow which extends the \gls{smc} reconfigurable system mentioned in Chapter~\ref{ch:adaptation}.
-To make the proposed reconfigurable system more user-friendly, this chapter focuses on making the system parametrisable for a wide variety of \gls{smc} applications.
+To make the proposed reconfigurable system more user-friendly, Chapter~\ref{ch:tool} focuses on making the system parametrisable for a wide variety of \gls{smc} applications.
 A surrogate modelling-based machine learning algorithm is employed to tune design parameters for improved performance and solution quality. 
 The design flow enables efficient mapping of applications to multiple \glspl{fpga}, reduces design space exploration effort, and is capable of producing reconfigurable implementations for a range of SMC applications.
 Significant improvement in speed and energy efficiency are achieved over optimised \gls{cpu} and \gls{gpu} implementations.
@@ -49,7 +49,7 @@ Significant improvement in speed and energy efficiency are achieved over optimis
 To conclude, Figure~\ref{fig:intro_organisation_ch6} recaptures the thesis organisation chart in Chapter~\ref{ch:introduction}, and it shows the connections of three contributions that enhance reconfigurable systems for real-time applications.
 Unique features of \gls{fpga} technology, in particular customisable precision in Chapter~\ref{ch:precision} and run-time reconfiguration in Chapter~\ref{ch:adaptation}, have been applied to optimise reconfigurable real-time systems.
 The long-standing programmability issues of \gls{fpga} has also been addressed by a domain-specific design flow in Chapter~\ref{ch:tool}.
-The enhanced computing power brought by reconfigurable technologies enlarges the set of compute-intensive algorithms that can have realistic applications in daily life.
+The enhanced computing capability brought by reconfigurable technologies enlarges the set of compute-intensive algorithms that can have realistic applications in daily life.
 For example in Chapter~\ref{ch:precision}, we discusses the potential of clinical setting in surgical robots.
 The use of customisable precision allows more sophisticated models and higher update rates so that surgeons who use surgical robots are able to response promptly.
 In Chapter~\ref{ch:tool}, the design flow reduces the effort of implementing a high-performance air traffic management system.
@@ -107,7 +107,7 @@ Instead of disabling an entire \gls{fpga} board for reconfiguration, the propose
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.7\textwidth]{6_conclusion/figures/heart_model}
+\includegraphics[width=0.6\textwidth]{6_conclusion/figures/heart_model}
 \caption{Image-guided catheterisation: Perform PQ based on a beating heart model, where light blue bubbles represent the control points registered on the surface and yellow spheres indicate the control points forming the centre line of the pathway~\cite{kwok13}.}
 \label{fig:heart_model}
 \end{figure}
@@ -138,7 +138,7 @@ Apart from partial reconfiguration, the fixed computation interval of real-time 
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.7\textwidth]{6_conclusion/figures/partial_scheme}
+\includegraphics[width=0.6\textwidth]{6_conclusion/figures/partial_scheme}
 \caption{Different schemes to put FPGA to sleep.}
 \label{fig:partial_scheme}
 \end{figure}

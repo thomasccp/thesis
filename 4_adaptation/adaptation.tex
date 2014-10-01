@@ -34,52 +34,53 @@ Section~\ref{sec:reconfig_results} provides experimental results and
 Section~\ref{sec:reconfig_summary} concludes our work.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Adaptive Particle Filter}
+\section{Adaptive SMC Algorithm}
 \label{sec:reconfig_asmc}
 
 This section introduces an adaptive \gls{smc} algorithm which changes the number of particles at each time-step.
-The algorithm is inspired by~\cite{liu07} and we transform it to a pipeline-friendly version for mapping to the stream computing architecture.
+The algorithm is inspired by~\cite{liu07} and we transform it to a pipeline-friendly version for mapping to the reconfigurable system.
 This algorithm is shown in Algorithm~\ref{algo:smc} which consists of four stages.
+The basic \gls{smc} design parameters are described in Table~\ref{tab:parameters} in Chapter~\ref{ch:background}.
 
 \begin{algorithm}
 \caption{Adaptive SMC algorithm.}
 {\fontsize{10}{10}\selectfont
 \begin{algorithmic}[1]
-\STATE{$P_0 \gets P_{max}$}
-\STATE{$\{X^{(i)}_0\}^{P_0}_{i=1} \gets $random set of particles}
+\STATE{$N_{P_0} \gets N_{P_{max}}$}
+\STATE{$\{s^{(i)}_0\}^{N_{P_0}}_{i=1} \gets $random set of particles}
 \STATE{$t=1$}
 \FOR{each step $t$}
 	\STATE{$r=0$}
 	\WHILE{$r \leq itl\_repeat$}
 	{\color{gray} \STATE{---On \glspl{fpga}---}}
-	\STATE{Sample a new state $\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}$ from $\{s_t^{(i)}\}^{P_t}_{i=1}$} \label{algo:smc_si1}
-	\STATE{Calculate unnormalised importance weights $\{w^{'(i)}\}^{P_t}_{i=1}$ and accumulate the weights as $w_{sum}$} \label{algo:smc_si2}
-	\STATE{Calculate the lower bound of sample size $\widetilde{P}_{t+1}$ by Equation~\ref{eqt:bound2}} \label{algo:smc_lb}
+	\STATE{Sample a new state $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ from $\{s_t^{(i)}\}^{N_{P_t}}_{i=1}$} \label{algo:smc_si1}
+	\STATE{Calculate unnormalised importance weights $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$ and accumulate the weights as $w_{sum}$} \label{algo:smc_si2}
+	\STATE{Calculate the lower bound of sample size $\widetilde{N_{P_{t+1}}}$ by Equation~\ref{eqt:bound2}} \label{algo:smc_lb}
 	{\color{gray} \STATE{---On \glspl{cpu}---}}
-	\STATE{Sort $\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}$ in descending $\{w^{'(i)}\}^{P_t}_{i=1}$} \label{algo:smc_sort}
-	\IF{$\widetilde{P}_{t+1} < P_{t}$} \label{algo:smc_rd1}
-		\STATE{$P_{t+1} = max\left(\lceil\widetilde{P}_{t+1}\rceil, P_{t}/2\right)$}
-		\STATE{Set $a = 2P_{t+1}-P_{t}$ and $b = P_{t+1}$}
+	\STATE{Sort $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ in descending $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$} \label{algo:smc_sort}
+	\IF{$\widetilde{N_{P_{t+1}}} < N_{P_t}$} \label{algo:smc_rd1}
+		\STATE{$N_{P_{t+1}} = max\left(\lceil\widetilde{N_{P_{t+1}}}\rceil, N_{P_t}/2\right)$}
+		\STATE{Set $a = 2{N_{P_{t+1}}}-{N_{P_t}}$ and $b = {N_{P_{t+1}}}$}
 		{\color{gray} \STATE{--Do the following loop in parallel--}}
-		\FOR{$i$ in $P_t-P_{t+1}$} \label{algo:smc_loop1s}
-			\STATE{$s_{t+1}^{'(i)} = \frac{s_{t+1}^{'(a)} w^{'(a)} + s_{t+1}^{'(b)} w^{'(b)}}{w^{'(a)} + w^{'(b)}}$}
-			\STATE{$w^{'(i)} = w^{'(a)} + w^{'(b)}$}
+		\FOR{$i$ in ${N_{P_t}}-{N_{P_{t+1}}}$} \label{algo:smc_loop1s}
+			\STATE{$s_{t+1}^{\prime(i)} = \frac{s_{t+1}^{\prime(a)} w^{\prime(a)} + s_{t+1}^{\prime(b)} w^{\prime(b)}}{w^{\prime(a)} + w^{\prime(b)}}$}
+			\STATE{$w^{\prime(i)} = w^{\prime(a)} + w^{\prime(b)}$}
 			\STATE{$a = a+1$ and $b = b-1$}
 		\ENDFOR \label{algo:smc_rd2} \label{algo:smc_loop1e}
-	\ELSIF{$\widetilde{P}_{t+1} \geq P_{t}$} \label{algo:smc_rd3}
+	\ELSIF{$\widetilde{N_{P_{t+1}}} \geq {N_{P_t}}$} \label{algo:smc_rd3}
 		\STATE{$a=0$ and $b=0$}
-		\FOR{$i$ in $P_{t+1}-P_{t}$}
-			\IF{$w^{'(a)}<w^{'(a+1)}$ and $a<P_{t+1}$}
+		\FOR{$i$ in ${N_{P_{t+1}}}-{N_{P_t}}$}
+			\IF{$w^{\prime(a)}<w^{\prime(a+1)}$ and $a<{N_{P_{t+1}}}$}
 				\STATE{$a=a+1$}
 			\ENDIF
-			\STATE{$s_{t+1}^{'(P_{t}+b)} = s_{t+1}^{'(a)}/2$}
-			\STATE{$s_{t+1}^{'(a)} = s_{t+1}^{'(a)}/2$}
-			\STATE{$w^{'(P_{t}+b)} = w^{'(a)}/2$}
-			\STATE{$w^{'(a)} = w^{'(a)}/2$}
+			\STATE{$s_{t+1}^{\prime({N_{P_t}}+b)} = s_{t+1}^{\prime(a)}/2$}
+			\STATE{$s_{t+1}^{\prime(a)} = s_{t+1}^{\prime(a)}/2$}
+			\STATE{$w^{\prime({N_{P_t}}+b)} = w^{\prime(a)}/2$}
+			\STATE{$w^{\prime(a)} = w^{\prime(a)}/2$}
 			\STATE{$b=b+1$}
 		\ENDFOR
 	\ENDIF \label{algo:smc_rd4}
-	\STATE{Resample $\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}$ to $\{s_{t+1}^{(i)}\}^{P_{t+1}}_{i=1}$} \label{algo:smc_r}
+	\STATE{Resample $\{s_{t+1}^{\prime(i)}\}^{{N_{P_t}}}_{i=1}$ to $\{s_{t+1}^{(i)}\}^{N_{P_{t+1}}}_{i=1}$} \label{algo:smc_r}
 	\STATE{$r=r+1$}
 	\ENDWHILE
 \ENDFOR
@@ -91,11 +92,11 @@ This algorithm is shown in Algorithm~\ref{algo:smc} which consists of four stage
 \paragraph{Stage 1 - Sampling and Importance Weighting (line~\ref{algo:smc_si1} to~\ref{algo:smc_si2}): }
 
 %\subsection[Stage 1: Sampling and Importance Weighting]{Stage 1: Sampling and Importance Weighting (line~\ref{algo:smc_si1} to~\ref{algo:smc_si2})}
-At the initial time-step ($t=0$), the number of particles $P_0$ is initialised with $P_{max}$ which is the maximum number of available particles.
-At the subsequent time-steps, the number of particles is denoted as $P_{t}$.
-Initially, the particle set $\{s_{t}^{(i)}\}^{P_t}_{i=1}$ is sampled to $\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}$.
-Then a weight from $\{w^{(i)}\}^{P_t}_{i=1}$ is assigned to each particle. 
-As a result, $\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}$ and $\{w^{(i)}\}^{P_t}_{i=1}$ give an estimation of the next state.
+At the initial time-step ($t=0$), the number of particles ${N_{P_0}}$ is initialised with ${N_{P_{max}}}$ which is the maximum number of available particles.
+At the subsequent time-steps, the number of particles is denoted as ${N_{P_t}}$.
+Initially, the particle set $\{s_{t}^{(i)}\}^{N_{P_t}}_{i=1}$ is sampled to $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$.
+Then a weight from $\{w^{(i)}\}^{N_{P_t}}_{i=1}$ is assigned to each particle. 
+As a result, $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ and $\{w^{(i)}\}^{N_{P_t}}_{i=1}$ give an estimation of the next state.
 
 During sampling and importance weighting, the computation of every particle is independent of each other. 
 The mapping of computation to \glspl{fpga} will be described in Section~\ref{sec:reconfig_hrs}.
@@ -104,13 +105,13 @@ The mapping of computation to \glspl{fpga} will be described in Section~\ref{sec
 
 %\subsection[Stage 2: Lower Bound Calculation]{Stage 2: Lower Bound Calculation (line~\ref{algo:smc_lb})} 
 This stage derives the smallest number of particles that are needed in the next time-step in order to bound the approximation error.
-The adaptive algorithm seeks a value which is less than or equal to $P_{max}$.
-This number, denoted as $\widetilde{P}_{t+1}$, is referred to as the lower bound of sampling size.
+The adaptive algorithm seeks a value which is less than or equal to ${N_{P_{max}}}$.
+This number, denoted as $\widetilde{N_{P_{t+1}}}$, is referred to as the lower bound of sampling size.
 It is calculated by Equation~\ref{eqt:bound2}:
 
 \begin{equation}
 \begin{aligned}
-\widetilde{P}_{t+1} = \sigma^2 \cdot \frac{P_{max}}{Var(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1})} \mbox{,}
+\widetilde{N_{P_{t+1}}} = \sigma^2 \cdot \frac{{N_{P_{max}}}}{Var(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})} \mbox{,}
 \end{aligned}
 \label{eqt:bound2}
 \end{equation}
@@ -119,93 +120,93 @@ where
 
 \begin{eqnarray}
 \begin{aligned}
-\sigma^2 = & \sum_{i=1}^{P_{t}}\left({w}^{(i)} \cdot s_{t+1}^{'(i)} \right)^2 - 2 \cdot E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) \cdot \sum_{i=1}^{P_{t}} \left ( ({w}^{(i)})^2 \cdot s_{t+1}^{'(i)} \right ) \\
-& + \left(E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1})\right)^2 \cdot \sum_{i=1}^{P_{t}}({w}^{(i)})^2 \mbox{,}
+\sigma^2 = & \sum_{i=1}^{{N_{P_t}}}\left({w}^{(i)} \cdot s_{t+1}^{\prime(i)} \right)^2 - 2 \cdot E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) \cdot \sum_{i=1}^{N_{P_t}} \left ( ({w}^{(i)})^2 \cdot s_{t+1}^{\prime(i)} \right ) \\
+& + \left(E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})\right)^2 \cdot \sum_{i=1}^{N_{P_t}}({w}^{(i)})^2 \mbox{,}
 \end{aligned}
 \label{eqt:bound3}
 \end{eqnarray}
 
 \begin{equation}
 \begin{aligned}
-Var(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) = \sum_{i=1}^{P_{t}} \left ( {w}^{(i)} \cdot (s_{t+1}^{'(i)})^2 \right ) - \left( E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) \right)^2 \mbox{,}
+Var(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) = \sum_{i=1}^{N_{P_t}} \left ( {w}^{(i)} \cdot (s_{t+1}^{\prime(i)})^2 \right ) - \left( E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) \right)^2 \mbox{,}
 \end{aligned}
 \label{eqt:bound4}
 \end{equation}
 
 \begin{equation}
 \begin{aligned}
-E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) = \sum_{i=1}^{P_{t}} {w}^{(i)} \cdot s_{t+1}^{'(i)} \mbox{.}
+E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) = \sum_{i=1}^{N_{P_t}} {w}^{(i)} \cdot s_{t+1}^{\prime(i)} \mbox{.}
 \end{aligned}
 \label{eqt:bound5}
 \end{equation}
 
 As shown in Equation~\ref{eqt:bound3} to \ref{eqt:bound5}, ${w}^{(i)}$ is a normalised term. 
 To calculate $w^{(i)}$, a traditional software-based approach is to iterate through the set of particles twice.
-The sum of weights $w_{sum}$ and unnormalised weight $w^{'(i)}$ are calculated in the first iteration.
-Then $w^{(i)}$ is obtained by dividing $w^{'(i)}$ by $w_{sum}$ in the second iteration.
+The sum of weights $w_{sum}$ and unnormalised weight $w^{\prime(i)}$ are calculated in the first iteration.
+Then $w^{(i)}$ is obtained by dividing $w^{\prime(i)}$ by $w_{sum}$ in the second iteration.
 However, this method is inefficient for \gls{fpga} implementation.
-It is because 2 $P_t$ cycles are needed to process $P_t$ pieces of data, which makes the throughput reduced to 50\%.
+It is because $2 \cdot {N_{P_t}}$ cycles are needed to process ${N_{P_t}}$ pieces of data, which makes the throughput reduced to 50\%.
 
 To fully utilise deep pipelines targeting an \gls{fpga}, we perform function transformation.
-Given ${w}^{(i)} = \frac{w^{'(i)}}{w_{sum}}$, we move $w_{sum}$ from Equation~\ref{eqt:bound3} to \ref{eqt:bound5}.
+Given ${w}^{(i)} = \frac{w^{\prime(i)}}{w_{sum}}$, we move $w_{sum}$ from Equation~\ref{eqt:bound3} to \ref{eqt:bound5}.
 By doing so, we obtain a transformed form as shown in Equations~\ref{eqt:bound6} to~\ref{eqt:bound8}.
 
 \begin{eqnarray}
 \begin{aligned}
-\sigma^2 = & \frac{1}{(w_{sum})^2} \cdot ( \sum_{i=1}^{P_{t}}\left(w^{'(i)} \cdot s_{t+1}^{'(i)} \right)^2 - 2 \cdot E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) \cdot \sum_{i=1}^{P_{t}} \left ( (w^{'(i)})^2 \cdot s_{t+1}^{'(i)} \right )\\
-& + \left(E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1})\right)^2 \cdot \sum_{i=1}^{P_{t}}(w^{'(i)})^2 ) \mbox{,}
+\sigma^2 = & \frac{1}{(w_{sum})^2} \cdot ( \sum_{i=1}^{N_{P_t}}\left(w^{\prime(i)} \cdot s_{t+1}^{\prime(i)} \right)^2 - 2 \cdot E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) \cdot \sum_{i=1}^{N_{P_t}} \left ( (w^{\prime(i)})^2 \cdot s_{t+1}^{\prime(i)} \right )\\
+& + \left(E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})\right)^2 \cdot \sum_{i=1}^{N_{P_t}}(w^{\prime(i)})^2 ) \mbox{,}
 \end{aligned}
 \label{eqt:bound6}
 \end{eqnarray}
 
 \begin{equation}
 \begin{aligned}
-Var(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) = \frac{1}{w_{sum}} \cdot \sum_{i=1}^{P_{t}} \left ( w^{'(i)} \cdot (s_{t+1}^{'(i)})^2 \right ) - \left( E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) \right)^2 \mbox{,}
+Var(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) = \frac{1}{w_{sum}} \cdot \sum_{i=1}^{N_{P_t}} \left ( w^{\prime(i)} \cdot (s_{t+1}^{\prime(i)})^2 \right ) - \left( E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) \right)^2 \mbox{,}
 \end{aligned}
 \label{eqt:bound7}
 \end{equation}
 
 \begin{equation}
 \begin{aligned}
-E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}) = \frac{1}{w_{sum}} \cdot \sum_{i=1}^{P_{t}} w^{'(i)} \cdot s_{t+1}^{'(i)} \mbox{.}
+E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) = \frac{1}{w_{sum}} \cdot \sum_{i=1}^{N_{P_t}} w^{\prime(i)} \cdot s_{t+1}^{\prime(i)} \mbox{.}
 \end{aligned}
 \label{eqt:bound8}
 \end{equation}
 
-$w_{sum}$ and $w^{'(i)}$ are computed simultaneously in two separate data paths.
-At the last clock cycle of the particle stream, $\sigma^2$, $Var(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1})$ and $E(\{s_{t+1}^{'(i)}\}^{P_t}_{i=1})$ are obtained.
+$w_{sum}$ and $w^{\prime(i)}$ are computed simultaneously in two separate data-paths.
+At the last clock cycle of the particle stream, $\sigma^2$, $Var(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})$ and $E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})$ are obtained.
 The details of the \gls{fpga} kernel design will be explained in Section~\ref{sec:reconfig_hrs}.
 
 
 \paragraph{Stage 3 - Particle Set Size Tuning (line~\ref{algo:smc_sort} to~\ref{algo:smc_rd4}): }
 
 %\subsection[Stage 3: Particle set size tuning]{Stage 3: Particle set size tuning (line~\ref{algo:smc_sort} to~\ref{algo:smc_rd4})} 
-The adaptive approach tunes the particle set size to fit the lower bound $P_{t+1}$.
+The adaptive approach tunes the particle set size to fit the lower bound ${N_{P_{t+1}}}$.
 This stage is done on the \glspl{cpu} because the operations involve non-sequential data access that cannot be mapped efficiently to \glspl{fpga}.
 
 The particles are sorted in descending order according to their weights.
 As the new sample size can increase or decrease, there are two cases:
 
 \begin{itemize}
-\item {\bf Case I: Particle set reduction when $\widetilde{P}_{t+1} < P_{t}$} 
+\item {\bf Case I: Particle set reduction when $\widetilde{N_{P_{t+1}}} < {N_{P_t}}$} 
 
-The lower bound $P_{t+1}$ is set to $max\left(\lceil\widetilde{P}_{t+1}\rceil, P_{t}/2\right)$.
+The lower bound ${N_{P_{t+1}}}$ is set to $max\left(\lceil\widetilde{N_{P_{t+1}}}\rceil, {N_{P_t}}/2\right)$.
 Since the new size is smaller than the old one, some particles are combined to form a smaller particle set.
 Figure~\ref{fig:tuning} illustrates the idea of particle reduction.
-The first $2P_{t+1}-P_{t}$ particles with higher weights are kept and the remaining $2(P_{t}-P_{t+1})$ particles are combined in pairs.
-As a result, there are $P_{t}-P_{t+1}$ new particles injected to form the target particle set with $P_{t+1}$ particles.
+The first $2{N_{P_{t+1}}}-{N_{P_t}}$ particles with higher weights are kept and the remaining $2({N_{P_t}}-{N_{P_{t+1}}})$ particles are combined in pairs.
+As a result, there are ${N_{P_t}}-{N_{P_{t+1}}}$ new particles injected to form the target particle set with ${N_{P_{t+1}}}$ particles.
 We combine the particles deterministically to keep the statements in the loop independent of each other.
 As a result, loop unrolling is undertaken to execute the statements in parallel.
-The complexity of the loop is in $\bigO{\frac{P_{t}-P_{t+1}}{N_{parallel}}}$, where $N_{parallel}$ indicates the level of parallelism.
+The complexity of the loop is in $\bigO{\frac{{N_{P_t}}-{N_{P_{t+1}}}}{N_{parallel}}}$, where $N_{parallel}$ indicates the level of parallelism.
 
 \setcounter{subfigure}{0}
 \begin{figure}[t!]
 \centering
-\subfigure[Combining the last $2(P_{t}-P_{t+1})$ particles with lower weights]{
+\subfigure[Combining the last $2({N_{P_t}}-{N_{P_{t+1}}})$ particles with lower weights]{
 \includegraphics[width=0.45\textwidth]{4_adaptation/figures/fig_tuning1} \hfill
 \label{fig:tuning1}
 }
-\subfigure[$P_{t+1}$ new particles are formed]{
+\subfigure[${N_{P_{t+1}}}$ new particles are formed]{
 \includegraphics[width=0.45\textwidth]{4_adaptation/figures/fig_tuning2}
 \label{fig:tuning2}
 }
@@ -213,24 +214,24 @@ The complexity of the loop is in $\bigO{\frac{P_{t}-P_{t+1}}{N_{parallel}}}$, wh
 \label{fig:tuning}
 \end{figure}
 
-\item {\bf Case II: Particle set expansion when $\widetilde{P}_{t+1} \geq P_{t}$}
+\item {\bf Case II: Particle set expansion when $\widetilde{N_{P_{t+1}}} \geq {N_{P_t}}$}
 
-The lower bound $P_{t+1}$ is set to $\widetilde{P}_{t+1}$.
+The lower bound ${N_{P_{t+1}}}$ is set to $\widetilde{N_{P_{t+1}}}$.
 Some particles are taken from the original set and are inserted to form a larger set.
 The particles with larger weight would have more descendants.
 As shown in line~\ref{algo:smc_rd3} to~\ref{algo:smc_rd4}, the process requires picking the particle with the largest weight at each iteration of particle incision.
-Since the particle set is pre-sorted, the complexity of particle set expansion is $\bigO{P_{t+1}-P_{t}}$.
+Since the particle set is pre-sorted, the complexity of particle set expansion is $\bigO{N_{P_{t+1}}-{N_{P_t}}}$.
 
 \end{itemize}
 
 \paragraph{Stage 4 - Resampling (line~\ref{algo:smc_r}): }
 
 %\subsection[Stage 4: Resampling]{Stage 4: Resampling (line~\ref{algo:smc_r})}
-Resampling is performed to pick $P_{t+1}$ particles from $\{s_{t+1}^{'(i)}\}^{P_t}_{i=1}$ to form $\{s_{t+1}^{(i)}\}^{P_{t+1}}_{i=1}$.
-The process has a complexity of $\bigO{P_{t+1}}$.
+Resampling is performed to pick ${N_{P_{t+1}}}$ particles from $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ to form $\{s_{t+1}^{(i)}\}^{N_{P_{t+1}}}_{i=1}$.
+The process has a complexity of $\bigO{N_{P_{t+1}}}$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Heterogeneous Reconfigurable System}
+\section{Reconfigurable System Design}
 \label{sec:reconfig_hrs}
 
 This section describes the proposed heterogeneous reconfigurable system.
@@ -244,7 +245,7 @@ The design of reconfigurable system is shown in Figure~\ref{fig:reconfig_arch}.
 A heterogeneous structure is employed to make use of multiple \glspl{fpga} and \glspl{cpu}.
 \glspl{fpga} and \glspl{cpu} communicate through high bandwidth buses.
 \glspl{fpga} are responsible for (1) sampling, (2) importance weighting, and (3) lower bound calculation.
-The data paths on the \glspl{fpga} are fully-pipelined.
+The data-paths on the \glspl{fpga} are fully-pipelined.
 Each \gls{fpga} has its own on-board \gls{dram} to store the large amount of particle data.
 On the other hand, the \glspl{cpu} gather all the particles from \glspl{fpga} to perform particle set size tuning and resampling.
 
@@ -258,7 +259,7 @@ Despite the parallelisation effort, these methods do not address the problem of 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.8\textwidth]{4_adaptation/figures/fig_arch}
-\caption[Heterogeneous reconfigurable system]{Heterogeneous reconfigurable system (Solid lines: data paths; Dotted lines: control paths).}
+\caption[Heterogeneous reconfigurable system]{Heterogeneous reconfigurable system (Solid lines: data-paths; Dotted lines: control-paths).}
 \label{fig:reconfig_arch}
 \end{figure}
 
@@ -284,8 +285,8 @@ Three building blocks corresponding to the sampling, importance weighting and lo
 For sampling and importance weighting, the computation of each particle is independent of each other.
 Particles are fed to the \glspl{fpga} as a stream shown in Figure~\ref{fig:particles_stream}.
 Each block of the particle stream consists of a number of data fields which store information of a particle, where the number of data fields is application dependent.
-In every clock cycle, one piece of data is transferred from the onboard memory to an \gls{fpga} data path.
-Each \gls{fpga} data path has a long pipeline where each stage is filled with a piece of data, and therefore many particles are processed simultaneously.
+In every clock cycle, one piece of data is transferred from the onboard memory to an \gls{fpga} data-path.
+Each \gls{fpga} data-path has a long pipeline where each stage is filled with a piece of data, and therefore many particles are processed simultaneously.
 Fixed-point data representation is customised at each pipeline stage to reduce the resource usage.
 
 Meanwhile, the accumulation of $w_{sum}$ introduces a feedback loop.
@@ -294,7 +295,7 @@ In order to achieve one result per clock cycle, fixed-point data-path is impleme
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.6\textwidth]{4_adaptation/figures/fig_kernel}
+\includegraphics[width=0.5\textwidth]{4_adaptation/figures/fig_kernel}
 \caption{FPGA kernel design.}
 \label{fig:reconfig_kernel}
 \end{figure}
@@ -306,7 +307,7 @@ We derive a model to analyse the computation time of reconfigurable system.
 The model helps us to design a configuration schedule that satisfies the real-time requirement and, if necessary, amend the application's specification.
 The model will be validated by experiments in Section~\ref{sec:reconfig_results}.
 
-The computation time, $T_{comp}$, of reconfigurable system consists of three components: (1) Data path time $T_{datapath}$, (2) \gls{cpu} time $T_{cpu}$, and (3) Data transfer time $T_{tran}$ as shown in Equation~\ref{eqt:total}:
+The computation time, $T_{comp}$, of reconfigurable system consists of three components: (1) Data-path time $T_{datapath}$, (2) \gls{cpu} time $T_{cpu}$, and (3) Data transfer time $T_{tran}$ as shown in Equation~\ref{eqt:total}:
 
 \begin{equation}
 \begin{aligned}
@@ -317,25 +318,25 @@ T_{comp} = itl\_repeat \cdot \left ( T_{datapath} + T_{cpu} + T_{tran} \right ) 
 
 where $itl\_repeat$ represents the number of times that the sampling, importance weighting and resampling processes are repeated in every time-step.
 
-\textbf{Data path time}, $T_{datapath}$, denotes the time spent on the \glspl{fpga}.
+\textbf{Data-path time}, $T_{datapath}$, denotes the time spent on the \glspl{fpga}.
 
 \begin{equation}
 \begin{aligned}
-T_{datapath} = \left(\frac{P_t}{f_{fpga} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{fpga}} \mbox{,}
+T_{datapath} = \left(\frac{{N_{P_t}}}{f_{fpga} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:kernel}
 \end{equation}
 
 where $P_t$ denotes the number of particles at the current time-step and $f_{\gls{fpga}}$ denotes the clock frequency of the \glspl{fpga}.
 $L$ is the length of the pipeline.
-$N_{datapath}$ denotes the number of data paths on one \gls{fpga} board.
+$N_{datapath}$ denotes the number of data-paths on one \gls{fpga} board.
 $N_{fpga}$ is the number of \gls{fpga} boards in the system.
 
 \textbf{\gls{cpu} time}, $T_{cpu}$, denotes the time spent on the \glspl{cpu}.
 
 \begin{equation}
 \begin{aligned}
-T_{cpu} = \alpha \cdot \frac{P_t}{f_{cpu}} \cdot \left(1-par+\frac{par}{N_{thread}}\right) \mbox{,}
+T_{cpu} = \alpha \cdot \frac{{N_{P_t}}}{f_{cpu}} \cdot \left(1-par+\frac{par}{N_{thread}}\right) \mbox{,}
 \end{aligned}
 \label{eqt:host}
 \end{equation}
@@ -347,7 +348,7 @@ $par$ is an application-specific parameter in the range of $[0,1]$ which represe
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
+T_{tran} = \frac{(2 \cdot df + 1) \cdot bw_{data} \cdot {N_{P_t}}}{f_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:data}
 \end{equation}
@@ -421,7 +422,7 @@ In Section~\ref{sec:reconfig_hrs}, the data transfer time depends on the number 
 It can be a major performance bottleneck as depicted in~\cite{chau13arc}.
 Refer to Figure~\ref{fig:particles_resampling_unopt}, each block stores the data of a particle.
 When the \glspl{cpu} finish processing, all data are transferred from the \glspl{cpu} to the \glspl{fpga}.
-The data transfer time cannot be reduced by either implementing more \gls{fpga} data paths or increasing the \glspl{fpga}' clock frequency because the bottleneck is at the bus connecting the \glspl{cpu} and \glspl{fpga}.
+The data transfer time cannot be reduced by either implementing more \gls{fpga} data-paths or increasing the \glspl{fpga}' clock frequency because the bottleneck is at the bus connecting the \glspl{cpu} and \glspl{fpga}.
 
 To improve the data transfer performance, we design a data structure which facilitates compression of particles.
 The idea comes from an observation of the resampling process - some particles are eliminated and the vacancies are filled by replicating non-eliminated particles.
@@ -462,7 +463,7 @@ The data transfer time with compression, $T_{Tran}$, is shown below:
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot bw_{data} \cdot P_t}{f_{bus} \cdot lane \cdot eff \cdot N_{\gls{fpga}}} \mbox{,}
+T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot bw_{data} \cdot {N_{P_t}}}{f_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
 \end{aligned}
 \label{eqt:data_opt}
 \end{equation}
@@ -502,13 +503,13 @@ p(X_t|Y_t,U_t) = p(R_t|Y_t,U_t) \prod_{m=1}^M p(H_{t,m}|R_t,Y_t,U_t) \mbox{,}
 where $Y_t$ is the sensor measurement and $U_t$ is the control of the robot at time $t$.
 The robot path posterior $p(R_t|Y_t,U_t)$ is represented by a set of robot-particles.
 The distribution of an object's location $p(H_{t,m}|R_t,Y_t,U_t)$ is represented by a set of object-particles, where each object-particle set is attached to one particular robot-particle.
-In other words, if there are $P_r$ robot-particles representing the posterior over robot path, there are $P_r$ object-particle sets, each has $P_h$ particles.
+In other words, if there are ${N_{P_r}}$ robot-particles representing the posterior over robot path, there are ${N_{P_r}}$ object-particle sets, each has ${N_{P_h}}$ particles.
 
 In the application, the area of the map is 12m by 18m.
 The robot makes a movement of 0.5m every five seconds, i.e. $T_{rt} = 5$.
 The robot can track eight moving objects at the same time.
 A maximum of 8192 particles are used for robot-tracking and each robot-particle is associated with 1024 object-particles.
-Therefore, the maximum number of data path cycles is $8 \times 8192 \times 1024=67,108,864$.
+Therefore, the maximum number of data-path cycles is $8 \times 8192 \times 1024=67,108,864$.
 Each particle being streamed into the \glspl{fpga} contains coordinates ($x$,$y$) and heading $h$ which are represented by three single precision floating-point numbers.
 For the particle being streamed out of the \glspl{fpga}, it also contains a weight in addition to the coordinates.
 From Equation~\ref{eqt:data}, the size of a particle is $(2 \cdot 3 + 1) \cdot 32 \mbox{ bits} = 224 \mbox{ bits}$.
@@ -529,7 +530,7 @@ Each \gls{fpga} board is connected to two Intel Xeon X5650 \glspl{cpu} (12 physi
 To support run-time reconfigurability, two \gls{fpga} configurations are used:
 \begin{itemize}
 \item {\it Sampling and importance weighting configuration} is clocked at 100 MHz.
-Two data paths are implemented on one \gls{fpga} to process particles in parallel.
+Two data-paths are implemented on one \gls{fpga} to process particles in parallel.
 The total resource usage is 231,922 \glspl{lut} (78\%), 338,376 \glspl{ff} (56\%), 1,934 \glspl{dsp} (96\%) and 514 block \glspl{ram} (48\%).
 \item {\it Low-power configuration} is clocked at 10 MHz, with 5,962 \glspl{lut} (2\%), 6,943 \glspl{ff} (1\%) and 12 block \glspl{ram} (1\%).
 It uses minimal resources just to maintain communication between the \glspl{fpga} and \glspl{cpu}.
@@ -545,7 +546,7 @@ It has 448 cores running at 1.15 GHz and has a peak performance by 1288 GFlops.
 The program is written in C for CUDA and optimised to use all the cores available.
 To get more comprehensive results for comparison, we also estimate the performance of multiple \gls{gpu}s.
 The estimation is based on the fact that the first three stages (sampling, importance weighting, lower bound calculation) can be evenly distributed to every \gls{gpu} and be computed independently, 
-so the data path and data transfer speedup scales linearly with the number of \gls{gpu}s.
+so the data-path and data transfer speedup scales linearly with the number of \gls{gpu}s.
 On the other hand, the last two stages (particle set resizing, resampling) are computed on the \gls{cpu} no matter how many \gls{gpu}s are used.
 Therefore, the \gls{cpu} time does not scale with the number of \gls{gpu}s.
 
@@ -574,7 +575,7 @@ The measured computation time is longer due to the difference between the effect
 			\hline
 			 Number of particles & \multicolumn{2}{c|}{67M} & \multicolumn{2}{c}{573k} \\
 			\hline
-			 Data path time $T_{datapath}$ (s) 		& 0.336 & 0.336 & 0.003 & 0.003 \\
+			 Data-path time $T_{datapath}$ (s) 		& 0.336 & 0.336 & 0.003 & 0.003 \\
 			 \gls{cpu} time $T_{cpu}$ (s) 				& 0.117 & 0.117 & 0.001 & 0.001 \\
 			 Data time $T_{tran}$ (s) 				& 0.875 & 1.432 & 0.007 & 0.012 \\
 			 Total computation time $T_{comp}$ (s)			& 1.328 & 1.885 & 0.011	& 0.016 \\
@@ -623,7 +624,7 @@ Only the particle stream after the resampling process is compressed when it is t
 \subsection{Performance Comparison of Reconfigurable System, CPU and GPU}
 Table~\ref{tab:perf} shows the performance comparison of the \glspl{cpu}, \gls{gpu}s and reconfigurable system.
 
-\textbf{Data path time}: Considering the time spent on the data paths only, the reconfigurable system is up to 328 times faster than a single-core \gls{cpu} and 76 times faster than a 12-core \gls{cpu} system with 24 threads.
+\textbf{Data-path time}: Considering the time spent on the data-paths only, the reconfigurable system is up to 328 times faster than a single-core \gls{cpu} and 76 times faster than a 12-core \gls{cpu} system with 24 threads.
 In addition, it is 12 times and 3 times faster than one \gls{gpu} and four \gls{gpu}s, respectively.
 
 \textbf{Data transfer time}: The data transfer time of reconfigurable system is shown in three rows.
@@ -632,9 +633,9 @@ The second row shows the performance when PCI Express gen3 x8 (7.88 GB/s) is use
 When multiple \gls{fpga} boards are used, the data transfer time decreases because multiple PCI Express buses are utilised simultaneously.
 The third row shows the performance when data compression is applied and it is assumed that each particle is replicated for 20 times in average.
 
-\textbf{\gls{cpu} time}: The \gls{cpu} time of reconfigurable system is shorter than that of the \gls{cpu} and \gls{gpu} systems because part of the resampling process of object-particles is performed on the \gls{fpga} using Independent Metropolis-Hastings (IMH) resampling algorithm~\cite{miao11}.
-IMH resampling algorithm is optimised for the deep pipeline architecture where each particle occupies a single stage of the pipeline.
-On the \glspl{cpu} and \gls{gpu}, the computation of the particles are shared by threads and therefore IMH resampling algorithm is not applicable.
+\textbf{\gls{cpu} time}: The \gls{cpu} time of reconfigurable system is shorter than that of the \gls{cpu} and \gls{gpu} systems because part of the resampling process of object-particles is performed on the \gls{fpga} using \gls{imh} resampling algorithm~\cite{miao11}.
+\gls{imh} resampling algorithm is optimised for the deep pipeline architecture where each particle occupies a single stage of the pipeline.
+On the \glspl{cpu} and \gls{gpu}, the computation of the particles are shared by threads and therefore \gls{imh} resampling algorithm is not applicable.
 
 \textbf{Total computation time}: Considering the overall system performance, reconfigurable system is up to 169 times faster than a single-core \gls{cpu}, 41 times faster than a 12-core \gls{cpu} system.
 In addition, it is 9 times faster than one \gls{gpu}, and 3 times faster than four \gls{gpu}s.
@@ -661,8 +662,8 @@ Notice that the \glspl{cpu} violate the real-time constraint of 5 seconds.
 												&								&							&							&							&							& + custom	& + custom	& + custom	\\
 		Level of parallelism					& 1								& 24						& 448   					& 896						& 1792						& 2+8 $^e$ 	& 4+24 $^e$ & 8+24 $^e$ \\
 		\hline
-		Data path time (s) 		   				& 27.530							& 6.363 					& 1.000						& 0.500						& 0.250						& 0.336 	& 0.168 	& 0.084 	\\
-		Data path speedup						& 1x							& 4.3x 						& 27.5x 					& 55.1x						& 110.1x					& 81.9x 	& 163.9x	& 327.7x 	\\
+		Data-path time (s) 		   				& 27.530							& 6.363 					& 1.000						& 0.500						& 0.250						& 0.336 	& 0.168 	& 0.084 	\\
+		Data-path speedup						& 1x							& 4.3x 						& 27.5x 					& 55.1x						& 110.1x					& 81.9x 	& 163.9x	& 327.7x 	\\
 		\multirow{3}{*}{Data transfer time (s)} 	& \multirow{3}{*}{0}			& \multirow{3}{*}{0}		& \multirow{3}{*}{0.360} 	& \multirow{3}{*}{0.180} 	& \multirow{3}{*}{0.090} 	& 1.432 $^f$& 0.716 $^f$& 0.358 $^f$\\
 												&								& 							& 							& 							&							& 0.363 $^g$& 0.182 $^g$& 0.091 $^g$\\
 												&								& 							& 							& 							&							& 0.223 $^h$& 0.111 $^h$& 0.056 $^h$\\
@@ -684,7 +685,7 @@ Notice that the \glspl{cpu} violate the real-time constraint of 5 seconds.
 			\item[b] 1/2/4 NVIDIA Tesla C2070 \gls{gpu}s and 1 Intel Core i7-950 \gls{cpu} @3.07 GHz (4 cores supporting 8 threads).
 			\item[c] 1 Xilinx XC6VSX475T \gls{fpga} and 1 Intel Core i7-870 \gls{cpu} @2.93 GHz (4 cores supporting 8 threads).
 			\item[d] 4 Xilinx XC6VSX475T \glspl{fpga} and 2 Intel Xeon X5650 \glspl{cpu} @2.66 GHz (12 cores supporting 24 threads).
-			\item[e] Number of \gls{fpga} data paths and number of \gls{cpu} threads.
+			\item[e] Number of \gls{fpga} data-paths and number of \gls{cpu} threads.
 			\item[f] Each \gls{fpga} communicates with \glspl{cpu} via a PCI Express bus with 2 GB/s bandwidth.
 			\item[g] Each \gls{fpga} communicates with \glspl{cpu} via a PCI Express Gen3 x8 bus with 7.88 GB/s bandwidth.
 			\item[h] Each \gls{fpga} communicates with \glspl{cpu} via a PCI Express Gen3 x8 bus with data compression.

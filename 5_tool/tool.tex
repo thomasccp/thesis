@@ -75,7 +75,7 @@ The adaptation is based on the solution quality.
 For example, a better solution quality means that fewer particles could be used for performing \gls{smc}, and vice versa.
 \end{enumerate}
 
-
+The basic \gls{smc} design parameters used in this Chapter have been described in Table~\ref{tab:parameters} in Chapter~\ref{ch:background}.
 
 
 \subsection{Specifying Application Features}
@@ -88,7 +88,7 @@ These descriptions correspond to \textit{Def} (Code~\ref{lst:def}), \textit{\gls
 %\textit{state} is location ($x,y$) and heading $h$, and
 %\textit{control} is the displacement $d$ and rotation $r$.
 %Furthermore, \textit{design parameters} (Table~\ref{tab:parameters}) and application parameters need to be supplied.
-\textbf{Def}: Code~\ref{lst:def} illustrates the class where number representation (floating-point, fixed-point with different bit-width), structs (state, reference), static parameters (Table~\ref{tab:parameters}) and system parameters are defined.
+\textbf{Def}: Code~\ref{lst:def} illustrates the class where number representation (floating-point, fixed-point with different bit-width), structs (state, reference), static parameters and system parameters are defined.
 Users are allowed to customise number representation to benefit from the flexibility of \gls{fpga} and make trade-off between accuracy and design complexity.
 State and reference structs determine the I/O interface.
 Static parameters are defined in this class, while dynamic parameters are provided at run-time.
@@ -218,7 +218,7 @@ To maximise the system throughput, remaining non-compute-intensive tasks that in
 	\includegraphics[width=0.8\textwidth]{5_tool/figures/stream}
 	\label{fig:flow_stream}
 }
-\caption{(a) Design of the SMC computation engine: Solid lines represent data paths while dotted lines represent control paths; (b) Data structure of particles represented by three data streams.}
+\caption{(a) Design of the SMC computation engine: Solid lines represent data-paths while dotted lines represent control paths; (b) Data structure of particles represented by three data streams.}
 \end{figure}
 
 From the control paths (dotted lines) of Figure~\ref{fig:system}, we see that there are three loops: 
@@ -237,7 +237,7 @@ The length of the \textit{state stream} is $N_P \cdot N_A \cdot H$ where $H$ mea
 The \textit{reference} and \textit{weight streams} have information of $N_A$ agents in $N_P$ particles.
 
 The engine design and data structure do not only offer compile-time parametrisation, but also allow changing the values of $itl\_outer$, $itl\_inner$ and $N_P$ at run-time.
-It is because these parameters only affect the length of the particle streams, but not the hardware data path.
+It is because these parameters only affect the length of the particle streams, but not the hardware data-path.
 The computation engine is fully pipelined and outputs one result per clock cycle.
 
 \begin{figure}[t!]
@@ -291,14 +291,14 @@ $T_{s\&i}$ is the time spent on sampling and importance weighting in the \gls{fp
 
 \begin{equation}
 \begin{aligned}
-T_{s\&i} = \frac{itl\_inner \cdot N_P \cdot N_A \cdot H}{N_C \cdot N_{Board} \cdot freq} \cdot \min\left(1,\frac{bandwidth}{sizeof(state) \cdot freq}\right) \mbox{.}
+T_{s\&i} = \frac{itl\_inner \cdot N_P \cdot N_A \cdot H}{N_C \cdot N_{board} \cdot freq} \cdot \min\left(1,\frac{bandwidth}{sizeof(state) \cdot freq}\right) \mbox{.}
 \end{aligned}
 \end{equation}
 
 Since the data is organised as a stream as described in Section~\ref{sec:flow_system}, the time spent on sampling and importance weighting is linear with $N_P$, $N_A$ and $H$.
 It is iterated $itl\_inner$ times in the inner loop.
 The sampling and importance weighting process can be accelerated using multiple cores, such that each of them is responsible for part of the inner loop iterations or particles.
-$N_C$ represents the number of processing cores being used on one \gls{fpga}, and $N_{Board}$ is the number of \gls{fpga} boards being used.
+$N_C$ represents the number of processing cores being used on one \gls{fpga}, and $N_{board}$ is the number of \gls{fpga} boards being used.
 $min(1,\frac{bandwidth}{sizeof(state) \cdot freq})$ accounts for the limitation of bandwidth between \glspl{fpga} and \glspl{cpu}.
 
 $T_{resample}$ is the time spent on generating the resampling indices.
@@ -419,7 +419,7 @@ $P_{t+1}$ describes the lower bound of particle size which is used in Algorithm~
 
 \begin{equation}
 \begin{aligned}
-\widetilde{P}_{t+1} = \sigma^2 \cdot \frac{P_{max}}{Var(\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1})} \mbox{.}
+\widetilde{N_{P_{t+1}}} = \sigma^2 \cdot \frac{{N_{P_{max}}}}{Var(\{\widetilde{\chi}_{t+1}^{(i)}\}^{{N_{P_t}}}_{i=1})} \mbox{.}
 \end{aligned}
 \label{eqt:bound2b_ch5}
 \end{equation}
@@ -428,8 +428,8 @@ $P_{t+1}$ describes the lower bound of particle size which is used in Algorithm~
 \caption{Adaptive SMC algorithm}
 {\fontsize{10}{10}\selectfont
 \begin{algorithmic}[1]
-\STATE{$P_0 \gets P_{max}$}
-\STATE{$\{X^{(i)}_0\}^{P_0}_{i=1} \gets $random set of particles}
+\STATE{${N_{P_0}} \gets {N_{P_{max}}}$}
+\STATE{$\{s^{(i)}_0\}^{{N_{P_0}}}_{i=1} \gets $random set of particles}
 \STATE{$t \gets 1$}
 \FOR{each step $t$}
 	\STATE{$idx1 \gets 0$}
@@ -439,38 +439,38 @@ $P_{t+1}$ describes the lower bound of particle size which is used in Algorithm~
 		\STATE{$itl\_inner \gets f(idx1)$}
 		{\color{gray} \STATE{---On \gls{fpga}s---}}
 		\WHILE{$idx2 \leq itl\_inner$}
-			\STATE{Sample a new state $\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1}$ from $\{\chi_{t}^{(i)}\}^{P_t}_{i=1}$} \label{algo:smc_si1_ch5}
-			\STATE{Calculate unnormalised importance weights $\{\widetilde{w}^{(i)}\}^{P_t}_{i=1}$ and accumulate the weights as $w_{sum}$} \label{algo:smc_si2_ch5}
+			\STATE{Sample a new state $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ from $\{s_t^{(i)}\}^{N_{P_t}}_{i=1}$} \label{algo:smc_si1_ch5}
+			\STATE{Calculate unnormalised importance weights $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$ and accumulate the weights as $w_{sum}$} \label{algo:smc_si2_ch5}
 			\STATE{$idx2 \gets idx2 + 1$}
 		\ENDWHILE
-		\STATE{Calculate the lower bound of sample size $\widetilde{P}_{t+1}$ by Equation~\ref{eqt:bound2b_ch5}} \label{algo:smc_lb_ch5}
+		\STATE{Calculate the lower bound of sample size $\widetilde{N_{P_{t+1}}}$ by Equation~\ref{eqt:bound2b_ch5}} \label{algo:smc_lb_ch5}
 	{\color{gray} \STATE{---On \gls{cpu}s---}}
-	\STATE{Sort $\{\widetilde{\chi}_{t+1}^{(i)}\}^{P_t}_{i=1}$ in descending $\{\widetilde{w}^{(i)}\}^{P_t}_{i=1}$} \label{algo:smc_sort_ch5}
-	\IF{$\widetilde{P}_{t+1} < P_{t}$} \label{algo:smc_rd1_ch5}
-		\STATE{$P_{t+1} = max\left(\lceil\widetilde{P}_{t+1}\rceil, P_{t}/2\right)$}
-		\STATE{Set $a = 2P_{t+1}-P_{t}$ and $b = P_{t+1}$}
+	\STATE{Sort $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ in descending $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$} \label{algo:smc_sort_ch5}
+	\IF{$\widetilde{N_{P_{t+1}}} < {N_{P_t}}$} \label{algo:smc_rd1_ch5}
+		\STATE{${N_{P_{t+1}}} = max\left(\lceil\widetilde{N_{P_{t+1}}}\rceil, {N_{P_t}}/2\right)$}
+		\STATE{Set $a = 2{N_{P_{t+1}}}-{N_{P_t}}$ and $b = {N_{P_{t+1}}}$}
 		{\color{gray} \STATE{--Do the following loop in parallel--}}
-		\FOR{$i$ in $P_t-P_{t+1}$} \label{algo:smc_loop1s_ch5}
-			\STATE{$\widetilde{\chi}^{(i)}_{t+1} = \frac{\chi_{t+1}^{(a)} \widetilde{w}^{(a)} + \chi_{t+1}^{(b)} \widetilde{w}^{(b)}}{\widetilde{w}^{(a)} + \widetilde{w}^{(b)}}$}
-			\STATE{$\widetilde{w}^{(i)} = \widetilde{w}^{(a)} + \widetilde{w}^{(b)}$}
+		\FOR{$i$ in ${N_{P_t}}-{N_{P_{t+1}}}$} \label{algo:smc_loop1s_ch5}
+			\STATE{$s_{t+1}^{\prime(i)} = \frac{s_{t+1}^{\prime(a)} w^{\prime(a)} + s_{t+1}^{\prime(b)} w^{\prime(b)}}{w^{\prime(a)} + w^{\prime(b)}}$}
+			\STATE{$w^{\prime(i)} = w^{\prime(a)} + w^{\prime(b)}$}
 			\STATE{$a = a+1$ and $b = b-1$}
 		\ENDFOR \label{algo:smc_rd2_ch5} \label{algo:smc_loop1e_ch5}
-	\ELSIF{$\widetilde{P}_{t+1} \geq P_{t}$} \label{algo:smc_rd3_ch5}
+	\ELSIF{$\widetilde{N_{P_{t+1}}} \geq {N_{P_t}}$} \label{algo:smc_rd3_ch5}
 		\STATE{$a=0$ and $b=0$}
-		\FOR{$i$ in $P_{t+1}-P_{t}$}
-			\IF{$\widetilde{w}^{(a)}<\widetilde{w}^{(a+1)}$ and $a<P_{t+1}$}
+		\FOR{$i$ in ${N_{P_{t+1}}}-{N_{P_t}}$}
+			\IF{$w^{\prime(a)}<w^{\prime(a+1)}$ and $a<{N_{P_{t+1}}}$}
 				\STATE{$a=a+1$}
 			\ENDIF
-			\STATE{$\widetilde{\chi}^{(P_{t}+b)}_{t+1} = \widetilde{\chi}^{(a)}_{t+1}/2$}
-			\STATE{$\widetilde{\chi}^{(a)}_{t+1} = \widetilde{\chi}^{(a)}_{t+1}/2$}
-			\STATE{$\widetilde{w}^{(P_{t}+b)} = \widetilde{w}^{(a)}/2$}
-			\STATE{$\widetilde{w}^{(a)} = \widetilde{w}^{(a)}/2$}
+			\STATE{$s_{t+1}^{\prime({N_{P_t}}+b)} = s_{t+1}^{\prime(a)}/2$}
+			\STATE{$s_{t+1}^{\prime(a)} = s_{t+1}^{\prime(a)}/2$}
+			\STATE{$w^{\prime({N_{P_t}}+b)} = w^{\prime(a)}/2$}
+			\STATE{$w^{\prime(a)} = w^{\prime(a)}/2$}
 			\STATE{$b=b+1$}
 		\ENDFOR
 	\ENDIF \label{algo:smc_rd4b}
 	\STATE {$idx1 \gets idx1+1$}
 	\IF {$idx1 \le itl\_inner$}
-	\STATE{Resample $\{\widetilde{\chi}^{(i)}_{t+1}\}^{P_t}_{i=1}$ to $\{\chi^{(i)}_{t+1}\}^{P_{t+1}}_{i=1}$} \label{algo:smc_r_ch5}
+	\STATE{Resample $\{s_{t+1}^{\prime(i)}\}^{{N_{P_t}}}_{i=1}$ to $\{s_{t+1}^{(i)}\}^{N_{P_{t+1}}}_{i=1}$} \label{algo:smc_r_ch5}
 	\ENDIF
 	\ENDWHILE
 	\STATE{Update}
@@ -736,7 +736,7 @@ The power of \gls{cpu} and \gls{gpu} are also shown in the figure.
 
 The air traffic management system is able to control 20 aircraft simultaneously.
 The \gls{fpga} part runs on a 1U machine hosting 6 Altera Stratix V GS 5SGSD8 \glspl{fpga} clocked at 220 MHz, 
-each of which has a single precision floating-point data path that consumes 166,008 \glspl{lut} (63\%), 337 multipliers (9\%) and 1,528 block \glspl{ram} (60\%).
+each of which has a single precision floating-point data-path that consumes 166,008 \glspl{lut} (63\%), 337 multipliers (9\%) and 1,528 block \glspl{ram} (60\%).
 The \gls{cpu} part runs on 2 Intel Xeon E5-2640 \glspl{cpu} clocked at 2.53GHz.
 Both parts are connected via InfiniBand.
 
