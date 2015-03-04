@@ -16,7 +16,7 @@ Benefiting from the reconfigurability and abundance of computation resource, \gl
 However, \glspl{fpga} are restricted in their floating-point computation capability and ability to design in mainstream programming languages.
 In addition, the use of \gls{fpga} for real-time applications still lacks focus on high-performance computing capability.
 %The effort of linking high-performance computation to the real-time domain is also limited.
-This thesis works toward three key areas to address the above mentioned challenges.
+This thesis works toward three key areas to address the above mentioned challenges, and makes use of a heterogeneous reconfigurable system to get the best of both \gls{fpga} and \gls{cpu}.
 
 The computation capability of \glspl{fpga} is restricted by the number of logic components available.
 Chapter~\ref{ch:precision} discusses how we take advantage of \glspl{fpga}' programmability to fit more floating-point operators to an \gls{fpga} chip.
@@ -177,7 +177,7 @@ Static circuit and gated circuit can be assigned to different global clock buffe
 As mentioned earlier in this chapter, the proposed heterogeneous reconfigurable system consists of \glspl{fpga} and \glspl{cpu} which are not closely coupled.
 In Chapter \ref{ch:adaptation}, particle data are transferred frequently between \glspl{fpga} fabric and \glspl{cpu}, and hence significant processing time and power consumption are introduced.
 The above mentioned \gls{soc}-\gls{fpga} device (Figure~\ref{fig:altera_soc}) with closely-coupled \glspl{cpu} and \gls{fpga} fabric has promising opportunities.
-An \gls{rtos}, such as VxWork~\cite{vxworks} and MicroC/OS-II~\cite{microcos}, can run on the \glspl{cpu} to guarantee real-time capability.
+An \gls{rtos}, such as VxWorks~\cite{vxworks} or MicroC/OS-II~\cite{microcos}, can run on the \glspl{cpu} to guarantee real-time capability.
 
 %\subsection{Design Flow for Domain-specific Reconfigurable Applications}
 
@@ -185,6 +185,7 @@ The \gls{smc} design flow described in Chapter~\ref{ch:tool} can be extended for
 At present, only application-specific parameters, such as the number of particles and the number of iterations, are being considered in the optimisation approach.
 The advantage is that the parameters can be studied using a software model, which is fast as no hardware generation is involved.
 On the flip side, the effect of device-specific parameters, such as the precision of number format, the level of parallelism and the clock speed, are not taken into account.
+Human intervention is still required when tuning device-specific parameters for a new design.
 Optimising application-specific and device-specific parameters together can provide more promising results.
 For example, we can reduce the precision of number format but compensate the loss in accuracy by using more particles.
 However, there are challenges when bringing in device-specific parameters to the optimisation approach.

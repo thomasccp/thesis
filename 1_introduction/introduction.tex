@@ -5,9 +5,17 @@
 
 \section{Motivation}
 
+%While the main requirement of ~\gls{hpc} is performance,
+Real-time computing is defined to be a system that must be able to respond to input stimulus in finite intervals.
+%focuses on meeting deadline which are finite and specified time intervals within which the system must respond to an input stimulus.
+Failing a deadline can cause degraded quality of service and even a total system failure.
+Real-time needs can be extremely hard when a large amount of data have to be processed in a short period of time.
+Nowadays, many real-time applications push processing systems to their limit with the required response time.
+Reconfigurable systems have potential to play an important role in high-performance real-time applications as they provide predictable timing performance, the ability to perform highly parallel calculations, better solution quality and lower power consumption.
+
 Reconfigurable systems are computing systems which combine the flexibility of software with the high performance of hardware by deploying \gls{fpga} technology.
 The structure of a reconfigurable system can be changed by the end-user after the manufacturing process or even at run-time.
-The development of reconfigurable system has been driven largely by \glspl{fpga}, which are semiconductor devices with prefabricated logic and routing resources.
+The development of reconfigurable systems has been driven largely by \glspl{fpga}, which are semiconductor devices with prefabricated logic and routing resources.
 The functionality and interconnection of an \gls{fpga} can be reconfigured with any new design multiple times.
 The reconfiguration enables application-specific tuning of designs and their adaptation to new standards.
 This reconfigurability make \glspl{fpga} suited to application specialisation without the high cost of making custom silicon.
@@ -24,32 +32,24 @@ The advantages mentioned above facilitate the use of ~\glspl{fpga} in \gls{hpc} 
 Examples include weather forecasting, brain simulation and molecular dynamics simulation. 
 In the last decade, researchers have extended the scope of \glspl{fpga} from prototyping to accelerating a wide variety of software, such as Monte Carlo simulation~\cite{chow12} and video processing~\cite{guo04}.
 \glspl{fpga} show a lot of promise for \gls{hpc}.
-Execution time and power consumption of applications running on \glspl{fpga} can be improved by up to several orders of magnitude compared to state-of-the-art microprocessors~\cite{chow11,chow12,craven07,guo04,pell11}.
+Execution time and power consumption of applications running on \glspl{fpga} can be improved by several orders of magnitude compared to state-of-the-art microprocessors~\cite{chow11,chow12,craven07,guo04,pell11}.
 
-%While the main requirement of ~\gls{hpc} is performance,
-Real-time computing is defined to be a system that must be able to respond to input stimulus in finite intervals.
-%focuses on meeting deadline which are finite and specified time intervals within which the system must respond to an input stimulus.
-Failing a deadline can cause degraded quality of service and even a total system failure.
-Real-time systems are found in a wide range of applications areas, from simple domestic appliances to financial systems, large scale process control and safety critical avionics.
-Examples include air traffic management~\cite{crisostomi07,eele11}, unmanned aerial vehicles~\cite{ortiz06}, robotics~\cite{dellaert99}, and medical surgery~\cite{kwok10}.
-In some applications, the required response times are measured in milliseconds, in others it is seconds or even minutes. 
-Nevertheless, they all must be satisfied.
-
+Real-time systems are found in a wide range of application areas, from simple domestic appliances to financial systems, large scale process control and safety critical avionics.
+%Examples include air traffic management~\cite{crisostomi07,eele11}, unmanned aerial vehicles~\cite{ortiz06}, robotics~\cite{dellaert99}, and medical surgery~\cite{kwok10}.
+The required response times of real-time applications varies from microseconds (high-frequency trading\cite{mcgowan10}), milliseconds (image-guided medical surgery~\cite{kwok10}) to seconds (robotics~\cite{dellaert99}) and even minutes (air traffic management~\cite{crisostomi07,eele11}). 
+%For example, high-frequency trading is becoming popular with execution time bounded to microseconds~\cite{mcgowan10}.
+%Nevertheless, the deadlines must be satisfied.
 \glspl{fpga} are considered as a platform for embedded real-time applications where software tasks running on micro-processors coexist with hardware tasks running on reconfigurable logic~\cite{paul12,schoeberl08,whitham09,alteradoc}.
 However, these implementations are software-based which means that multiple real-time tasks are managed by dedicated \gls{rtos} for reconfigurable devices.
 Real-time tasks running on micro-processors have to consider problems resulting from complex architectures.
-Pipelines, caches, branch prediction, or out-of-order execution result in complex state machines which to be managed by either software or hardware.
+Caches, branch prediction, out-of-order execution and pre-emption of tasks bring difficulties to maintain deterministic behaviour.
 Extensive research has been conducted on micro-processor-based real-time applications regarding time predictability, \gls{wcet}, task scheduling and management~\cite{burns01,davis11,puschner00}.
 %While the objective of real-time computing is to meet the timing requirement of each task rather than being fast, many real-time applications that involve \glspl{fpga} are implemented on embedded systems.
 %Most of these systems utilise a single FPGA board together with a soft processor core, which provides limited performance for non-computed intensive applications.
 %Even hardware logic components on \glspl{fpga} are occasionally used to offload the micro-processor, these implementations provide limited performance for non-compute intensive applications.
-Nowadays, there are many real-time applications which push processing systems to their limit with the required response time.
-Real-time needs can be extremely hard when a large amount of data have to be processed in a short period of time.
-For example, high-frequency trading is becoming popular with execution time bounded to microseconds~\cite{mcgowan10}. 
 
-\glspl{fpga} have potential to play an important role in high-performance real-time applications as they provide predictable timing performance, the ability to 
-perform highly parallel calculations, better solution quality~\cite{chau13fpt,chau14fccm} and lower power consumption~\cite{chau13arc}.
-For instance, in Monte Carlo-based applications, \glspl{fpga} are able to simulate more paths, and therefore the result will be more accurate~\cite{chau14fccm}.
+%\glspl{fpga} have potential to play an important role in high-performance real-time applications as they provide predictable timing performance, the ability to  perform highly parallel calculations, better solution quality~\cite{chau13fpt,chau14fccm} and lower power consumption~\cite{chau13arc}.
+%For instance, in Monte Carlo-based applications, \glspl{fpga} are able to simulate more paths, and therefore the result will be more accurate~\cite{chau14fccm}.
 This thesis aims to study real-time systems from a different perspective, in particular about making use of the recent advancements in \gls{fpga} technology to bridge the gap between high performance and real-time computing.
 Essentially this research focuses on hardware-oriented approaches that utilise special-purpose reconfigurable hardware being tailored for target applications.
 
@@ -57,7 +57,7 @@ Essentially this research focuses on hardware-oriented approaches that utilise s
 
 The objective of this thesis is to \textit{optimise reconfigurable systems, particularly \glspl{fpga}, so as to improve the performance of real-time applications, and make the experience of implementing real-time applications on reconfigurable systems more convenient and effective}.
 The contributions of this thesis are based on an heterogeneous reconfigurable system.
-\textit{Heterogeneous} means that more than one type of compute units are used to perform computation. 
+\textit{Heterogeneous} means that more than one type of compute unit are used to perform computation. 
 In this thesis, heterogeneous reconfigurable system refers to one consisting of multiple \glspl{fpga} and \glspl{cpu}.
 There are two different processing topologies that describe the distribution of workload between \glspl{fpga} and \glspl{cpu}.
 Pre-processing topology in Figure~\ref{fig:het_arch1} performs intensive number crunching in \glspl{fpga} prior to processing with \glspl{cpu}, which only handle the non-compute-intensive calculations.
@@ -68,11 +68,13 @@ The three main contributions made towards this goal are:
 \begin{enumerate}
 \item A precision optimisation approach that allows designers to maximise parallelism and throughput subject to real-time requirements, without having to sacrifice accuracy of computed solutions.
 Aspects regarding streaming data structure, memory architecture, and hardware-friendly function transformation are also discussed.
+This work demonstrates the first type of heterogeneous processing topology as illustrated in Figure~\ref{fig:het_arch1}, where \glspl{fpga} perform the most intensive processing and ~\glspl{cpu} handle the final output of results.
 This work is published in paper~\cite{chau13fpt}, which leads to more effective use of arbitrary precision floating-point arithmetic offered by \gls{fpga} technology.
-\item An adaptation technique that allows real-time system to reconfigure its hardware, software and algorithm at run-time for optimised performance while satisfying all the real-time constraints.
+\item An adaptive technique that allows real-time system to reconfigure its hardware, software and algorithm at run-time for optimised performance while satisfying all the real-time constraints.
 This contribution employs the second type of heterogeneous processing topology as shown in Figure~\ref{fig:het_arch2}, numerically intensive processing is allocated to the \gls{fpga}.
 In papers~\cite{chau13arc,chau14trets}, we showed how \gls{fpga} technology enables dynamic workload management, frequency scaling, and bit-stream reconfiguration that lead to reduced energy consumption as well as better resource utilisation on real-time systems. 
 \item A design flow for generating efficient implementation of reconfigurable designs and reducing the development effort.
+The above benefits are reflected by fewer lines of user-written code and fewer design configurations for performance analysis.
 The proposed design flow consists of a parametrisable computation engine and a software template, which maximise design reuse and minimise customisation effort.
 High-level functional description of the application is mapped to reconfigurable system automatically.
 Design parameters that are critical to the performance and to the solution quality are tuned using a machine learning algorithm.
@@ -96,7 +98,7 @@ This contribution is published in paper~\cite{chau14fccm}, which enables efficie
 \end{figure}
 
 The following three subsections present a brief overview of each contribution and the challenges involved.
-More detail are presented in the later chapters.
+More details are presented in the later chapters.
 
 \subsection{Precision Optimisation of Reconfigurable Data-paths}
 
@@ -121,12 +123,12 @@ They maintain the accuracy of final results by re-computing a small fraction of 
 This work employs the pre-processing topology (Figure~\ref{fig:het_arch1}), and the data-paths on \glspl{fpga} compute and filter most of the data before sending the filtered data to \glspl{cpu} for re-computation.
 
 The proposed methodology is applied to an image-guided surgical robot application which employs the \gls{pq} process.
-Functional transformation further optimises the data-path for hardware-friendly implementation.
+A functional transformation further optimises the data-path for hardware-friendly implementation.
 Implementation in a reconfigurable platform with four \glspl{fpga} shows 58 times speedup over a 12-core \gls{cpu} system, 3 times speedup over a \gls{gpu} system, and 3 times speedup over the same reconfigurable platform without precision optimisation.
 
 \subsection{Run-time Adaptation of System Configuration}
 
-The second contribution of this thesis is \textit{an approach that adapts the reconfigurable systems at run-time for reduced computation workload and energy consumption}.
+The second contribution of this thesis is \textit{an approach that adapts the reconfigurable system at run-time for reduced computation workload and energy consumption}.
 
 Power and energy efficiency is becoming a major consideration for ~\gls{hpc} systems.
 %Since early 2000, the frequencies of \glspl{cpu} have hit a \textit{power wall}, which means that high power consumption prevents higher frequencies from being achieved on \glspl{cpu}.
@@ -164,7 +166,7 @@ Common software design practices based on rapid compilation are no longer feasib
 
 In Chapter~\ref{ch:tool}, a design flow is proposed to address the above mentioned challenge.
 This chapter extends the \gls{smc} reconfigurable system described in Chapter~\ref{ch:adaptation} and focuses on making the system parametrisable for a wide variety of \gls{smc} applications.
-In other words, it makes Chapter~\ref{ch:adaptation}'s reconfigurable system easier and more accessible to designers, especially those lack hardware design experience.
+In other words, it makes Chapter~\ref{ch:adaptation}'s reconfigurable system easier and more accessible to designers, especially those who lack hardware design experience.
 Through templating the \gls{smc} structure, the proposed design flow enables efficient mapping of applications to multiple \glspl{fpga}.
 To reduce design space exploration effort, a machine learning algorithm based on surrogate modelling is used to tune design parameters that are crucial to the performance and solution quality.
 The design flow demonstrates its capability of producing reconfigurable implementations for a range of \gls{smc} applications that have significant improvement in speed and in energy efficiency over optimised \gls{cpu} and \gls{gpu} implementations.
@@ -177,7 +179,7 @@ The design flow demonstrates its capability of producing reconfigurable implemen
 The proposed methodology is applied to an application in imaged-guided surgical robot based on \gls{pq} process. 
 \textbf{Chapter~\ref{ch:adaptation}} presents the second contribution of this thesis, which describes the use of run-time reconfigurability of \glspl{fpga} to adapt real-time systems for reduced power and energy consumption.
 \textbf{Chapter~\ref{ch:tool}} details the third contribution, which provides a design flow for automatically generating efficient implementation of reconfigurable designs.
-Lastly, Chapter~\ref{ch:conclusion} concludes this thesis, and presents the remaining outstanding challenges.
+Lastly, \textbf{Chapter~\ref{ch:conclusion}} concludes this thesis, and presents the remaining outstanding challenges.
 Figure~\ref{fig:intro_organisation} shows how the three contributions of this thesis link together.
 Chapter~\ref{ch:precision} and ~\ref{ch:adaptation} describe techniques to optimise reconfigurable real-time systems.
 Chapter~\ref{ch:tool} introduces a domain-specific design flow to address the long-standing programmability issues of \gls{fpga}.
@@ -194,9 +196,9 @@ Parts of this thesis have been published in~\cite{chau13fpt,chau13arc,chau14tret
 During the course of this work, several related papers were also published.
 Papers~\cite{chau13acm,eele13cdc,eele13gnc} describe details concerning the acceleration of air traffic management systems, one of the \gls{smc} applications being studied in Chapter~\ref{ch:tool}.
 Paper~\cite{kurek14fccm} presents details of surrogate modelling that enable machine learning approach in Chapter~\ref{ch:tool}.
-Papers~\cite{chau12fpl,niu13fccm} present initial work regarding the adaptive \gls{smc} method, which leads to the proposal in Chapter~\ref{ch:adaptation}.
+In addition and in support of the work presented in this thesis, papers~\cite{chau12fpl,niu13fccm} present initial work regarding the adaptive \gls{smc} method, which leads to the proposal in Chapter~\ref{ch:adaptation}.
 Paper~\cite{chau12heart} provides a simple benchmarking platform for real-time systems.
-Due to page limitations, neither of these contributions are described in this thesis.
+Neither of these contributions are described in this thesis.
 
 %\section{Statement of Originality}
 

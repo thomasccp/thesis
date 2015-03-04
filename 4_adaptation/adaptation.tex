@@ -8,6 +8,8 @@
 
 This chapter presents an adaptation approach for reconfigurable systems.
 The approach provides an efficient solution to real-time \gls{smc} methods.
+Typical applications that can benefit from real-time \gls{smc} methods include robot localisation and air traffic management, which will be discussed later in this chapter.
+
 We derive an adaptive \gls{smc} algorithm that adjusts its computation complexity at run time based on the quality of results.
 To map our algorithm to a reconfigurable system consisting of multiple \glspl{fpga} and \glspl{cpu},
 we design a pipeline-friendly data structure to make effective use of the stream computing model.
@@ -21,9 +23,9 @@ The algorithm is able to reduce computation workload while maintaining the quali
 \item Mapping the proposed algorithm to a scalable and reconfigurable system by following the stream computing model.
 A novel data structure is designed to take advantage of the architecture and to alleviate the data transfer bottleneck.
 The system uses the run-time reconfigurability of \gls{fpga} to switch between computation mode and low-power mode.
-\item An implementation of a robot localisation application targeting the proposed system. 
-Compared to a non-adaptive and non-reconfigurable implementation, the idle power of our proposed system is reduced by 25-34\% and the overall energy consumption decreases by 17-33\%.
-Our system with four \glspl{fpga} is up to 169 times faster than a single core \gls{cpu}, 41 times faster than a 1U \gls{cpu} server with 12 cores, and 3 times faster than a modelled four-\gls{gpu} system.
+%\item An implementation of a robot localisation application targeting the proposed system. 
+%Compared to a non-adaptive and non-reconfigurable implementation, the idle power of our proposed system is reduced by 25-34\% and the overall energy consumption decreases by 17-33\%.
+%Our system with four \glspl{fpga} is up to 169 times faster than a single core \gls{cpu}, 41 times faster than a 1U \gls{cpu} server with 12 cores, and 3 times faster than a modelled four-\gls{gpu} system.
 \end{itemize}
 
 The rest of the chapter is organised as follows.
@@ -38,8 +40,10 @@ Section~\ref{sec:reconfig_summary} concludes our work.
 \label{sec:reconfig_asmc}
 
 This section introduces an adaptive \gls{smc} algorithm which changes the number of particles at each time-step.
-The algorithm is inspired by~\cite{liu07} and we transform it to a pipeline-friendly version for mapping to the reconfigurable system.
-This algorithm is shown in Algorithm~\ref{algo:smc} which consists of four stages.
+The algorithm is adapted from~\cite{liu07} and we transform it to a pipeline-friendly version for mapping to the reconfigurable system.
+In essence, the data dependency and random data access are minimised.
+As shown in Algorithm~\ref{algo:smc}, the algorithm consists of four stages.
+For each time-step $t$, the algorithm is bounded by $itl_{repeat}$ iterations and each iteration is bounded by $N_{P_t}$ particles.
 The basic \gls{smc} design parameters are described in Table~\ref{tab:parameters} in Chapter~\ref{ch:background}.
 
 \begin{algorithm}
@@ -55,11 +59,11 @@ The basic \gls{smc} design parameters are described in Table~\ref{tab:parameters
 	{\color{gray} \STATE{---On \glspl{fpga}---}}
 	\STATE{Sample a new state $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ from $\{s_t^{(i)}\}^{N_{P_t}}_{i=1}$} \label{algo:smc_si1}
 	\STATE{Calculate unnormalised importance weights $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$ and accumulate the weights as $w_{sum}$} \label{algo:smc_si2}
-	\STATE{Calculate the lower bound of sample size $\widetilde{N_{P_{t+1}}}$ by Equation~\ref{eqt:bound2}} \label{algo:smc_lb}
+	\STATE{Calculate the lower bound of sample size $\widetilde{N}_{P_{t+1}}$ by Equation~\ref{eqt:bound2}} \label{algo:smc_lb}
 	{\color{gray} \STATE{---On \glspl{cpu}---}}
 	\STATE{Sort $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ in descending $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$} \label{algo:smc_sort}
-	\IF{$\widetilde{N_{P_{t+1}}} < N_{P_t}$} \label{algo:smc_rd1}
-		\STATE{$N_{P_{t+1}} = max\left(\lceil\widetilde{N_{P_{t+1}}}\rceil, N_{P_t}/2\right)$}
+	\IF{$\widetilde{N}_{P_{t+1}} < N_{P_t}$} \label{algo:smc_rd1}
+		\STATE{$N_{P_{t+1}} = max\left(\lceil\widetilde{N}_{P_{t+1}}\rceil, N_{P_t}/2\right)$}
 		\STATE{Set $a = 2{N_{P_{t+1}}}-{N_{P_t}}$ and $b = {N_{P_{t+1}}}$}
 		{\color{gray} \STATE{--Do the following loop in parallel--}}
 		\FOR{$i$ in ${N_{P_t}}-{N_{P_{t+1}}}$} \label{algo:smc_loop1s}
@@ -67,7 +71,7 @@ The basic \gls{smc} design parameters are described in Table~\ref{tab:parameters
 			\STATE{$w^{\prime(i)} = w^{\prime(a)} + w^{\prime(b)}$}
 			\STATE{$a = a+1$ and $b = b-1$}
 		\ENDFOR \label{algo:smc_rd2} \label{algo:smc_loop1e}
-	\ELSIF{$\widetilde{N_{P_{t+1}}} \geq {N_{P_t}}$} \label{algo:smc_rd3}
+	\ELSIF{$\widetilde{N}_{P_{t+1}} \geq {N_{P_t}}$} \label{algo:smc_rd3}
 		\STATE{$a=0$ and $b=0$}
 		\FOR{$i$ in ${N_{P_{t+1}}}-{N_{P_t}}$}
 			\IF{$w^{\prime(a)}<w^{\prime(a+1)}$ and $a<{N_{P_{t+1}}}$}
@@ -106,12 +110,12 @@ The mapping of computation to \glspl{fpga} will be described in Section~\ref{sec
 %\subsection[Stage 2: Lower Bound Calculation]{Stage 2: Lower Bound Calculation (line~\ref{algo:smc_lb})} 
 This stage derives the smallest number of particles that are needed in the next time-step in order to bound the approximation error.
 The adaptive algorithm seeks a value which is less than or equal to ${N_{P_{max}}}$.
-This number, denoted as $\widetilde{N_{P_{t+1}}}$, is referred to as the lower bound of sampling size.
+This number, denoted as $\widetilde{N}_{P_{t+1}}$, is referred to as the lower bound of sampling size.
 It is calculated by Equation~\ref{eqt:bound2}:
 
 \begin{equation}
 \begin{aligned}
-\widetilde{N_{P_{t+1}}} = \sigma^2 \cdot \frac{{N_{P_{max}}}}{Var(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})} \mbox{,}
+\widetilde{N}_{P_{t+1}} = \sigma^2 \cdot \frac{{N_{P_{max}}}}{Var(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})} \mbox{,}
 \end{aligned}
 \label{eqt:bound2}
 \end{equation}
@@ -145,7 +149,7 @@ To calculate $w^{(i)}$, a traditional software-based approach is to iterate thro
 The sum of weights $w_{sum}$ and unnormalised weight $w^{\prime(i)}$ are calculated in the first iteration.
 Then $w^{(i)}$ is obtained by dividing $w^{\prime(i)}$ by $w_{sum}$ in the second iteration.
 However, this method is inefficient for \gls{fpga} implementation.
-It is because $2 \cdot {N_{P_t}}$ cycles are needed to process ${N_{P_t}}$ pieces of data, which makes the throughput reduced to 50\%.
+It is because $2 \cdot {N_{P_t}}$ cycles are needed to process ${N_{P_t}}$ pieces of data, which reduces the throughput by 50\%.
 
 To fully utilise deep pipelines targeting an \gls{fpga}, we perform function transformation.
 Given ${w}^{(i)} = \frac{w^{\prime(i)}}{w_{sum}}$, we move $w_{sum}$ from Equation~\ref{eqt:bound3} to \ref{eqt:bound5}.
@@ -153,8 +157,8 @@ By doing so, we obtain a transformed form as shown in Equations~\ref{eqt:bound6}
 
 \begin{eqnarray}
 \begin{aligned}
-\sigma^2 = & \frac{1}{(w_{sum})^2} \cdot ( \sum_{i=1}^{N_{P_t}}\left(w^{\prime(i)} \cdot s_{t+1}^{\prime(i)} \right)^2 - 2 \cdot E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) \cdot \sum_{i=1}^{N_{P_t}} \left ( (w^{\prime(i)})^2 \cdot s_{t+1}^{\prime(i)} \right )\\
-& + \left(E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})\right)^2 \cdot \sum_{i=1}^{N_{P_t}}(w^{\prime(i)})^2 ) \mbox{,}
+\sigma^2 = & \frac{1}{(w_{sum})^2} \cdot \biggr( \sum_{i=1}^{N_{P_t}}\left(w^{\prime(i)} \cdot s_{t+1}^{\prime(i)} \right)^2 - 2 \cdot E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}) \cdot \sum_{i=1}^{N_{P_t}} \left ( (w^{\prime(i)})^2 \cdot s_{t+1}^{\prime(i)} \right )\\
+& + \left(E(\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1})\right)^2 \cdot \sum_{i=1}^{N_{P_t}}(w^{\prime(i)})^2 \biggr) \mbox{,}
 \end{aligned}
 \label{eqt:bound6}
 \end{eqnarray}
@@ -188,16 +192,16 @@ The particles are sorted in descending order according to their weights.
 As the new sample size can increase or decrease, there are two cases:
 
 \begin{itemize}
-\item {\bf Case I: Particle set reduction when $\widetilde{N_{P_{t+1}}} < {N_{P_t}}$} 
+\item {\bf Case I: Particle set reduction when $\widetilde{N}_{P_{t+1}} < {N_{P_t}}$} 
 
-The lower bound ${N_{P_{t+1}}}$ is set to $max\left(\lceil\widetilde{N_{P_{t+1}}}\rceil, {N_{P_t}}/2\right)$.
+The lower bound ${N_{P_{t+1}}}$ is set to $max\left(\lceil\widetilde{N}_{P_{t+1}}\rceil, {N_{P_t}}/2\right)$.
 Since the new size is smaller than the old one, some particles are combined to form a smaller particle set.
 Figure~\ref{fig:tuning} illustrates the idea of particle reduction.
 The first $2{N_{P_{t+1}}}-{N_{P_t}}$ particles with higher weights are kept and the remaining $2({N_{P_t}}-{N_{P_{t+1}}})$ particles are combined in pairs.
 As a result, there are ${N_{P_t}}-{N_{P_{t+1}}}$ new particles injected to form the target particle set with ${N_{P_{t+1}}}$ particles.
 We combine the particles deterministically to keep the statements in the loop independent of each other.
 As a result, loop unrolling is undertaken to execute the statements in parallel.
-The complexity of the loop is in $\bigO{\frac{{N_{P_t}}-{N_{P_{t+1}}}}{N_{parallel}}}$, where $N_{parallel}$ indicates the level of parallelism.
+The complexity of the loop is $\bigO{\frac{{N_{P_t}}-{N_{P_{t+1}}}}{N_{parallel}}}$, where $N_{parallel}$ indicates the level of parallelism.
 
 \setcounter{subfigure}{0}
 \begin{figure}[t!]
@@ -214,9 +218,9 @@ The complexity of the loop is in $\bigO{\frac{{N_{P_t}}-{N_{P_{t+1}}}}{N_{parall
 \label{fig:tuning}
 \end{figure}
 
-\item {\bf Case II: Particle set expansion when $\widetilde{N_{P_{t+1}}} \geq {N_{P_t}}$}
+\item {\bf Case II: Particle set expansion when $\widetilde{N}_{P_{t+1}} \geq {N_{P_t}}$}
 
-The lower bound ${N_{P_{t+1}}}$ is set to $\widetilde{N_{P_{t+1}}}$.
+The lower bound ${N_{P_{t+1}}}$ is set to $\widetilde{N}_{P_{t+1}}$.
 Some particles are taken from the original set and are inserted to form a larger set.
 The particles with larger weight would have more descendants.
 As shown in line~\ref{algo:smc_rd3} to~\ref{algo:smc_rd4}, the process requires picking the particle with the largest weight at each iteration of particle incision.
@@ -243,8 +247,8 @@ The reconfigurable system also takes advantage of the run-time reconfiguration f
 
 The design of reconfigurable system is shown in Figure~\ref{fig:reconfig_arch}.
 A heterogeneous structure is employed to make use of multiple \glspl{fpga} and \glspl{cpu}.
-\glspl{fpga} and \glspl{cpu} communicate through high bandwidth buses.
-\glspl{fpga} are responsible for (1) sampling, (2) importance weighting, and (3) lower bound calculation.
+\glspl{fpga} and \glspl{cpu} communicate through high bandwidth buses as in Figure~\ref{fig:het_arch2}.
+As shown in the figure, \glspl{fpga} are responsible for (1) sampling, (2) importance weighting, and (3) lower bound calculation.
 The data-paths on the \glspl{fpga} are fully-pipelined.
 Each \gls{fpga} has its own on-board \gls{dram} to store the large amount of particle data.
 On the other hand, the \glspl{cpu} gather all the particles from \glspl{fpga} to perform particle set size tuning and resampling.
@@ -253,8 +257,8 @@ Resampling requires a collective operation over the weights which makes it less 
 Different resampling methods have been proposed aiming to parallelise the algorithm on \glspl{fpga}~\cite{bolic05} and \glspl{gpu}~\cite{murray14}.
 Direct resampling methods such as stratified~\cite{sarndal03} and systematic resampling~\cite{douc05} can achieve certain degree of parallelism by removing data dependency.
 Monte Carlo based methods such as Metropolis~\cite{metropolis53} and rejection sampling~\cite{neal03} strategies are more straightforward to be implemented in parallel devices.
-However, Metropolis method results in a biased sample, while rejection results in non-deterministic timing.
-Despite the parallelisation effort, these methods do not address the problem of non-sequential memory access pattern which has significant impact on performance when the particles are stored in off-chip memory instead of on-chip memory.
+However, the Metropolis method results in a biased sample, while rejection results in non-deterministic timing.
+Despite the parallelisation effort, these methods do not address the problem of non-sequential memory access patterns which have a significant impact on performance when the particles are stored in off-chip memory instead of on-chip memory.
 
 \begin{figure}[t!]
 \centering
@@ -278,7 +282,7 @@ An \gls{fpga} kernel enabling efficient acceleration is proposed.
 Figure~\ref{fig:reconfig_kernel} shows the components of the \gls{fpga} kernel.
 The kernel is fully pipelined to achieve one output per clock cycle.
 It can also be replicated as many times as \gls{fpga} resource allow and the replications can be split across multiple \gls{fpga} boards.
-The kernel takes three inputs from the \glspl{cpu} or on-board \gls{dram}: (1) states, (2) controls, and (3) seeds.
+The kernel takes three inputs from the \glspl{cpu} or on-board \gls{dram}: (1) state, (2) reference, and (3) seed.
 Application specific parameters are stored in ROMs.
 Three building blocks corresponding to the sampling, importance weighting and lower bound calculation stages are described in Section~\ref{sec:reconfig_asmc}.
 
@@ -291,7 +295,7 @@ Fixed-point data representation is customised at each pipeline stage to reduce t
 
 Meanwhile, the accumulation of $w_{sum}$ introduces a feedback loop.
 A new weight comes along every cycle which is more quickly than the floating-point unit to perform addition of the previous weight.
-In order to achieve one result per clock cycle, fixed-point data-path is implemented while ensuring no overflow or underflow occurs.
+In order to achieve one result per clock cycle, fixed-point data-path of sufficient size is implemented to ensure no overflow or underflow occurs.
 
 \begin{figure}[t!]
 \centering
@@ -305,7 +309,7 @@ In order to achieve one result per clock cycle, fixed-point data-path is impleme
 
 We derive a model to analyse the computation time of reconfigurable system.
 The model helps us to design a configuration schedule that satisfies the real-time requirement and, if necessary, amend the application's specification.
-The model will be validated by experiments in Section~\ref{sec:reconfig_results}.
+%The model will be validated by experiments in Section~\ref{sec:reconfig_results}.
 
 The computation time, $T_{comp}$, of reconfigurable system consists of three components: (1) Data-path time $T_{datapath}$, (2) \gls{cpu} time $T_{cpu}$, and (3) Data transfer time $T_{tran}$ as shown in Equation~\ref{eqt:total}:
 
@@ -316,23 +320,24 @@ T_{comp} = itl\_repeat \cdot \left ( T_{datapath} + T_{cpu} + T_{tran} \right ) 
 \label{eqt:total}
 \end{equation}
 
-where $itl\_repeat$ represents the number of times that the sampling, importance weighting and resampling processes are repeated in every time-step.
+where $itl\_repeat$ is a constant that represents the number of times that the sampling, importance weighting and resampling processes are repeated in every time-step.
 
 \textbf{Data-path time}, $T_{datapath}$, denotes the time spent on the \glspl{fpga}.
 
 \begin{equation}
 \begin{aligned}
-T_{datapath} = \left(\frac{{N_{P_t}}}{freq_{fpga} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{fpga}} \mbox{,}
+T_{datapath} = \left(\frac{{N_{P_t}}}{freq_{fpga} \cdot N_{datapath}} + L - 1 \right) \frac{1}{N_{board}} \mbox{,}
 \end{aligned}
 \label{eqt:kernel}
 \end{equation}
 
-where $P_t$ denotes the number of particles at the current time-step and $freq_{fpga}$ denotes the clock frequency of the \glspl{fpga}.
+where $N_{P_t}$ denotes the number of particles at the current time-step and $freq_{fpga}$ denotes the clock frequency of the \glspl{fpga}.
 $L$ is the length of the pipeline.
 $N_{datapath}$ denotes the number of data-paths on one \gls{fpga} board.
-$N_{fpga}$ is the number of \gls{fpga} boards in the system.
+$N_{board}$ is the number of \gls{fpga} boards in the system.
 
 \textbf{\gls{cpu} time}, $T_{cpu}$, denotes the time spent on the \glspl{cpu}.
+By Amdahl's Law:
 
 \begin{equation}
 \begin{aligned}
@@ -342,24 +347,30 @@ T_{cpu} = \alpha \cdot \frac{{N_{P_t}}}{freq_{cpu}} \cdot \left(1-par+\frac{par}
 \end{equation}
 
 where the clock frequency and number of threads of the \glspl{cpu} are represented by $freq_{cpu}$ and $N_{thread}$ respectively.
-$par$ is an application-specific parameter in the range of $[0,1]$ which represents the ratio of \gls{cpu} instructions that are parallelisable, and $\alpha$ is a scaling constant derived empirically.
+$par$ is an application-specific parameter in the range of $[0,1]$ which represents the ratio of program path that can be parallelised, and $\alpha$ is a scaling constant derived empirically.
+By running the software with different values of $N_{P_t}$, $\alpha$ is the scaling factor determined by regression.
+This is based on the assumption that the \gls{cpu} is dedicated to particle set resizing and resampling, and the computation time scales linearly with the data size.
 
 \textbf{Data transfer time}, $T_{tran}$, denotes the time of moving a particle stream between the \glspl{fpga} and the \glspl{cpu}.
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{(2 \cdot df + 1) \cdot W_{data} \cdot {N_{P_t}}}{freq_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
+T_{tran} 	&= T_{input} + T_{output} \mbox{,} \\
+					&= \frac{(2 \cdot df + 1) \cdot W_{data} \cdot {N_{P_t}}}{\mathit{freq}_{bus} \cdot \mathit{lane} \cdot \mathit{eff} \cdot N_{board}} \mbox{,}
 \end{aligned}
 \label{eqt:data}
 \end{equation}
 
 where $df$ is the number of data fields of a particle.
 For example, if a particle contains the information of coordinates ($x$, $y$) and heading $h$, $df=3$.
-Given that the constant 1 represents the weight and the constant 2 accounts for the movement of data in and out of the \glspl{fpga},
+Given that the constant 1 represents the weight of the particle and the constant 2 accounts for the movement of data in and out of the \glspl{fpga},
 and $W_{data}$ is the bit-width of one data field, the expression $(2 \cdot df + 1) \cdot W_{data}$ is regarded as the size of a particle.
-$freq_{bus}$ is the clock frequency of the bus connecting the \glspl{cpu} to \glspl{fpga} and $lane$ is the number of bus lanes connected to one \gls{fpga}.
-Since many buses, such as the PCI Express Bus, encode data during transfer, the effective data are denoted by $eff$ (in PCI Express Gen2 the value is 8/10).
-In our previous work~\cite{chau13arc}, the data transfer time has a significant performance impact on reconfigurable system.
+$\mathit{freq}_{bus}$ is the clock frequency of the bus connecting the \glspl{cpu} to \glspl{fpga} and $\mathit{lane}$ is the number of bus lanes connected to one \gls{fpga}.
+Since many buses, such as the PCI Express bus, encode data during transfer, the effective data are denoted by $\mathit{eff}$ (in PCI Express Gen2 the value is 8/10).
+Similar to the model in Chapter~\ref{sec:precision_model}, the model of data transfer is based on a simplified view of the system.
+It is assumed that the data are transferred in burst over the PCI Express bus from \gls{dram} on the \glspl{fpga} to the system memory of the \gls{cpu}.
+
+In ~\cite{chau13arc}, the data transfer time has a significant performance impact on reconfigurable system.
 To reduced the data transfer overhead, we introduce a data compression technique that will be described in Section~\ref{sec:reconfig_stream}.
 
 In real-time applications, each time-step is fixed and is known as the real-time bound $T_{rt}$.
@@ -379,11 +390,11 @@ It shows that the \glspl{fpga} are still drawing power after the computation fin
 By exploiting run-time reconfiguration as shown in Figure~\ref{fig:timing2}, the \glspl{fpga} are loaded with a low-power configuration during the idle period.
 Such configuration minimises the amount of active resources and clock frequency.
 Equation~\ref{eqt:sleep} describes the sleep time when the \glspl{fpga} are idle and being loaded with the low-power configuration.
-If the sleep time is positive, reconfiguration would be helpful in these situations, where the sleep time is expressed as:
+If the sleep time is positive (i.e. $T_{idle} \geq T_{config} \times 2$), reconfiguration would be helpful in these situations, where the sleep time is expressed as:
 
 \begin{equation}
 \begin{aligned}
-T_{sleep} = T_{idle} - T_{config} \mbox{.}
+T_{sleep} = T_{idle} - T_{config} \times 2 \mbox{.}
 \end{aligned}
 \label{eqt:sleep}
 \end{equation}
@@ -392,27 +403,63 @@ T_{sleep} = T_{idle} - T_{config} \mbox{.}
 
 \begin{equation}
 \begin{aligned}
-T_{config} = \frac{size_{bs}}{freq_{config} \cdot W_{config}} \mbox{,}
+%T_{config} = \frac{\mathit{size}_{bs}}{\mathit{freq}_{config} \cdot W_{config}} \mbox{,}
+T_{config} = \frac{\mathit{size}_{bs}}{BW_{config}} \mbox{,}
 \end{aligned}
 \label{eqt:cf}
 \end{equation}
 
-where $size_{bs}$ represents the size of bitstream in bits, and $freq_{config}$ is the configuration clock frequency in Hz and $W_{config}$ is the bit-width of the configuration port.
+where $\mathit{size}_{bs}$ represents the size of bitstream in bits, and $BW_{config}$ is the band width of the configuration interface.
+%$\mathit{freq}_{config}$ is the configuration clock frequency in Hz and $W_{config}$ is the bit-width of the configuration port.
 
 \setcounter{subfigure}{0}
 \begin{figure}[t!]
 \centering
 \subfigure[Without reconfiguration]{
-\includegraphics[width=0.6\textwidth]{4_adaptation/figures/fig_timing1} \hfill
+\includegraphics[width=0.7\textwidth]{4_adaptation/figures/fig_timing1} \hfill
 \label{fig:timing1}
 }
 \subfigure[With reconfiguration to low-power mode during idle]{
-\includegraphics[width=0.6\textwidth]{4_adaptation/figures/fig_timing2}
+\includegraphics[width=0.7\textwidth]{4_adaptation/figures/fig_timing2}
 \label{fig:timing2}
 }
 \caption{Power consumption of the reconfigurable system over time.}
 \label{fig:timing}
 \end{figure}
+
+Table~\ref{tab:reconfig_parameters_adaptation} summerises the parameters used in the performance model.
+In Section~\ref{sec:reconfig_results}, the model will be used to determine whether run-time reconfiguration could be done while meeting real-time requirements.
+
+\begin{table}
+	\setlength{\tabcolsep}{3pt}
+	\begin{spacing}{1.0}
+	\caption{Parameters of the performance model.}
+	\label{tab:reconfig_parameters_adaptation}
+	\footnotesize
+	\centering
+	\smallskip
+		\begin{tabular}{c|c}
+			\hline
+			$itl\_{repeat}$ & Number of iterations of the outer loop \\
+			$N_{P_t}$ & Number of particles \\
+			$N_{datapath}$ & Number of data-paths on one \gls{fpga} board \\
+			$N_{board}$ & Number of \gls{fpga} boards in the system \\
+			$N_{thread}$ & Number of threads of the \glspl{cpu} \\
+			$\mathit{freq}_{fpga}$ & Clock frequency of the~\glspl{fpga} \\
+			$\mathit{freq}_{cpu}$ & Clock frequency of the~\glspl{cpu} \\
+			$\mathit{freq}_{bus}$ & Clock frequency of the bus connecting the \glspl{cpu} to \glspl{fpga} \\
+			$L$ & Length of the pipeline \\
+			$\alpha$ & Empirical constant of \gls{cpu} speed \\
+			$par$ & Ratio of program path that can be parallelised \\
+			$df$ & Number of data fields of a particle \\
+			$W_{data}$ & Bit-width of one data field \\
+			$\mathit{lane}$ & Number of bus lanes connected to one \gls{fpga} \\
+			$\mathit{eff}$ & Effective data transferred via the bus \\
+			$BW_{config}$ & Band width of the configuration interface \\
+			\hline
+		\end{tabular}
+		\end{spacing}
+\end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Optimising Transfer of Particle Stream}
@@ -459,11 +506,11 @@ If the tag is one, the next burst address will point to the address of the next 
 Otherwise, the burst address will point to the start address of the current block (which is $1$).
 The data are still addressed in burst so the performance is not degraded.
 
-The data transfer time with compression, $T_{Tran}$, is shown below:
+The data transfer time with compression, $T_{tran}$, is shown below:
 
 \begin{equation}
 \begin{aligned}
-T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot W_{data} \cdot {N_{P_t}}}{freq_{bus} \cdot lane \cdot eff \cdot N_{fpga}} \mbox{,}
+T_{tran} = \frac{(\frac{df}{Rep} + df + 1) \cdot W_{data} \cdot {N_{P_t}}}{freq_{bus} \cdot lane \cdot eff \cdot N_{board}} \mbox{,}
 \end{aligned}
 \label{eqt:data_opt}
 \end{equation}
@@ -479,8 +526,8 @@ The effect of $Rep$ on data transfer time will be evaluated in the next section.
 
 To evaluate the performance of the reconfigurable system and make comparison with the other systems, 
 we implement an application which uses \gls{smc} for localisation and tracking of mobile robot.
-The application is proposed in~\cite{montemerlo02} to track location of moving objects conditioned upon robot poses over time.
-Given a priori learned map, a robot receives sensor values and moves at regular time intervals. 
+The application is proposed in~\cite{montemerlo02} to track location of moving objects conditioned upon robot positions over time.
+Given an priori learned map, a robot receives sensor values and moves at regular time intervals. 
 Meanwhile, $M$ moving objects are tracked by the robot.
 The states of the robot and objects at time $t$ are represented by a state vector $X_t$:
  
@@ -490,7 +537,7 @@ X_t = \{R_t, H_{t,1}, H_{t,2}, ..., H_{t,M}\} \mbox{.}
 \end{aligned}
 \end{equation}
 
-$R_t$ denotes the robot's pose at time $t$, and $H_{t,1}, H_{t,2}, ..., H_{t,M}$ denote the locations of the $M$ objects at the same time.
+$R_t$ denotes the robot's position at time $t$, and $H_{t,1}, H_{t,2}, ..., H_{t,M}$ denote the locations of the $M$ objects at the same time.
 
 The following equation is used to represent the posterior of the robot's location:
 
@@ -503,7 +550,7 @@ p(X_t|Y_t,U_t) = p(R_t|Y_t,U_t) \prod_{m=1}^M p(H_{t,m}|R_t,Y_t,U_t) \mbox{,}
 where $Y_t$ is the sensor measurement and $U_t$ is the control of the robot at time $t$.
 The robot path posterior $p(R_t|Y_t,U_t)$ is represented by a set of robot-particles.
 The distribution of an object's location $p(H_{t,m}|R_t,Y_t,U_t)$ is represented by a set of object-particles, where each object-particle set is attached to one particular robot-particle.
-In other words, if there are ${N_{P_r}}$ robot-particles representing the posterior over robot path, there are ${N_{P_r}}$ object-particle sets, each has ${N_{P_h}}$ particles.
+In other words, if there are ${N_{P_r}}$ robot-particles representing the position of the robot, there are ${N_{P_r}}$ object-particle sets, each has ${N_{P_h}}$ particles.
 
 In the application, the area of the map is 12m by 18m.
 The robot makes a movement of 0.5m every five seconds, i.e. $T_{rt} = 5$.
@@ -542,13 +589,13 @@ The program is written in C language and optimised by Intel Compiler with SSE4.2
 OpenMP is used to utilise all the processor cores.
 
 \textbf{\gls{gpu}}: An NVIDIA Tesla C2070 \gls{gpu} is hosted inside a 4U server.
-It has 448 cores running at 1.15 GHz and has a peak performance by 1288 GFlops.
+It has 448 cores running at 1.15 GHz and has a peak performance by 1288 GFLOPS.
 The program is written in C for CUDA and optimised to use all the cores available.
-To get more comprehensive results for comparison, we also estimate the performance of multiple \gls{gpu}s.
+To get more comprehensive results for comparison, we also estimate the performance of multiple \glspl{gpu}.
 The estimation is based on the fact that the first three stages (sampling, importance weighting, lower bound calculation) can be evenly distributed to every \gls{gpu} and be computed independently, 
-so the data-path and data transfer speedup scales linearly with the number of \gls{gpu}s.
-On the other hand, the last two stages (particle set resizing, resampling) are computed on the \gls{cpu} no matter how many \gls{gpu}s are used.
-Therefore, the \gls{cpu} time does not scale with the number of \gls{gpu}s.
+so the data-path and data transfer speedup scales linearly with the number of \glspl{gpu}.
+On the other hand, the last two stages (particle set resizing, resampling) are computed on the \gls{cpu} no matter how many \glspl{gpu} are used.
+Therefore, the \gls{cpu} time does not scale with the number of \glspl{gpu}.
 
 \subsection{Adaptive SMC versus Non-adaptive SMC}
 The comparison of adaptive and non-adaptive \gls{smc} is shown in Table~\ref{tab:smc}.
@@ -557,13 +604,13 @@ Initially, the maximum number of particles are instantiated for global localisat
 
 For the non-adaptive scheme, the particle set size does not change.
 The total computation time estimated and measured are 1.328 seconds and 1.885 seconds, respectively.
-The measured computation time is longer due to the difference between the effective and maximum bandwidth of the PCI Express bus.
+The measured computation time is longer due to the model's assumption described in Section~\ref{sec:reconfig_reconfig}.
 
 \begin{table}[ht]
 	\centering
 	\setlength{\tabcolsep}{5pt}
 	\begin{spacing}{1.0}
-	\caption[Comparison of adaptive and non-adaptive SMC on reconfigurable system.]{Comparison of adaptive and non-adaptive SMC on reconfigurable system (MaxWorkstation with one FPGA, no data compression is applied).}
+	\caption[Comparison of adaptive and non-adaptive SMC on reconfigurable system.]{Comparison of adaptive and non-adaptive SMC on reconfigurable system (MaxWorkstation with one FPGA, no data compression is applied). Parameters: $\mathit{itl}\_{repeat} = 15$; $N_{datapath} = 2$; $N_{board} = 1$; $N_{thread} = 8$; $\mathit{freq}_{fpga} = 100$ MHz; $\mathit{freq}_{cpu} = 2930$ MHz; $\mathit{freq}_{bus} = 500$ MHz; $\mathit{par} = 0$; $df = 3$; $W_{data} = 128$ bits; $\mathit{lane} = 8$; $\mathit{eff} = 0.8$}
 	\label{tab:smc}{
 	\smallskip
 		\begin{tabular}{l || c c | c c}
@@ -573,7 +620,7 @@ The measured computation time is longer due to the difference between the effect
 			  & Model & Experiment & Model & Experiment \\
 			\hline
 			\hline
-			 Number of particles & \multicolumn{2}{c|}{67M} & \multicolumn{2}{c}{573k} \\
+			 Number of particles $N_{P_t}$ & \multicolumn{2}{c|}{67M} & \multicolumn{2}{c}{573k} \\
 			\hline
 			 Data-path time $T_{datapath}$ (s) 		& 0.336 & 0.336 & 0.003 & 0.003 \\
 			 \gls{cpu} time $T_{cpu}$ (s) 				& 0.117 & 0.117 & 0.001 & 0.001 \\
@@ -590,9 +637,10 @@ The measured computation time is longer due to the difference between the effect
 For the adaptive scheme, the number of particles varies from 573k to 67M, and the computation time scales linearly with the number of particles.
 From Table~\ref{tab:smc}, both the model and experiment show 99\% reduction in computation time.
 
-Figure~\ref{fig:adaptive} shows how both the number of particles and the components of total computation time vary over the wall-clock time (passage of time from the start to the completion of the application).
+Figure~\ref{fig:adaptive} is the experimental results which show how both the number of particles and the components of total computation time vary over the wall-clock time (passage of time from the start to the completion of the application).
 Although the number of particles is reduced in the proposed design, the results in Figure~\ref{fig:error} show that the localisation error is not adversely affected.
 The error is the highest during initial global localisation and it is reduced when the robot moves.
+The adaptive scheme has even better results after global localisation, the possible reason is that the robot's position is estimated from the average of all particles which have converged to the actual position after the first move, fewer particles lead to a smaller variation.
 
 \begin{figure}[t!]
 \centering
@@ -641,6 +689,10 @@ On the \glspl{cpu} and \gls{gpu}, the computation of the particles are shared by
 In addition, it is 9 times faster than one \gls{gpu}, and 3 times faster than four \gls{gpu}s.
 Notice that the \glspl{cpu} violate the real-time constraint of 5 seconds.
 
+\textbf{Idle time}: For a time-step of 5 seconds, the idle time is equal to 5 seconds minus the total computation time.
+According to Equation~\ref{eqt:sleep}, if the idle time is longer than the configuration time (1.6 seconds), it is beneficial to reconfigure the \glspl{fpga} from computation mode to low-power mode.
+All the reconfiguration system configurations (RS(1), RS(2) and RS(3)) satisfy this criterion.
+
 %\newcolumntype{g}{>{\columncolor{Gray}}c}
 \begin{table}[ht]
 \label{tab:comparison}
@@ -671,6 +723,8 @@ Notice that the \glspl{cpu} violate the real-time constraint of 5 seconds.
 		Total comp. time (s)  					& 27.95							& 6.697 					& 1.477						& 0.797						& 0.457						& 0.589 	& 0.304		& 0.165 	\\
 		Overall speedup  						& 1x							& 4.2x	 					& 18.9x						& 35.1x						& 61.2x						& 47.5x 	& 91.9x		& 169.4x	\\
 		\hline
+		Idle time (s)				&	Nil						& Nil					& 3.523					& 4.203					& 4.543				& 4.111							& 4.696		& 4.835 \\
+		\hline
 		Computation power (W) 	   					& 183							& 279 						& 287  						& 424						& 698						& 145 		& 420		& 480		\\
 		Computation power eff.						& 1x							& 0.7x						& 0.6x 						& 0.4x						& 0.3x						& 1.3x 		& 0.4x 		& 0.4x		\\
 		Idle power (W)    						& 133							& 133						& 208   					& 266 						& 382						& 95		& 360		& 360		\\
@@ -696,6 +750,7 @@ Notice that the \glspl{cpu} violate the real-time constraint of 5 seconds.
 \end{table}
 
 \textbf{Power and energy consumption}: In real-time applications, we are interested in the energy consumption per time-step.
+Energy is defined as the product of power and time, measured in joules (watt-seconds).
 Figure~\ref{fig:power} shows the power consumption of reconfigurable system, \glspl{cpu} and \gls{gpu} over a period of 10 seconds (two time-steps).
 The system power is measured using a power meter which is connected directly between the power source and the system.
 All the curves of reconfigurable system show peaks when the system is at the computation mode and troughs when it is at the low power mode.
@@ -710,15 +765,19 @@ The resource management software of our system (MaxelerOS) simplifies the effort
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.8\textwidth]{4_adaptation/figures/fig_power2}
-\caption[Power consumption of reconfigurable system (RS), CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement]{Power consumption of reconfigurable system (RS), CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement (The lines of RS(2) and RS(3) overlap).}
+\caption[Power consumption of reconfigurable system (RS), CPU and GPU in one time-step, notice that the computation time of the CPU system exceeds the 5-second real-time requirement]{Power consumption of reconfigurable system (RS), CPU and GPU in one time-step, notice that the computation time of the CPU system for one time time-step exceeds the 5-second real-time requirement (It takes 7 seconds).}
 \label{fig:power}
 \end{figure}
 
 To identify the speed and energy trade-off, we produce a graph as shown in Figure~\ref{fig:scale}. 
 Each data point represents the computation time versus energy consumption of a system setting.
-Among all the systems, the reconfigurable system with one \gls{fpga} has the computation speed satisfying the real-time requirement, while consuming the smallest amount of energy.
+Among all the systems, the reconfigurable system with one \gls{fpga}, i.e. RS(1), has the computation speed satisfying the real-time requirement, while consuming the smallest amount of energy.
 All the configurations of \gls{cpu} system cannot meet the real-time requirement.
 RS(3), the reconfigurable system with four \glspl{fpga}, is the fastest among all the systems in comparison, therefore it is able to handle larger problems and more complex applications.
+
+To conclude, the best system is the one that meets the deadline, and has the minimum energy consumption.
+Some other processors, such as ARM Cortex A9, have lower power consumption than the systems that evaluated in this section.
+However, these processors could have slower computation speed that either miss the deadline, or lead to higher overall energy consumption for each time-step.
 
 \begin{figure}[t!]
 \centering
@@ -737,7 +796,9 @@ The proposed heterogeneous reconfigurable system demonstrates a significant redu
 The adaptive algorithm reduces computation time while maintaining the quality of results. 
 The approach is scalable to systems with multiple \glspl{fpga}.
 A data compression technique is used to mitigate the data transfer overhead between the \glspl{fpga} and \glspl{cpu}.
-
+An implementation of a robot localisation application targeting the proposed system. 
+Compared to a non-adaptive and non-reconfigurable implementation, the idle power of our proposed system is reduced by 25-34\% and the overall energy consumption decreases by 17-33\%.
+Our system with four \glspl{fpga} is up to 169 times faster than a single core \gls{cpu}, 41 times faster than a 1U \gls{cpu} server with 12 cores, and 3 times faster than a modelled four-\gls{gpu} system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -8,12 +8,12 @@
 \label{sec:precision_intro}
 
 This chapter presents a precision optimisation approach to maximise real-time performance of reconfigurable systems.
-The proposed approach is applied to image-guidance of medical surgery robot.
+The proposed approach is applied to image-guidance of a medical surgery robot.
 
 \gls{pq} is an important compute-intensive and real-time application which requires substantial acceleration before it can be used in clinical setting.
 It is because fast and efficient \gls{pq} (update frequency above 1~kHz) is required to maintain smooth and steady manipulation guidance which is particularly essential for soft tissue surgery having large-scale and rapid tissue deformations.
-This real-time requirement, as well as the intrinsic complexity of the algorithm, make \gls{pq} computationally challenging as a high update frequency above 1~kHz is required. 
-The computation burden is increased by the need to model the shape of tissue and surgery robot by more than~1~million~points.
+This real-time requirement, as well as the intrinsic complexity of the algorithm, make \gls{pq} computationally challenging.
+The computation burden is increased by the need to model the shape of tissue and surgery robot by tens of thousands of points.
 
 Due to its compute-intensive nature, \gls{pq} can greatly benefit from hardware acceleration.
 However, the massive amount of floating-point computations constitute a long data-path which is resource-demanding.
@@ -21,9 +21,9 @@ Even if we could implement the data-path in an \gls{fpga}, the acceleration woul
 This challenge limits the implementation of \gls{pq} on an \gls{fpga}.
 
 In this chapter, we derive a \gls{pq} formulation which allows objects to be represented in complex geometry with points.
-To leverage the advantages of \gls{fpga}s, function transformation eliminates iterative trigonometric functions such that the algorithm can be fully-pipelined.
+To leverage the advantages of \glspl{fpga}, function transformation eliminates iterative trigonometric functions so that the algorithm can be fully-pipelined.
 We increase data-path parallelism by adopting a reduced precision data format which consumes fewer logic resources than high precision.
-To maintain the accuracy of results, potential incorrect outputs are re-computed in high precision.
+To maintain the accuracy of results, potentially incorrect outputs are re-computed in high precision.
 We design a novel memory architecture for buffering potential outputs and maintaining streaming data-flow.
 We further exploit the run-time reconfigurability of \gls{fpga} to optimise precision dynamically.
 To the best of our knowledge, our work is the first to apply reconfigurable technology to narrow-phase \gls{pq} computation.
@@ -35,7 +35,7 @@ restructuring of trigonometric and search-functions to be amenable to parallel i
 \item Enhanced parallelism by treating input points as a novel data structure propagating through pipelines, 
 together with \gls{fpga}-specific optimisations such as adapting \gls{pq} to reduced precision arithmetic,
 supporting multiple precisions in a novel memory architecture, and automating precision management with run-time reconfiguration.
-\item Implementation in a reconfigurable platform with four \gls{fpga}s which is shown to be 478 times faster than a single-core \gls{cpu}, 58 times faster than a 12-core \gls{cpu} system, 9 times faster than a \gls{gpu}, and 3 times faster than a 4-\gls{fpga} system implemented in double precision.
+%\item Implementation in a reconfigurable platform with four \gls{fpga}s which is shown to be 478 times faster than a single-core \gls{cpu}, 58 times faster than a 12-core \gls{cpu} system, 9 times faster than a \gls{gpu}, and 3 times faster than a 4-\gls{fpga} system implemented in double precision.
 \end{itemize}
 
 The rest of the chapter is organised as follows.
@@ -51,9 +51,10 @@ Section~\ref{sec:precision_summary} concludes our work.
 
 In this section, we derive our modified \gls{pq} process which was originally proposed in~\cite{kwok13}. 
 The significance of this modification is to formulate the \gls{pq} capable of processing the contours in complex shapes. 
-As shown in Figure~\ref{fig:pqa_ch3}, \gls{pq} allows the analytical measure of the shortest Euclidean distance between an arbitrary set of points and a series of segments $\Omega_j$ (cf. Definition~1) which has been a well-known representation of a complex three-dimensional object~\cite{ponce89}. 
+As shown in Figure~\ref{fig:pqa_ch3}, \gls{pq} allows the analytical measure of the shortest Euclidean distance between a set of points and a series of segments $\Omega_j$ (cf. Definition~1) which is a well-known representation of a complex three-dimensional object~\cite{ponce89}. 
 Each segment $\Omega_j$ is enclosed by two adjacent contours which are outlined by points arranged in polar coordinates; 
-hence, it outperforms the existing narrow-phase \gls{pq}s which are only compatible with convex objects.
+hence, it is more flexible than the existing narrow-phase \gls{pq}s which are only compatible with convex objects.
+\gls{pq} is also a bounded algorithm as the number of points and contours are fixed for an implementation.
 
 \begin{mydef}
 Each contour is denoted by $C_j$, $\forall j \in [1,...,N_C]$.
@@ -183,6 +184,7 @@ Then we calculate ${^j\theta}$, the corresponding polar angle of $\rho^{\prime}_
 %Algorithm~\ref{algo:search} is performed to find ${^j\phi}$ and ${^{j+1}\phi}$ which embrace ${^j\theta}$.
 A search is performed to find ${^j\phi_i}$ and ${^j\phi_{i+1}}$ such that ${^j\phi_i} \leq {^j\theta} \leq {^j\phi_{i+1}}$.
 The polar angles $^j\phi_i$ and ${^j\phi_{i+1}}$ are calculated from Equation~\ref{eqt:preprocess2}.
+The search is bounded to the number of points of each contour.
 
 %\begin{algorithm}
 %\caption{Search ${^j\phi}$ and ${^{j+1}\phi}$ that embrace ${^j\theta}$}
@@ -321,19 +323,20 @@ As described in Equation~\ref{eqt:preprocess2} and~\ref{eqt:theta}, the values o
 \label{eqt:check1}
 \end{equation}
 
-$atan2(a,b)$ is not a hardware-friendly operator.
-It requires the calculation of $tan^{-1}(a,b)$ and then determines the appropriate quadrant of the computed angle based on the signs of $a$ and $b$.
+$atan2(a,b)$ is not a hardware-friendly operator because it requires the calculation of $tan^{-1}(a,b)$ and then determines the appropriate quadrant of the computed angle based on the signs of $a$ and $b$.
 $tan^{-1}(a,b)$ is resource and timing expensive~\cite{altera_megafunctions} and not available in many \gls{fpga} libraries, therefore, we transform Equation~\ref{eqt:check1} to another form as shown below:
 
 \begin{equation}
 \begin{aligned}
-{^j\phi}_i &= tan^{-1} \left ( \frac{\overline{{^j\omega}_{2i}}}{\sqrt{\overline{{^j\omega}_{1i}}^2+\overline{{^j\omega}_{2i}}^2}+\overline{{^j\omega}_{1i}}} \right ) \mbox{, } \\
-{^j\theta} &= tan^{-1} \left ( \frac{\rho_{2j}}{\sqrt{\rho_{1j}^2+\rho_{2j}^2}+\rho_{1j}} \right ) \mbox{.}
+{^j\phi}_i &= 2 \cdot tan^{-1} \left ( \frac{\overline{{^j\omega}_{2i}}}{\sqrt{\overline{{^j\omega}_{1i}}^2+\overline{{^j\omega}_{2i}}^2}+\overline{{^j\omega}_{1i}}} \right ) \mbox{, } \\
+{^j\theta} &= 2 \cdot tan^{-1} \left ( \frac{\rho_{2j}}{\sqrt{\rho_{1j}^2+\rho_{2j}^2}+\rho_{1j}} \right ) \mbox{.}
 \end{aligned}
 \label{eqt:check2}
 \end{equation}
 
-$atan2$ is transformed to $tan^{-1}$ which is then cancelled out on both sides.
+$atan2$ is transformed to $tan^{-1}$.
+Using tangent half-angle formula, $\frac{{^j\phi}_i}{2}$ and $\frac{{^j\theta}}{2}$ are between $\frac{-\pi}{2}$ and $\frac{\pi}{2}$, 
+therefore, $tan^{-1}$ can be cancelled out on both sides.
 As a result, the comparison becomes:
 
 \begin{equation}
@@ -386,7 +389,9 @@ AE_{p_L}(D_{p_L}) &= AE_{p_L}({_i\delta}^{min}_{1,...,j}) + AE_{p_L}(\delta_{j+1
 
 where $AE_{p_L}(y)$ is the absolute error of variable $y$ in reduced precision $p_L$.
 
-$AE_{p_L}(\delta_{j+1}(\textbf{x}_i))$ is computed at run-time and the details will be discussed later in Section~\ref{sec:precision_search}.
+$AE_{p_L}(\delta_{j+1}(\textbf{x}_i))$ is computed at run-time.
+The computation of Equation~\ref{eqt:mixed} involves 2 multiplication and 3 addition/subtraction only, so the computation complexity is negligible compared to the whole data-path.
+%the details will be discussed later in Section~\ref{sec:precision_search}.
 
 \item Determine whether the comparison result should be re-computed or dropped. \\
 Case A: $\min{(D_{p_H})}>0$, $\delta_{j+1}(\textbf{x}_i)$ is definitely smaller. No re-computation is necessary. \\
@@ -397,6 +402,7 @@ Case C: Cannot determine which value is smaller. Store both values for re-comput
 In case A and B, the difference between the values is large enough to distinguish the sign of $D_{p_H}$ even in the presence of errors introduced by reduced precision computations.
 In case C, the difference is small compared with the uncertainty introduced by reduced precision, and therefore re-computation in high precision is necessary.
 The frequency of case C is lower than case A and B, therefore the gain in computation speed from using reduced precision outweighs the re-computation overhead.
+An example of this situation will be discussed later in Section~\ref{sec:precision_recompute}.
 
 \subsection{Finding the Right Precision}
 \label{sec:precision_search}
@@ -416,17 +422,18 @@ where $y$ is the run-time data and $RE_{p_L}$ is the relative error which is pro
 
 %\subsection{Run-time Reconfiguration}
 On the other hand, we need to decide the precision used in the reduced precision data-paths.
-A lower precision increases the level of parallelism and hence increases the throughput of reduced precision data-path.
+A lower precision increases the level of parallelism and hence increases the throughput of a reduced precision data-path.
 However, it increases the ratio of re-computation and the total run-time.
 It is important to find an optimal precision for the best performance.
 %The ratio of re-computation is data-dependent which changes over time and cannot be computed in advance.
 When the properties of data set do not change, the ratio of re-computation can be determined by offline profiling.
 Otherwise, when a new data set is applied or the ratio of re-computation exceeds a threshold, the optimal precision has to be searched at run-time using our proposed method as shown in Algorithm~\ref{algo:reconfig}.
-The search is run on the \gls{cpu} to reconfigure the \gls{fpga} with a higher precision.
-On a system with multiple FPGAs, one of the FPGAs is reconfigured to approach the optimal precision over a number of time-steps
-while the remaining FPGAs keep the system running.
 %The computation overhead of the algorithm is negligible.
 $TH_{comp,p_L}$, which will be seen in Equation~\ref{eqt:fM} in Section~\ref{sec:precision_model}, is the throughput measured at run-time for data-paths implemented in precision $p_L$.
+The search is run on the \gls{cpu} to reconfigure the \gls{fpga} with a higher precision.
+Since only one iteration of search is executed per time-step, the algorithm is bounded.
+On a system with multiple FPGAs, one of the FPGAs is reconfigured to approach the optimal precision over a number of time-steps
+while the remaining FPGAs keep the system running.
 
 \begin{algorithm}[ht]
 \caption{Run-time tuning of precision for system with $N \geq 2$ FPGAs}
@@ -465,8 +472,8 @@ Referring to Equation~\ref{eqt:distance}, \gls{pq} computes the shortest distanc
 An intuitive implementation is to stream one point into the \gls{fpga} at the beginning,
 then the contours are streamed in the subsequent $N_C$ iterations.
 In other words, Equation~\ref{eqt:normal} to~\ref{eqt:dev_min} are iterated for $N_C-1$ times.
-However, since every comparison operation in Equation~\ref{eqt:dev_min} takes more than one clock cycles of latency (denoted as $L_{cmp}$), the next comparison can only start after the current one completes. 
-This significantly reduces the \gls{fpga}'s throughput for $L_{cmp}$ times because the pipeline is not fully-filled.
+However, since every comparison operation in Equation~\ref{eqt:dev_min} takes more than one clock cycle of latency (denoted as $L_{cmp}$), the next comparison can only start after the current one completes. 
+This significantly reduces the \gls{fpga}'s throughput for $L_{cmp}$ times because the pipeline is not fully filled.
 
 To tackle this problem, we propose a data structure for efficient streaming.
 As shown in Figure~\ref{fig:precision_stream}, data are streamed in an order as indicated by the arrows.
@@ -500,18 +507,18 @@ Solid lines represent communication on the FPGA board while dotted lines represe
 
 \noindent \textbf{Data-paths:}
 As mentioned in Section~\ref{sec:precision_optimisation}, we employ reduced precision on \gls{fpga} to compute the deviations.
-The high precision data-path on \gls{cpu} re-computes the deviations which are not sufficiently accurate,
+The high precision data-path on \gls{cpu} manages the data input/output of the system, re-computes the deviations which are not sufficiently accurate,
 and then it calculates the penetration depth based on the minimum deviation.
 The reduced precision and high precision data-paths are interfaced by a comparator and a memory architecture as described below.
 
 \noindent \textbf{Comparator:}
 The comparator compares the values of two point-segment distances and determines which one is smaller.
-Consider a group of $N_{S}$ points (i.e. $\textbf{x}_1$, $\textbf{x}_2$, ..., $\textbf{x}_{N_S}$) being processed together in the pipeline, we use a FIFO of length $N_{S}$ where
-each slot of the FIFO stores the latest minimum deviation corresponding to a point.
+For a group of $N_{S}$ points (i.e. $\textbf{x}_1$, $\textbf{x}_2$, ..., $\textbf{x}_{N_S}$) being processed together in the pipeline, we use a \gls{fifo} of length $N_{S}$ where
+each slot of the \gls{fifo} stores the latest minimum deviation corresponding to a point.
 Since the point-segment distances are calculated in reduced precision, according to Section~\ref{sec:precision_mixed_precision}, 
 either one of the three conditions happens:
 (A) The distance from the data-path is smaller; 
-(B) The distance stored in the FIFO is smaller; 
+(B) The distance stored in the \gls{fifo} is smaller; 
 (C) The difference between the two distances is too small, so re-computation in high precision is necessary.
 
 \noindent \textbf{Memory Architecture:}
@@ -600,7 +607,8 @@ N_{output} = \frac{W_{dram}}{W_{idx} \cdot N_{p_L}} \mbox{.}
 \label{eqt:output}
 \end{equation}
 
-The computation time of \gls{cpu}, $T_{p_H}$, is related to the amount of data ($N_P \cdot N_C$) and the ratio of re-computation ($R$):
+Assume that a~\gls{cpu} is dedicated to this application and is not interrupted by other activities,
+the computation time of \gls{cpu}, $T_{p_H}$, is related to the amount of data ($N_P \cdot N_C$) and the ratio of re-computation ($R$):
 
 \begin{equation}
 \begin{aligned}
@@ -609,6 +617,10 @@ T_{p_H} = \alpha \cdot R \cdot N_P \cdot N_C \mbox{.}
 \label{eqt:fH}
 \end{equation}
 
+By profiling the software with different values of $R \cdot N_P \cdot N_C$, $\alpha$ is the scaling factor determined by regression.
+%This is based on the assumption that the \gls{cpu} is dedicated to the computation of this application, and the computation time scales linearly with the data size.
+
+The data are moved from the \gls{dram} on \gls{fpga} to the \gls{cpu}'s host memory by \gls{dma} transfer.
 The data transfer time from the \gls{dram} to \gls{cpu}, $T_{tran}$, is judged by the amount of data, the ratio of re-computation, and the bandwidth of the bus connecting the \gls{cpu} to \gls{fpga} ($BW_{bus}$):
 
 \begin{equation}
@@ -618,7 +630,11 @@ T_{tran} = \frac{R \cdot N_P \cdot N_C \cdot W_{idx}}{BW_{bus}} \mbox{.}
 \label{eqt:tran}
 \end{equation}
 
+The model of data transfer is simplified based on an assumption that the data are transferred in burst over the PCI Express bus from \gls{dram} on the \glspl{fpga} to the system memory of the \gls{cpu}.
+Other factors, such as CPU interrupt latency, are not modelled.
+
 With the model, designer can ensure that the system parameters (Table~\ref{tab:model}) do not cause the system to fail real-time application's deadline.
+In summary, this model is used in the next section to perform system analysis, such as the effect of precision on the level of parallelism and the re-computation ratio.
 
 \begin{table}[t!]
 	\begin{spacing}{1.0}
@@ -631,7 +647,7 @@ With the model, designer can ensure that the system parameters (Table~\ref{tab:m
 			$N_P$			& Number of points \\
 			$N_C$			& Number of contours \\
 			$N_{p_L}$ 		& Number of reduced precision data-path \\
-			$N_{p_H}$ 		& Number of high precision data-path \\
+			%$N_{p_H}$ 		& Number of high precision data-path \\
 			$L_{p_L}$			& Length of the data-path \\
 			$N_{output}$ 	& Number of outputs per data-path per cycle \\
 			$L_{output}$ 	& Number of output cycles \\
@@ -687,11 +703,15 @@ Figure~\ref{fig:exectime} shows the overall computation time ($T_{comp}$)
 and the degree of parallelism of \gls{pq} versus different number of mantissa bits.
 Please note that all different configurations of mantissa bits have the same output accuracy.
 The data set includes 73k points and 100 contours.
-The computation times are obtained using our analytical model in Section~\ref{sec:precision_model} and they are verified experimentally using the implementation.
+The computation times are obtained using our analytical model in Section~\ref{sec:precision_model} and they are verified experimentally using the implementation as shown in Figure~\ref{fig:exectime}.
 The degree of parallelism is obtained by filling the \gls{fpga} with data-paths until the logic cell utilisation exceeds 80\% after the placement and routing process.
 The degree of parallelism is the highest when we start with four mantissa bits.
 Using more mantissa bits decreases the parallelism as well as the ratio of re-computation, therefore $T_{p_L}$ increases but $T_{p_H}$ decreases.
 As shown by the dotted line in the figure, a minimum computation time is achieved when 10 mantissa bits are used.
+The point at 10 mantissa bits is the optimum which achieves the balance between parallelism and re-computation.
+For 4-9 mantissa bits, though more data-paths can be implemented, the overall computation time is slowed down by frequent re-computation.
+For 11-54 mantissa bits, the ratio of re-computation is lower but fewer data-paths are available for computation.
+The relationship between the re-computation ratio and the number of mantissa bits will be studied in the next section.
 Note that when the number of mantissa bits is more than~36, only one data-path can be mapped onto the \gls{fpga}.
 In such cases, we can implement the data-path in double precision directly which does not require any re-computation on \gls{cpu}.
 This is indicated by the last data points of both curves.
@@ -700,9 +720,10 @@ This is indicated by the last data points of both curves.
 \begin{center}
 \includegraphics[width=0.78\textwidth]{3_precision/figures/fig_exectime}
 \end{center}
-\caption[Computation time and the level of parallelism versus different number of mantissa bits.]{Computation time (dotted line) and the level of parallelism (solid line) versus different number of mantissa bits.}
+\caption[Computation time and the level of parallelism versus different number of mantissa bits.]{Computation time (dotted line) and the level of parallelism (solid line) versus different number of mantissa bits. $N_P = 73,000; N_C = 100$}
 \label{fig:exectime}
 \end{figure}
+
 
 \subsection{Ratio of Re-computation versus Precision}
 \label{sec:precision_recompute}
@@ -710,17 +731,21 @@ The dotted line in Figure~\ref{fig:recompute} shows the ratio of re-computation 
 The results are obtained from a software version of \gls{pq} implementation with precisions adjusted using MPFR library~\cite{fousse07}.
 For each point, 100 computations of deviation in distance are required.
 The ratio of re-computation drops exponentially as the number of mantissa bits increases.
-From the performance perspective, to the left the ratio of re-computation is too high, to the right the decrease of re-computation cannot offset the impact brought by the decrease in parallelism.
+From the performance perspective, the optimal point is when the number of mantissa bits equals to 10.
+To the left the ratio of re-computation is too high, to the right the decrease of re-computation cannot offset the impact brought by the decrease in parallelism.
 When the number of mantissa bits is four, in average 2.66 out of 100 computations need to be re-computed using high precision, i.e. the ratio of re-computation is 2.66\%.
 When the number of mantissa bits is greater then 15, the ratio of re-computation drops to 1\% which is the minimum value as only one out of 100 values is re-computed.
 The last data points of both curves indicate the situation when double precision is used on the \gls{fpga} and no re-computation is necessary.
 
-The solid line in Figure~\ref{fig:recompute} shows the number of point processed in 1~ms versus the number of mantissa bits.
-The application has a real-time update requirement of 1~kHz so the results are updated every 1~ms.
+The solid line in Figure~\ref{fig:recompute} shows the number of point that can be processed if the application requires a 1kHz update rate, i.e. the deadline is 1ms.
+%The application has a real-time update requirement of 1~kHz so the results are updated every 1~ms.
 The number of required points is based on the user specification of the model resolution in three-dimensional space.
 When the number of mantissa bits is 10, the maximum number of points can be processed.
 It is because the throughput is the highest by balancing the ratio of re-computation and the degree of parallelism.
-Since more points can be processed in real-time, we can handle a more complex robot model with a finer resolution.
+Although the original data set contains 73k points, in the best case only 10k points can be processed in real-time.
+This experiment shows the realistic situation about the trade-off between the update rate and the resolution of the \gls{pq} formulation.
+The results can guide the designer to adjust the real-time requirement and the complexity of the modelled objects.
+%Since more points can be processed in real-time, we can handle a more complex robot model with a finer resolution.
 
 \begin{figure}[ht]
 \begin{center}
@@ -731,9 +756,11 @@ the number of points processed in 1 ms (solid line) versus different number of m
 \label{fig:recompute}
 \end{figure}
 
+
 \subsection{Comparison: CPU, GPU and Reconfigurable System}
 Table~\ref{tab:performance} compares the performance of \gls{pq} running on \gls{cpu}, \gls{gpu} and \gls{fpga} in double precision arithmetic, 
-and our proposed reconfigurable system with \gls{cpu}s and \gls{fpga}s.
+and our proposed reconfigurable system with \glspl{cpu} and \glspl{fpga}.
+To have fair comparison of performance, all platforms use processors manufactured by the smallest process nodes available to date, and the platforms belong to the server-grade product line.
 
 %For the \gls{fpga}-based implementation, the double-precision design is too large to fit into the \gls{fpga} chip.
 %Thus, we assume the implementation is realised on a larger \gls{fpga} and the results are obtained by the performance model in Section~\ref{sec:implementation}.
@@ -805,3 +832,8 @@ Run-time reconfiguration is employed to optimise precision automatically.
 We then map the optimised algorithm to a reconfigurable system with four Virtex-6 \gls{fpga}s and 12 \gls{cpu} cores.
 Our proposed reconfigurable system achieves 478 times speedup over a single-core \gls{cpu}, 58 times speedup over a 12-core \gls{cpu} system, 9 times speedup over a \gls{gpu}, and 3 times speedup over an \gls{fpga} implementation in double precision.
 Since more points can be processed in real-time, we can handle a more complex robot model with a finer resolution.
+
+The reconfigurable system design and performance model allow users evaluate system's real-time performance.
+Users are able to adjust the precision of calculation and the complexity of object representation to ensure that the application meets the real-time requirements.
+This chapter focuses on static analysis and optimisation is mainly done during design stage.
+The next chapter will discuss techniques related to run-time optimisation.

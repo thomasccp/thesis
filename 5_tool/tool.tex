@@ -45,7 +45,7 @@ This section introduces a design flow for generating reconfigurable \gls{smc}
 designs. The design flow has two novel features to minimise hardware redesign efforts:
 (1) A generic high-level mapping where application-specific features are specified in a software template and automatically converted to hardware.
 The template supports the parameter optimisation described in Section~\ref{sec:flow_optimisation}.
-(2) A parametrisable \gls{smc} computation engine which is made up of customisable building blocks and generic control structure that maximises design reuse.
+(2) A parametrisable \gls{smc} computation engine which is made up of customisable building blocks and a generic control structure that maximises design reuse.
 We will start with three high-level stages as shown in Figure~\ref{fig:flow}, and look into the features as we go through this section.
 %A novel data structure allows run-time adjustment of parameters.
 %These flexibilities minimise hardware redesign efforts and allow \glspl{fpga} to take advantage of the parameter tuning methodology in Section~\ref{sec:optimisation}.
@@ -63,11 +63,13 @@ Figure~\ref{fig:flow} shows the proposed design flow:
 \begin{enumerate}
 \item Starting with a functional description such as a software code or a mathematical formulation, the users identify and code application-specific features (Section~\ref{sec:flow_kernel}). 
 Generally only the application-specific features are of interest, other features which are common to all \gls{smc} applications are handled by the design flow, so the functional description does not necessarily have to be a complete software code.
+\item The synthesis step automatically weaves the application-specific features with the computation engine (Section~\ref{sec:flow_system}) to form a performance model (Section~\ref{sec:flow_model}), a simulation model, and a complete configuration for the targeted reconfigurable system.
 
-In this work the synthesis tool employed is Maxeler's MaxCompiler, which uses Java as the underlying language. 
+In this work the synthesis tool employed is Maxeler's MaxCompiler.
+All the application-specific features and the computation engine are described by an extension of Java programming language, which is specialised for data flow description, such as latency, pipeline, multiplexer, \gls{fifo} and memory.
+%which uses Java as the underlying language. 
 MaxCompiler also supports \glspl{fpga} from multiple vendors, such that low level configurations, such as I/O binding, are performed automatically.
 Our approach can be extended to support other tools and devices, for example by having the appropriate templates in VHDL or Verilog.
-\item The synthesis step automatically weaves the application-specific features with the computation engine (Section~\ref{sec:flow_system}) to form a performance model (Section~\ref{sec:flow_model}), a simulation model, and a complete configuration for the targeted reconfigurable system.
 \item The design flow also consists of a parameter optimisation step (Section~\ref{sec:flow_optimisation}) which takes the simulation model and performance model as inputs to produce a set of performance or accuracy optimised parameters.
 Generally a simulation model is sufficient for performing optimisation, if a complete software code is provided, it can be used to accelerate the optimisation process.
 \item The design of \gls{smc} computation engine allows further adaptation of design at run-time.
@@ -88,8 +90,8 @@ These descriptions correspond to \textit{Def} (Code~\ref{lst:def}), \textit{\gls
 %\textit{state} is location ($x,y$) and heading $h$, and
 %\textit{control} is the displacement $d$ and rotation $r$.
 %Furthermore, \textit{design parameters} (Table~\ref{tab:parameters}) and application parameters need to be supplied.
-\textbf{Def}: Code~\ref{lst:def} illustrates the class where number representation (floating-point, fixed-point with different bit-width), structs (state, reference), static parameters and system parameters are defined.
-Users are allowed to customise number representation to benefit from the flexibility of \gls{fpga} and make trade-off between accuracy and design complexity.
+\textbf{Def}: Code~\ref{lst:def} illustrates the class where number representation (floating-point, fixed-point with different bit-width), structs (state, reference), static parameters (Table~\ref{tab:parameters}) and system parameters are defined.
+Users are allowed to customise number representation to benefit from the flexibility of \gls{fpga} and make trade-offs between accuracy and design complexity.
 State and reference structs determine the I/O interface.
 Static parameters are defined in this class, while dynamic parameters are provided at run-time.
 System parameters define device-specific properties such as clock speed and parallelism.
@@ -203,7 +205,7 @@ The computation engine employs a heterogeneous structure that consists of multip
 \glspl{fpga} are responsible for sampling, importance weighting and optionally resampling index generation, and are fully pipelined to maximise throughput. 
 To exploit parallelism, particle simulations (sampling and importance weighting) are computed simultaneously by every processing core on each \gls{fpga}. 
 Processing cores can be replicated as many times as \gls{fpga} resources allow.
-In situation where the computed results have to be grouped together, data are transferred among \glspl{fpga} via an inter-\gls{fpga} connection.
+In situations where the computed results have to be grouped together, data are transferred among \glspl{fpga} via an inter-\gls{fpga} connection.
 To maximise the system throughput, remaining non-compute-intensive tasks that involve random and non-sequential data accesses are performed on the \glspl{cpu}.
 \glspl{fpga} and \glspl{cpu} communicate through high bandwidth connections such as PCI Express or InfiniBand.
 
@@ -231,6 +233,7 @@ The particle indices are scrambled after this stage and the indices are transfer
 Third, the time loop iterates once per time-step to obtain a new control strategy and to update the current state.
 
 Based on this fact, the data structure shown in Figure~\ref{fig:flow_stream} is derived.
+Applications such as robot localisation presented in Chapter~\ref{ch:adaptation} need to follow this data structure in order to cope with this design flow.
 %It utilises a deep pipeline of \glspl{fpga} so that particles can be processed simultaneously.
 Each particle encapsulates three pieces of information: (1) state, (2) reference, and (3) weight, each being stored as a stream as indicated in the figure.
 The length of the \textit{state stream} is $N_P \cdot N_A \cdot H$ where $H$ means each control strategy predicts $H$ steps into the future.
@@ -252,7 +255,7 @@ Figure~\ref{fig:flow_kernel} shows the design of the \gls{fpga} kernel. Blocks t
 The sampling function in Code~\ref{lst:func} is mapped to the \textbf{Sampling} block which accepts a state and a reference on each clock cycle and calculates the next state on the prediction horizon.
 After getting a state from the \gls{cpu} at the beginning ($itl\_inner=0$ and $H=0$), the data will be used by the kernel $itl\_inner \cdot N_P$ times.
 An optional \textit{state RAM} enables reuse of state data and improves performance when the value of $itl\_inner$ is large.
-An array of \gls{lut}-based random number generators~\cite{thomas07,thomas10} is seeded by \gls{cpu} to provide random variables; application parameters are stored in registers; and
+An array of \gls{lut}-based random number generators~\cite{thomas07,thomas10} is seeded by the \gls{cpu} to provide random variables; application parameters are stored in registers; and
 a feedback path stores the state of the previous $N_P \cdot N_A$ cycles.
 %From this value, the next state on the horizon can be computed.
 
@@ -300,8 +303,9 @@ It is iterated $itl\_inner$ times in the inner loop.
 The sampling and importance weighting process can be accelerated using multiple cores, such that each of them is responsible for part of the inner loop iterations or particles.
 $N_C$ represents the number of processing cores being used on one \gls{fpga}, and $N_{board}$ is the number of \gls{fpga} boards being used.
 $freq$ is the clock frequency of the processing cores.
-$BW_{bus}$ is the bandwidth of the bus connecting the \gls{cpu} to \gls{fpga}.
+$BW_{bus}$ is the bandwidth of the bus connecting \gls{cpu} to \gls{fpga}.
 $min(1,\frac{BW_{bus}}{sizeof(state) \cdot freq})$ accounts for the limitation of bandwidth between \glspl{fpga} and \glspl{cpu}.
+$\frac{BW_{bus}}{sizeof(state) \cdot freq}$ models the case when the data throughput of \glspl{fpga} exceeds the bandwidth of the bus.
 
 $T_{resample}$ is the time spent on generating the resampling indices.
 
@@ -315,6 +319,7 @@ It takes $N_P \cdot PW + N_P \cdot N_A$ cycles to generate the cumulative probab
 $PW$ and $PL$ are the length of the pipelines.
 $T_{resample}$ can be omitted if resampling is processed by the \glspl{cpu}.
 
+Assume that the \gls{cpu} is dedicated to particle set resizing and resampling, and the computation time scales linearly with the data size.
 $T_{cpu}$ is the time spent on resampling and updating the current state on the \glspl{cpu}.
 
 \begin{equation}
@@ -325,6 +330,7 @@ T_{cpu} = \alpha \cdot H \cdot N_P \cdot N_A \mbox{.}
 
 The time is related to the amount of data and the speed of the \gls{cpu}.
 $\alpha$ is the scaling factor of the \gls{cpu} speed.
+By running the software with different values of $H \cdot N_P \cdot N_A$, $\alpha$ is the scaling factor determined by regression.
 
 $T_{tran}$ is the data transfer time that accounts for the time taken to transfer the state stream between \glspl{cpu} and \gls{dram} on an \gls{fpga} board.
 $T_{tran}$ can be omitted if no \gls{dram} is used.
@@ -351,6 +357,36 @@ T_{tran} = \frac{N_P \cdot N_A \cdot \left ( H \cdot sizeof(state)\right)}{BW_{b
 %\label{eqt:usage_resource}
 %\end{equation}
 
+Table~\ref{tab:reconfig_parameters_tool} summerises the parameters used in the performance model.
+In Section~\ref{sec:flow_dse}, the parameter optimisation process will use this model to estimate the computation time of different implementations.
+
+\begin{table}
+	\setlength{\tabcolsep}{3pt}
+	\begin{spacing}{1.0}
+	\caption{Parameters of the performance model.}
+	\label{tab:reconfig_parameters_tool}
+	\footnotesize
+	\centering
+	\smallskip
+		\begin{tabular}{c|c}
+			\hline
+			$itl\_outer$ & Number of iterations of the outer loop \\
+			$itl\_inner$ & Number of iterations of the inner loop \\
+			$N_P$ & Number of particles \\
+			$N_A$ & Number of agents under control \\
+			$N_C$ & Number of processing cores being used on one \gls{fpga} \\
+			$N_{board}$ & Number of \gls{fpga} boards in the system \\
+			$H$ & Prediction horizon \\
+			$\mathit{freq}$ & Clock frequency of the processing core \\
+			$BW_{bus}$ & Bandwidth of the bus connecting the \gls{cpu} to \gls{fpga} \\
+			$PW$ & Length of the pipeline \\
+			$PL$ & Length of the pipeline \\
+			$\alpha$ & Empirical constant of \gls{cpu} speed \\
+			\hline
+		\end{tabular}
+		\end{spacing}
+\end{table}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Optimising SMC Computation Engine}
@@ -358,9 +394,11 @@ T_{tran} = \frac{N_P \cdot N_A \cdot \left ( H \cdot sizeof(state)\right)}{BW_{b
 
 The design parameters in Table~\ref{tab:parameters} have great impact on the performance.
 Three questions manifest when finding optimised customisation of the engine:
-\textbf{(1) Which sets of parameters have the best accuracy?
-(2) For the same accuracy, which sets of parameters meet the timing requirement?
-(3) How can we reduce the design parameter exploration time?}
+\textbf{(1) Which sets of parameter values give rise to higher accuracy results in the solution?}
+Increasing $N_P$ and $itl\_outer$ improves \gls{rmse}, however, is the improvement linear?
+\textbf{(2) For a given accuracy of the solution, which sets of parameter values satisfy the real-time timing requirement?}
+Using more than enough particles does not improve accuracy but make the computation engine fail the real-time timing requirement.
+\textbf{(3) The above two questions leads to a huge design space, how can we reduce the design parameter exploration time?}
 This section discusses some techniques about parameter optimisation.
 
 \subsection{Compile-time Parameters}
@@ -413,15 +451,15 @@ If the value of $S$ (scaling factor for the standard deviation of noise) is also
 
 In Chapter~\ref{ch:adaptation}, we proposed an algorithm which changes the number of particles based on run-time condition.
 The computation workload decreases with the number of particles and hence introduces an idle period between the finishing time of computation and the end of real-time interval.
-The power consumption during the idle period is reduced by reconfigurating the \glspl{fpga} to low-power mode, where the \glspl{fpga} runs at a lower frequency and all the unnecessary features are disabled or removed.
+The power consumption during the idle period is reduced by reconfiguring the \glspl{fpga} to a low-power mode, where the \glspl{fpga} run at a lower frequency and stop doing computation.
 The run-time reconfiguration and parameter adaptation are applied to the proposed \gls{smc} computation engine in this chapter.
 For convenience, Algorithm~\ref{algo:smcb} recaptures the approach, with modifications made to cope with the generalised computation engine.
 In particular, an inner loop $itl\_inner$ is included to deal with multiple iteration of sampling and importance within a time-step.
-$N_{P_{t+1}}$ describes the lower bound of particle size which is used in Algorithm~\ref{algo:smcb}:
+$\widetilde{N}_{P_{t+1}}$ describes the lower bound of particle size which is used in Algorithm~\ref{algo:smcb}:
 
 \begin{equation}
 \begin{aligned}
-\widetilde{N_{P_{t+1}}} = \sigma^2 \cdot \frac{{N_{P_{max}}}}{Var(\{\widetilde{\chi}_{t+1}^{(i)}\}^{{N_{P_t}}}_{i=1})} \mbox{.}
+\widetilde{N}_{P_{t+1}} = \sigma^2 \cdot \frac{{N_{P_{max}}}}{Var(\{\widetilde{\chi}_{t+1}^{(i)}\}^{{N_{P_t}}}_{i=1})} \mbox{.}
 \end{aligned}
 \label{eqt:bound2b_ch5}
 \end{equation}
@@ -445,11 +483,11 @@ $N_{P_{t+1}}$ describes the lower bound of particle size which is used in Algori
 			\STATE{Calculate unnormalised importance weights $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$ and accumulate the weights as $w_{sum}$} \label{algo:smc_si2_ch5}
 			\STATE{$idx2 \gets idx2 + 1$}
 		\ENDWHILE
-		\STATE{Calculate the lower bound of sample size $\widetilde{N_{P_{t+1}}}$ by Equation~\ref{eqt:bound2b_ch5}} \label{algo:smc_lb_ch5}
+		\STATE{Calculate the lower bound of sample size $\widetilde{N}_{P_{t+1}}$ by Equation~\ref{eqt:bound2b_ch5}} \label{algo:smc_lb_ch5}
 	{\color{gray} \STATE{---On \gls{cpu}s---}}
 	\STATE{Sort $\{s_{t+1}^{\prime(i)}\}^{N_{P_t}}_{i=1}$ in descending $\{w^{\prime(i)}\}^{N_{P_t}}_{i=1}$} \label{algo:smc_sort_ch5}
-	\IF{$\widetilde{N_{P_{t+1}}} < {N_{P_t}}$} \label{algo:smc_rd1_ch5}
-		\STATE{${N_{P_{t+1}}} = max\left(\lceil\widetilde{N_{P_{t+1}}}\rceil, {N_{P_t}}/2\right)$}
+	\IF{$\widetilde{N}_{P_{t+1}} < {N_{P_t}}$} \label{algo:smc_rd1_ch5}
+		\STATE{${N_{P_{t+1}}} = max\left(\lceil\widetilde{N}_{P_{t+1}}\rceil, {N_{P_t}}/2\right)$}
 		\STATE{Set $a = 2{N_{P_{t+1}}}-{N_{P_t}}$ and $b = {N_{P_{t+1}}}$}
 		{\color{gray} \STATE{--Do the following loop in parallel--}}
 		\FOR{$i$ in ${N_{P_t}}-{N_{P_{t+1}}}$} \label{algo:smc_loop1s_ch5}
@@ -457,7 +495,7 @@ $N_{P_{t+1}}$ describes the lower bound of particle size which is used in Algori
 			\STATE{$w^{\prime(i)} = w^{\prime(a)} + w^{\prime(b)}$}
 			\STATE{$a = a+1$ and $b = b-1$}
 		\ENDFOR \label{algo:smc_rd2_ch5} \label{algo:smc_loop1e_ch5}
-	\ELSIF{$\widetilde{N_{P_{t+1}}} \geq {N_{P_t}}$} \label{algo:smc_rd3_ch5}
+	\ELSIF{$\widetilde{N}_{P_{t+1}} \geq {N_{P_t}}$} \label{algo:smc_rd3_ch5}
 		\STATE{$a=0$ and $b=0$}
 		\FOR{$i$ in ${N_{P_{t+1}}}-{N_{P_t}}$}
 			\IF{$w^{\prime(a)}<w^{\prime(a+1)}$ and $a<{N_{P_{t+1}}}$}
@@ -501,15 +539,19 @@ Furthermore the design space is constrained by multiple accuracy and real-time r
 We cannot use a design unless the results are within certain error bound.
 The problem is further aggravated by \textit{the curse of dimensionality}.
 %We cannot assume that the general \gls{smc} methods parameters have the same impact on all applications which are based on \gls{smc} methods, the impact can be drastically different.
-We use an automated design exploration approach which is facilitated by a machine learning algorithm developed in~\cite{kurek14fccm}.
-The approach allows the performance impact of different parameters to be determined for any design based on our \gls{smc} computation engine. 
+To address this problem, we aim to use an automated design space exploration approach which allows the performance impact of different parameters to be determined for any design based on our \gls{smc} computation engine.
+Although various algorithms exist for design space exploration, algorithms such as exhaustive search and hill climbing~\cite{stuart03}, are impractical.
+They require hundreds of designs to be evaluated, while each design takes hours to build and run.
+Other algorithms like mathematical programming~\cite{thomas89} or gradient descent~\cite{avriel03} assume convexity and continuity of the underlying problem, which requires manual calibration by the designer.
+In this work, we use an approach which is facilitated by a machine learning algorithm developed in~\cite{kurek14fccm}.
+It does not require the designer to tune the algorithm, and a surrogate model is employed to enable rapid learning of the valid design space and to deal with a large number of parameters.
 %The approach has 4 steps:
 %(1) Identify metrics to be optimised, such as \gls{rmse} and run-time.
 %(2) Specify constraints that distinguish valid and invalid solutions.
 %(3) Develop timing and resource models for the \gls{fpga} implementation.
 %(4) Use the machine learning approach to explore the parameter space automatically.
 
-A surrogate model is employed to enable rapid learning of the valid design space and to deal with a large number of parameters.
+
 %Regression of the fitness function is performed over the parameter space.
 %An SVM classifier is used to prevent the algorithm from exploring regions of the parameter space which the classifier predicts to be invalid, i.e. they are likely to fail one of the constraints.
 The idea is illustrated in Figure~\ref{fig:dse}.
@@ -541,7 +583,7 @@ Our \gls{smc} computation engine is made customisable to benefit from this optim
 	\includegraphics[width=0.4\textwidth]{5_tool/figures/fig_surrogate_move}
 	\label{fig:surrogate_move}
 }
-\caption{Illustration of automatic parameter optimisation: (a) Sampling parameter sets; (b) Building surrogate model; (c) Calculating expected improvement; (d) Moving to the point offering the highest improvement.}
+\caption{Illustration of automatic parameter optimisation (adapted from~\cite{kurek14fccm}): (a) Sampling parameter sets; (b) Building surrogate model; (c) Calculating expected improvement; (d) Moving to the point offering the highest improvement.}
 \label{fig:dse}
 \end{figure}
 
@@ -709,7 +751,7 @@ It is because CPU has lower performance, and a different set of parameters is ap
 \end{table}
 
 In this application, the number of particles are adapted to the run-time environment.
-Figure~\ref{fig:adaptiveb} shows the effect of the number of particles on the breakdown of computation time.
+Figure~\ref{fig:adaptiveb} shows the effect of the number of particles on the computation time.
 The largest amount of particles are used to determine the robot's initial location (known as global localisation).
 Then the number of particles needed decreases sharply, only a small amount of particles are used to keep tracking the robot's movement.
 Reduction in the number of particles implies decrease in the computation time, and hence results in a longer idle time when the \gls{fpga} runs in low-power mode.
@@ -725,7 +767,7 @@ The effect of running the \gls{fpga} in low-power mode is shown in Figure~\ref{f
 The power of \gls{fpga} peaks at 135W when in compute-mode and drops to 95W when in idle-mode.
 Short periods of 110W are observed when the \gls{fpga} is switching between the two modes.
 The power of \gls{cpu} and \gls{gpu} are also shown in the figure.
-%\todo[inline]{Computation time, run-time, processing-time.}
+The low power of \gls{fpga} allows the mobile robot to benefit from a longer uptime when it runs on battery power.
 
 \begin{figure}[t!]
 \centering
@@ -811,7 +853,7 @@ Hence, the parameter optimisation time is reduced from days to hours.
 
 Table~\ref{tab:perf_comparison} summarises the performance of the \gls{cpu}, \gls{gpu} and reconfigurable system.
 To ensure fair comparisons, we scale the \gls{cpu} and \gls{gpu} systems to similar form factors with the reconfigurable system.
-The scaling is based on the fact that the sampling and importance weighting process is evenly distributed to every \gls{gpu} and computed independently,
+The scaling is based on the fact that the sampling and importance weighting process are evenly distributed to every \gls{gpu} and computed independently,
 while the resampling process is computed on the \gls{cpu} no matter how many \gls{gpu}s are used.
 The reconfigurable platform is faster and more energy efficient than the other systems.
 
